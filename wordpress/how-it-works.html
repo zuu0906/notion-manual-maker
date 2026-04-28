@@ -1,0 +1,166 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+.cmm*{box-sizing:border-box;margin:0;padding:0}
+.cmm{font-family:'Noto Sans JP',-apple-system,sans-serif;color:#191919;line-height:1.7;-webkit-font-smoothing:antialiased}
+.cmm-section-label{text-align:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-bottom:12px}
+.cmm-section-title{text-align:center;font-size:clamp(22px,3vw,32px);font-weight:800;margin-bottom:8px;letter-spacing:-.3px}
+.cmm-section-sub{text-align:center;font-size:15px;color:#6b6b6b;margin-bottom:56px}
+.cmm-hiw-hero{background:#f9f9f7;padding:72px 24px 56px;text-align:center}
+.cmm-hiw-hero-badge{display:inline-block;background:#191919;color:#fff;font-size:11px;font-weight:700;padding:5px 16px;border-radius:20px;letter-spacing:1px;margin-bottom:20px}
+.cmm-hiw-hero h1{font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-.5px;margin-bottom:16px}
+.cmm-hiw-hero p{font-size:16px;color:#6b6b6b;max-width:480px;margin:0 auto 36px}
+.cmm-btn-primary{display:inline-block;background:#e03e3e;color:#fff!important;padding:15px 40px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none;transition:opacity .15s;box-shadow:0 4px 14px rgba(224,62,62,.3)}
+.cmm-btn-primary:hover{opacity:.88}
+.cmm-hiw-steps{padding:80px 24px}
+.cmm-hiw-steps-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column}
+.cmm-hiw-step{display:flex;gap:40px;align-items:flex-start;padding:40px 0;border-bottom:1px solid #ebebeb}
+.cmm-hiw-step:last-child{border-bottom:none}
+.cmm-hiw-step-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center}
+.cmm-hiw-step-num{width:48px;height:48px;background:#e03e3e;color:#fff;border-radius:50%;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.cmm-hiw-step-line{width:2px;flex:1;background:#ebebeb;margin-top:8px;min-height:40px}
+.cmm-hiw-step:last-child .cmm-hiw-step-line{display:none}
+.cmm-hiw-step-body{flex:1}
+.cmm-hiw-step-tag{font-size:11px;font-weight:700;color:#e03e3e;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.cmm-hiw-step-body h3{font-size:20px;font-weight:800;margin-bottom:12px;letter-spacing:-.2px}
+.cmm-hiw-step-body p{font-size:14px;color:#6b6b6b;line-height:1.8;margin-bottom:16px}
+.cmm-hiw-step-visual{background:#f9f9f7;border:1.5px solid #ebebeb;border-radius:12px;padding:24px;display:flex;align-items:center;justify-content:center;font-size:40px;min-height:100px;flex-shrink:0;width:100px}
+.cmm-hiw-tips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.cmm-hiw-tip{background:#f1f1ef;font-size:12px;padding:4px 12px;border-radius:20px;color:#3a3a3a}
+.cmm-hiw-features{background:#f9f9f7;padding:72px 24px}
+.cmm-hiw-features-grid{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.cmm-hiw-feature{background:#fff;border:1.5px solid #ebebeb;border-radius:12px;padding:24px 20px}
+.cmm-hiw-feature-icon{font-size:24px;margin-bottom:12px}
+.cmm-hiw-feature h4{font-size:14px;font-weight:700;margin-bottom:6px}
+.cmm-hiw-feature p{font-size:13px;color:#6b6b6b;line-height:1.7}
+.cmm-cta{background:#191919;color:#fff;text-align:center;padding:64px 24px}
+.cmm-cta h2{font-size:26px;font-weight:800;margin-bottom:12px}
+.cmm-cta p{color:rgba(255,255,255,.7);margin-bottom:32px;font-size:15px;line-height:1.8}
+.cmm-cta-badges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:32px}
+.cmm-cta-badge{background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:500;padding:6px 14px;border-radius:20px}
+.cmm-btn-white{display:inline-block;background:#fff;color:#191919!important;padding:15px 40px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none;transition:opacity .15s}
+.cmm-btn-white:hover{opacity:.9}
+@media(max-width:640px){
+  .cmm-hiw-step{flex-direction:column;gap:20px}
+  .cmm-hiw-step-left{flex-direction:row}
+  .cmm-hiw-step-line{width:40px;height:2px;min-height:unset;margin-top:0;margin-left:8px}
+  .cmm-hiw-step-visual{width:100%;min-height:80px}
+}
+</style>
+
+<div class="cmm">
+
+<div class="cmm-hiw-hero">
+  <span class="cmm-hiw-hero-badge">How it works</span>
+  <h1>3ステップでマニュアル完成</h1>
+  <p>クリックするだけで、スクリーンショット付きのNotionマニュアルが自動で作られます。</p>
+  <a href="https://chrome.google.com/webstore" class="cmm-btn-primary" target="_blank" rel="noopener">無料で試してみる</a>
+</div>
+
+<div class="cmm-hiw-steps">
+  <div class="cmm-hiw-steps-inner">
+    <div class="cmm-hiw-step">
+      <div class="cmm-hiw-step-left">
+        <div class="cmm-hiw-step-num">1</div>
+        <div class="cmm-hiw-step-line"></div>
+      </div>
+      <div class="cmm-hiw-step-body">
+        <p class="cmm-hiw-step-tag">Step 01</p>
+        <h3>拡張機能を開いて記録開始</h3>
+        <p>Chromeツールバーのアイコンをクリックしてポップアップを開き、「記録開始」ボタンを押すだけ。</p>
+        <div class="cmm-hiw-tips">
+          <span class="cmm-hiw-tip">📌 ピン留め推奨</span>
+          <span class="cmm-hiw-tip">⌨️ ショートカット対応</span>
+        </div>
+      </div>
+      <div class="cmm-hiw-step-visual">🖱️</div>
+    </div>
+    <div class="cmm-hiw-step">
+      <div class="cmm-hiw-step-left">
+        <div class="cmm-hiw-step-num">2</div>
+        <div class="cmm-hiw-step-line"></div>
+      </div>
+      <div class="cmm-hiw-step-body">
+        <p class="cmm-hiw-step-tag">Step 02</p>
+        <h3>操作するだけで自動キャプチャ</h3>
+        <p>クリックするたびに自動でスクリーンショットが撮影されます。クリック箇所には赤丸アノテーションが入るので、手順が一目でわかります。</p>
+        <div class="cmm-hiw-tips">
+          <span class="cmm-hiw-tip">🔴 赤丸アノテーション</span>
+          <span class="cmm-hiw-tip">📷 自動スクショ</span>
+          <span class="cmm-hiw-tip">✏️ メモ追加可</span>
+        </div>
+      </div>
+      <div class="cmm-hiw-step-visual">📸</div>
+    </div>
+    <div class="cmm-hiw-step">
+      <div class="cmm-hiw-step-left">
+        <div class="cmm-hiw-step-num">3</div>
+        <div class="cmm-hiw-step-line"></div>
+      </div>
+      <div class="cmm-hiw-step-body">
+        <p class="cmm-hiw-step-tag">Step 03</p>
+        <h3>Notionへ一括保存・完成</h3>
+        <p>「Notionへ保存」を押すだけで、すべてのスクリーンショットと説明文がNotionページに自動で整理されます。</p>
+        <div class="cmm-hiw-tips">
+          <span class="cmm-hiw-tip">📄 Notionへ自動整形</span>
+          <span class="cmm-hiw-tip">🤖 AI説明文生成</span>
+          <span class="cmm-hiw-tip">📥 PDFエクスポート</span>
+        </div>
+      </div>
+      <div class="cmm-hiw-step-visual">📄</div>
+    </div>
+  </div>
+</div>
+
+<div class="cmm-hiw-features">
+  <p class="cmm-section-label">Features</p>
+  <h2 class="cmm-section-title">細かいところまで気が利く</h2>
+  <p class="cmm-section-sub">マニュアル作成の手間を徹底的に省く機能を揃えました。</p>
+  <div class="cmm-hiw-features-grid">
+    <div class="cmm-hiw-feature">
+      <div class="cmm-hiw-feature-icon">🔴</div>
+      <h4>赤丸アノテーション</h4>
+      <p>クリック箇所を自動でマーク。どこを操作すればいいか一目瞭然。</p>
+    </div>
+    <div class="cmm-hiw-feature">
+      <div class="cmm-hiw-feature-icon">🤖</div>
+      <h4>AI説明文生成</h4>
+      <p>スクリーンショットからAIが自動で日本語の手順説明を生成。</p>
+    </div>
+    <div class="cmm-hiw-feature">
+      <div class="cmm-hiw-feature-icon">🔒</div>
+      <h4>個人情報ぼかし</h4>
+      <p>メールアドレスや氏名など、センシティブな情報を自動でぼかします。</p>
+    </div>
+    <div class="cmm-hiw-feature">
+      <div class="cmm-hiw-feature-icon">📥</div>
+      <h4>PDFエクスポート</h4>
+      <p>Notionを使わない相手にも、PDFで即共有できます。</p>
+    </div>
+    <div class="cmm-hiw-feature">
+      <div class="cmm-hiw-feature-icon">🗂️</div>
+      <h4>Notion自動整形</h4>
+      <p>ページタイトル・番号・画像・説明文が自動でレイアウトされます。</p>
+    </div>
+    <div class="cmm-hiw-feature">
+      <div class="cmm-hiw-feature-icon">⚡</div>
+      <h4>リアルタイム確認</h4>
+      <p>撮影したステップをポップアップ内でその場で確認・削除できます。</p>
+    </div>
+  </div>
+</div>
+
+<div class="cmm-cta">
+  <h2>今すぐ14日間、全機能を無料で体験</h2>
+  <p>カード登録後、<strong style="color:#fff">14日間は一切費用がかかりません。</strong><br>期間中にキャンセルすればそれだけ。請求は14日後から。</p>
+  <div class="cmm-cta-badges">
+    <span class="cmm-cta-badge">✓ 14日間 完全無料</span>
+    <span class="cmm-cta-badge">✓ いつでも即解約OK</span>
+    <span class="cmm-cta-badge">✓ 返金保証7日間</span>
+    <span class="cmm-cta-badge">✓ 解約ペナルティなし</span>
+  </div>
+  <a href="https://s-tasklog.com/pricing/" class="cmm-btn-white">14日間 無料で試す →</a>
+  <p style="margin-top:16px;font-size:12px;color:rgba(255,255,255,.4)">有料プラン（Standard / Pro）が対象です</p>
+</div>
+
+
+</div>

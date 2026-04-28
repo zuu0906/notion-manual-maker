@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+web/.next/
+web/out/
+
+# Env / secrets
+.env
+.env.local
+.env*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+
+# Build artifacts
+*.pem
+extension.zip
+
+# Large local assets (not needed in repo)
+参考資料/
+スクリーンショット*.png
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Blog automation temporary files
+blog-automation/seo-report.md
+blog-automation/node_modules/

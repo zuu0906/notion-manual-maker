@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>PDF出力</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      color: #37352f; background: #fff;
+      padding: 14mm 16mm;
+      max-width: 860px; margin: 0 auto;
+    }
+    h1 {
+      font-size: 24px; font-weight: 700; margin-bottom: 28px;
+      padding-bottom: 12px; border-bottom: 2px solid #37352f;
+    }
+    .step {
+      margin-bottom: 32px;
+      page-break-inside: avoid;
+      border: 1px solid #e5e5e5; border-radius: 6px; overflow: hidden;
+    }
+    .step-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: #f9f9f9; border-bottom: 1px solid #e5e5e5;
+    }
+    .step-num {
+      width: 24px; height: 24px; border-radius: 4px; flex-shrink: 0;
+      background: #eb5757; color: #fff;
+      font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-label { font-size: 14px; color: #37352f; }
+    .step-memo {
+      font-size: 12px; color: #6b6b6b;
+      padding: 8px 14px; background: #fafafa;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .step-img { width: 100%; display: block; }
+    .toolbar {
+      position: fixed; bottom: 20px; right: 20px;
+      display: flex; gap: 8px;
+    }
+    .toolbar button {
+      padding: 10px 20px; border: none; border-radius: 6px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .btn-print { background: #37352f; color: #fff; }
+    .btn-print:hover { background: #2f2d28; }
+    .btn-close { background: #f3f4f6; color: #37352f; }
+    .btn-close:hover { background: #e5e7eb; }
+    @media print {
+      body { padding: 0; max-width: none; }
+      .toolbar { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="content"></div>
+  <div class="toolbar">
+    <button class="btn-close" id="close-btn">閉じる</button>
+    <button class="btn-print" id="print-btn">印刷 / PDF保存</button>
+  </div>
+  <script src="index.js"></script>
+</body>
+</html>

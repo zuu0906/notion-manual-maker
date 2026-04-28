@@ -1,0 +1,10 @@
+{
+  "name": "wordpress-deploy",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "deploy": "node deploy.js",
+    "deploy:lp": "node deploy.js lp",
+    "deploy:pricing": "node deploy.js pricing"
+  }
+}

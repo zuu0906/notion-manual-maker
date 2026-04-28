@@ -1,0 +1,47 @@
+name: 毎日ブログ自動投稿
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 毎日 09:00 JST (00:00 UTC)
+  workflow_dispatch:        # 手動実行も可能
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: アウトライン生成（SERPキャッシュがある場合のみ）
+        working-directory: blog-automation
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # serp-cache/ が存在するテーマのみアウトライン生成（失敗しても続行）
+        run: |
+          if [ -d "serp-cache" ] && [ "$(ls -A serp-cache 2>/dev/null)" ]; then
+            node generate-outline.js || true
+          else
+            echo "SERPキャッシュなし。アウトライン生成をスキップ。"
+          fi
+        continue-on-error: true
+
+      - name: 記事生成・投稿
+        working-directory: blog-automation
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WP_URL:            ${{ secrets.WP_URL }}
+          WP_USERNAME:       ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD:   ${{ secrets.WP_APP_PASSWORD }}
+          WP_CATEGORY_ID:    ${{ secrets.WP_CATEGORY_ID }}
+        run: node create-post.js
+
+      - name: 追跡ファイルをコミット
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add blog-automation/.used-themes.json blog-automation/performance.json || true
+          git diff --staged --quiet || git commit -m "chore: update used themes and performance record [skip ci]"
+          git push || true

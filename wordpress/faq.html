@@ -1,0 +1,135 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+.cmm*{box-sizing:border-box;margin:0;padding:0}
+.cmm{font-family:'Noto Sans JP',-apple-system,sans-serif;color:#191919;line-height:1.7;-webkit-font-smoothing:antialiased}
+.cmm-section-label{text-align:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-bottom:12px}
+.cmm-faq-hero{background:#f9f9f7;padding:64px 24px 48px;text-align:center;border-bottom:1px solid #ebebeb}
+.cmm-faq-hero h1{font-size:clamp(24px,4vw,38px);font-weight:900;letter-spacing:-.4px;margin-bottom:12px}
+.cmm-faq-hero p{font-size:15px;color:#6b6b6b}
+.cmm-faq-body{padding:64px 24px}
+.cmm-faq-inner{max-width:720px;margin:0 auto}
+.cmm-faq-cat{margin-bottom:48px}
+.cmm-faq-cat-title{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#e03e3e;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #e03e3e}
+.cmm-faq-list{display:flex;flex-direction:column;gap:12px}
+.cmm-faq-item{border:1px solid #ebebeb;border-radius:10px;overflow:hidden;background:#fff}
+.cmm-faq-q{font-size:14px;font-weight:700;padding:20px 24px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.cmm-faq-q:hover{background:#fafafa}
+.cmm-faq-q-icon{font-size:18px;flex-shrink:0;transition:transform .2s;color:#aaa}
+.cmm-faq-item.open .cmm-faq-q-icon{transform:rotate(45deg);color:#e03e3e}
+.cmm-faq-a{font-size:13px;color:#6b6b6b;line-height:1.8;padding:0 24px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .2s}
+.cmm-faq-item.open .cmm-faq-a{max-height:400px;padding:0 24px 20px}
+.cmm-faq-contact{background:#191919;color:#fff;border-radius:14px;padding:40px;text-align:center;margin-top:48px}
+.cmm-faq-contact h3{font-size:18px;font-weight:800;margin-bottom:8px}
+.cmm-faq-contact p{font-size:14px;color:rgba(255,255,255,.65);margin-bottom:24px}
+.cmm-faq-contact-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:24px}
+.cmm-faq-contact-badge{background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px}
+.cmm-btn-white{display:inline-block;background:#fff;color:#191919!important;padding:13px 32px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;transition:opacity .15s}
+.cmm-btn-white:hover{opacity:.9}
+.cmm-cta{background:#191919;color:#fff;text-align:center;padding:64px 24px}
+.cmm-cta h2{font-size:26px;font-weight:800;margin-bottom:12px}
+.cmm-cta p{color:rgba(255,255,255,.65);margin-bottom:28px;font-size:15px}
+</style>
+
+<div class="cmm">
+
+<div class="cmm-faq-hero">
+  <p class="cmm-section-label">FAQ</p>
+  <h1>よくある質問</h1>
+  <p>有料プランは14日間完全無料で体験できます。</p>
+</div>
+
+<div class="cmm-faq-body">
+  <div class="cmm-faq-inner">
+    <div class="cmm-faq-cat">
+      <p class="cmm-faq-cat-title">使い方</p>
+      <div class="cmm-faq-list">
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">Chrome Manual Maker とは何ですか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">WebページをクリックするだけでスクリーンショットとアノテーションをNotionに自動保存するChrome拡張機能です。マニュアル・操作手順書・業務フロー資料を最短で作成できます。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">どんな場面で使えますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">新入社員向け業務マニュアル、SaaSツールの操作説明書、社内システムの引継ぎ資料、顧客向けサポートドキュメントなど、「操作手順を共有したい」あらゆる場面で活躍します。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">Notionアカウントは必ず必要ですか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">はい、スクリーンショットの保存先としてNotionアカウントが必要です。Notionは無料プランでもご利用いただけます。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">スクリーンショットはどこに保存されますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">ご自身のNotionページに直接保存されます。外部サーバーへの画像アップロードは行いません。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">どのブラウザで動作しますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">Google Chrome および Chromium ベースのブラウザ（Microsoft Edge など）でご利用いただけます。</div>
+        </div>
+      </div>
+    </div>
+    <div class="cmm-faq-cat">
+      <p class="cmm-faq-cat-title">プランと料金</p>
+      <div class="cmm-faq-list">
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">無料プランはずっと使えますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">はい、月20枚のスクリーンショットまで永久無料でご利用いただけます。クレジットカードの登録も不要です。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">14日間の無料体験後、自動で請求されますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">はい、無料体験期間終了後は自動的にご登録のプランへ移行し、請求が発生します。14日以内にキャンセルすれば費用は一切かかりません。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">いつでもキャンセルできますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">はい、いつでもキャンセル可能です。解約後は現在の請求期間の終わりまで引き続きご利用いただけます。解約ペナルティはありません。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">返金保証はありますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">初回決済後7日以内であれば全額返金いたします。返金保証があるので、安心してお試しください。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">年払いはありますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">はい、年払いをご選択いただくと月払いより約2ヶ月分お得になります。料金ページからご選択いただけます。</div>
+        </div>
+      </div>
+    </div>
+    <div class="cmm-faq-cat">
+      <p class="cmm-faq-cat-title">機能</p>
+      <div class="cmm-faq-list">
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">AI説明文はどんなものが生成されますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">スクリーンショットの内容をAIが解析し、「〇〇ボタンをクリック。」「〇〇フィールドに入力。」のような簡潔な日本語の操作説明を自動生成します。編集も自由にできます。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">PDFエクスポートはどのように使いますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">記録完了後、ポップアップ内の「PDFとして保存」ボタンを押すとブラウザの印刷ダイアログが開きます。Standard・Proプランでご利用いただけます。</div>
+        </div>
+        <div class="cmm-faq-item">
+          <div class="cmm-faq-q">Notionワークスペースを複数つなげられますか？<span class="cmm-faq-q-icon">+</span></div>
+          <div class="cmm-faq-a">Proプランでは最大3つのNotionワークスペースを登録できます。クライアント別・プロジェクト別に保存先を切り替えることができます。</div>
+        </div>
+      </div>
+    </div>
+    <div class="cmm-faq-contact">
+      <h3>まずは14日間、無料で全機能を体験</h3>
+      <p>クレジットカード登録だけで今すぐ始められます。いつでもキャンセル可能・返金保証7日間。</p>
+      <div class="cmm-faq-contact-badges">
+        <span class="cmm-faq-contact-badge">✓ 14日間 完全無料</span>
+        <span class="cmm-faq-contact-badge">✓ いつでも解約OK</span>
+        <span class="cmm-faq-contact-badge">✓ 返金保証7日間</span>
+      </div>
+      <a href="https://chrome.google.com/webstore" class="cmm-btn-white" target="_blank" rel="noopener">無料体験を始める →</a>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+<script>
+document.querySelectorAll('.cmm-faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.closest('.cmm-faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.cmm-faq-item.open').forEach(el => el.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+</script>

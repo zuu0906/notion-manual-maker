@@ -1,0 +1,69 @@
+name: SERP競合分析（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      keyword:
+        description: '分析するキーワード（空欄で --all 実行）'
+        required: false
+        default: ''
+      theme_index:
+        description: 'themes.jsのインデックス番号（keyword指定時は無視）'
+        required: false
+        default: ''
+      generate_outline:
+        description: 'アウトラインも生成する'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  serp-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # serp-cache/ と outlines/ の push のため
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Playwright インストール
+        working-directory: blog-automation
+        run: |
+          npm install playwright
+          npx playwright install chromium --with-deps
+
+      - name: SERP分析実行
+        working-directory: blog-automation
+        run: |
+          if [ -n "${{ github.event.inputs.keyword }}" ]; then
+            node analyze-serp.js "${{ github.event.inputs.keyword }}"
+          elif [ -n "${{ github.event.inputs.theme_index }}" ]; then
+            node analyze-serp.js --index ${{ github.event.inputs.theme_index }}
+          else
+            node analyze-serp.js --all
+          fi
+
+      - name: アウトライン生成
+        if: ${{ github.event.inputs.generate_outline == 'true' }}
+        working-directory: blog-automation
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "${{ github.event.inputs.keyword }}" ]; then
+            node generate-outline.js "${{ github.event.inputs.keyword }}"
+          elif [ -n "${{ github.event.inputs.theme_index }}" ]; then
+            node generate-outline.js --index ${{ github.event.inputs.theme_index }}
+          fi
+          # --all の場合はアウトライン生成スキップ（コスト節約）
+
+      - name: キャッシュファイルをコミット
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add blog-automation/serp-cache/ blog-automation/outlines/ || true
+          git diff --staged --quiet || git commit -m "chore: update SERP cache and outlines [skip ci]"
+          git push || true

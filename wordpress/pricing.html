@@ -1,0 +1,149 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+.cmm*{box-sizing:border-box;margin:0;padding:0}
+.cmm{font-family:'Noto Sans JP',-apple-system,sans-serif;color:#191919;line-height:1.7;-webkit-font-smoothing:antialiased}
+.cmm-section-label{text-align:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-bottom:12px}
+.cmm-section-title{text-align:center;font-size:clamp(24px,3vw,32px);font-weight:800;margin-bottom:8px;letter-spacing:-.3px}
+.cmm-section-sub{text-align:center;font-size:15px;color:#6b6b6b;margin-bottom:32px}
+.cmm-success-banner{background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:20px 24px;text-align:center;margin-bottom:40px;display:none}
+.cmm-success-banner.show{display:block}
+.cmm-success-banner h3{font-size:16px;font-weight:700;color:#15803d;margin-bottom:4px}
+.cmm-success-banner p{font-size:13px;color:#166534}
+.cmm-pricing{padding:72px 24px}
+.cmm-trial-badges-top{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px}
+.cmm-trial-badge-top{background:#f0fdf4;color:#15803d;font-size:12px;font-weight:700;padding:6px 16px;border-radius:20px;border:1px solid #86efac}
+.cmm-pricing-grid{display:flex;flex-wrap:wrap;gap:20px;max-width:960px;margin:0 auto;justify-content:center}
+.cmm-plan{flex:1;min-width:210px;max-width:260px;background:#fff;border:1.5px solid #ebebeb;border-radius:14px;padding:32px 24px;display:flex;flex-direction:column;gap:20px;transition:box-shadow .2s;position:relative}
+.cmm-plan:hover{box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.cmm-plan.is-featured{border-color:#e03e3e;box-shadow:0 0 0 3px rgba(224,62,62,.08)}
+.cmm-plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#e03e3e;color:#fff;font-size:11px;font-weight:700;padding:3px 14px;border-radius:20px;white-space:nowrap;letter-spacing:.5px}
+.cmm-plan-name{font-size:13px;font-weight:600;color:#6b6b6b;margin-bottom:4px}
+.cmm-plan-price{font-size:38px;font-weight:900;letter-spacing:-1px}
+.cmm-plan-price span{font-size:14px;font-weight:400;color:#aaa;margin-left:2px}
+.cmm-plan-trial{display:inline-block;background:#fff8f0;color:#d97706;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;margin-top:-8px}
+.cmm-plan-features{flex:1;display:flex;flex-direction:column;gap:10px}
+.cmm-plan-features li{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#3a3a3a;list-style:none}
+.cmm-plan-features li::before{content:'✓';color:#22c55e;font-weight:700;flex-shrink:0}
+.cmm-plan-btn{display:block;text-align:center;padding:13px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;transition:opacity .15s,background .15s}
+.cmm-plan-btn-default{background:#f1f1ef;color:#191919!important}
+.cmm-plan-btn-default:hover{background:#e5e5e3}
+.cmm-plan-btn-primary{background:#e03e3e;color:#fff!important;box-shadow:0 3px 10px rgba(224,62,62,.25)}
+.cmm-plan-btn-primary:hover{opacity:.88}
+.cmm-pricing-note{text-align:center;font-size:12px;color:#aaa;margin-top:24px;max-width:960px;margin-left:auto;margin-right:auto}
+.cmm-faq{background:#f9f9f7;padding:72px 24px}
+.cmm-faq-list{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.cmm-faq-item{background:#fff;border:1px solid #ebebeb;border-radius:10px;padding:20px 24px}
+.cmm-faq-q{font-size:14px;font-weight:700;margin-bottom:8px}
+.cmm-faq-a{font-size:13px;color:#6b6b6b;line-height:1.75}
+.cmm-cta{background:#191919;color:#fff;text-align:center;padding:64px 24px}
+.cmm-cta h2{font-size:26px;font-weight:800;margin-bottom:12px}
+.cmm-cta p{color:rgba(255,255,255,.65);margin-bottom:28px;font-size:15px}
+.cmm-btn-white{display:inline-block;background:#fff;color:#191919!important;padding:15px 40px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none;transition:opacity .15s}
+.cmm-btn-white:hover{opacity:.9}
+@media(max-width:640px){.cmm-plan{max-width:100%}}
+</style>
+
+<div class="cmm">
+
+<div class="cmm-pricing">
+  <div class="cmm-success-banner" id="cmm-success-banner">
+    <h3>🎉 アップグレードが完了しました</h3>
+    <p>拡張機能のポップアップを一度閉じて再度開くと、新しいプランが反映されます。</p>
+  </div>
+  <p class="cmm-section-label">Pricing</p>
+  <h2 class="cmm-section-title">まず14日間、無料で全機能を試せる</h2>
+  <p class="cmm-section-sub">クレジットカードを登録するだけ。14日以内にキャンセルすれば費用は一切かかりません。</p>
+  <div class="cmm-trial-badges-top">
+    <span class="cmm-trial-badge-top">✓ 14日間 完全無料</span>
+    <span class="cmm-trial-badge-top">✓ いつでもキャンセル可</span>
+    <span class="cmm-trial-badge-top">✓ 返金保証7日間</span>
+  </div>
+  <div class="cmm-pricing-grid">
+    <div class="cmm-plan">
+      <div>
+        <p class="cmm-plan-name">Free</p>
+        <p class="cmm-plan-price">¥0<span>永久無料</span></p>
+      </div>
+      <ul class="cmm-plan-features">
+        <li>スクショ 20枚／月</li>
+        <li>Notionへ自動保存</li>
+        <li>赤丸アノテーション</li>
+        <li>個人情報自動ぼかし</li>
+      </ul>
+      <a href="https://chrome.google.com/webstore" class="cmm-plan-btn cmm-plan-btn-default" target="_blank" rel="noopener">無料で始める</a>
+    </div>
+    <div class="cmm-plan is-featured">
+      <span class="cmm-plan-badge">おすすめ</span>
+      <div>
+        <p class="cmm-plan-name">Standard</p>
+        <p class="cmm-plan-price">¥500<span>/ 月</span></p>
+        <span class="cmm-plan-trial">✦ 14日間 無料体験</span>
+      </div>
+      <ul class="cmm-plan-features">
+        <li>スクショ 無制限</li>
+        <li>Notionワークスペース 1つ</li>
+        <li>AI説明文 100回／月</li>
+        <li>PDFエクスポート</li>
+      </ul>
+      <a href="https://chrome.google.com/webstore" class="cmm-plan-btn cmm-plan-btn-primary" target="_blank" rel="noopener">14日間 無料で試す</a>
+    </div>
+    <div class="cmm-plan">
+      <div>
+        <p class="cmm-plan-name">Pro</p>
+        <p class="cmm-plan-price">¥1,200<span>/ 月</span></p>
+        <span class="cmm-plan-trial">✦ 14日間 無料体験</span>
+      </div>
+      <ul class="cmm-plan-features">
+        <li>スクショ 無制限</li>
+        <li>Notionワークスペース 3つ</li>
+        <li>AI説明文 500回／月</li>
+        <li>PDFエクスポート</li>
+      </ul>
+      <a href="https://chrome.google.com/webstore" class="cmm-plan-btn cmm-plan-btn-default" target="_blank" rel="noopener">14日間 無料で試す</a>
+    </div>
+  </div>
+  <p class="cmm-pricing-note">年払いで2ヶ月分お得 · いつでもキャンセル可能 · 返金保証7日間</p>
+</div>
+
+<div class="cmm-faq">
+  <p class="cmm-section-label">FAQ</p>
+  <h2 class="cmm-section-title">よくある質問</h2>
+  <div style="margin-bottom:40px"></div>
+  <div class="cmm-faq-list">
+    <div class="cmm-faq-item">
+      <p class="cmm-faq-q">無料プランはずっと使えますか？</p>
+      <p class="cmm-faq-a">はい、月20枚のスクリーンショットまで永久無料でご利用いただけます。クレジットカードの登録も不要です。</p>
+    </div>
+    <div class="cmm-faq-item">
+      <p class="cmm-faq-q">14日間の無料体験後、自動で請求されますか？</p>
+      <p class="cmm-faq-a">はい、体験期間終了後は自動的にご登録のプランへ移行します。14日以内にキャンセルすれば一切費用はかかりません。</p>
+    </div>
+    <div class="cmm-faq-item">
+      <p class="cmm-faq-q">いつでもキャンセルできますか？</p>
+      <p class="cmm-faq-a">はい、いつでもキャンセル可能です。解約後は請求期間の終わりまで引き続きご利用いただけます。</p>
+    </div>
+    <div class="cmm-faq-item">
+      <p class="cmm-faq-q">Notionアカウントは必要ですか？</p>
+      <p class="cmm-faq-a">はい、保存先として無料のNotionアカウントが必要です。Notionをお持ちでない場合は無料で作成できます。</p>
+    </div>
+    <div class="cmm-faq-item">
+      <p class="cmm-faq-q">スクリーンショットはどこに保存されますか？</p>
+      <p class="cmm-faq-a">ご自身のNotionページに直接保存されます。外部サーバーへのアップロードは行いません。</p>
+    </div>
+  </div>
+</div>
+
+<div class="cmm-cta">
+  <h2>まず無料で試してみる</h2>
+  <p>月20スクショまで永久無料。クレジットカード不要。</p>
+  <a href="https://chrome.google.com/webstore" class="cmm-btn-white" target="_blank" rel="noopener">Chromeに無料で追加する</a>
+</div>
+
+
+</div>
+
+<script>
+if (location.search.includes('upgraded=1')) {
+  document.getElementById('cmm-success-banner').classList.add('show');
+}
+</script>

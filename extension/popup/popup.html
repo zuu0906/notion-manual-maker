@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Chrome Manual Maker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 320px;
+      font-family: -apple-system, 'Helvetica Neue', 'Segoe UI', sans-serif;
+      font-size: 14px; color: #37352f; background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid rgba(55,53,47,0.09);
+      display: flex; align-items: center; gap: 8px;
+    }
+    header h1 {
+      font-size: 13px; font-weight: 600; flex: 1;
+      color: #37352f; letter-spacing: -0.1px;
+    }
+    .plan-badge {
+      font-size: 11px; font-weight: 500;
+      padding: 2px 8px; border-radius: 4px;
+      background: rgba(55,53,47,0.08); color: #6b6b6b;
+    }
+    .plan-badge.pro {
+      background: #fff8e6; color: #d97706; border: 1px solid #fde68a;
+    }
+    .portal-link-btn {
+      display: none; font-size: 11px; color: #9b9a97;
+      text-decoration: none; padding: 2px 4px; border-radius: 3px;
+      transition: background .1s;
+    }
+    .portal-link-btn:hover { background: rgba(55,53,47,0.06); }
+
+    /* ── 区切り線 ── */
+    .divider { height: 1px; background: rgba(55,53,47,0.09); margin: 0 16px; }
+
+    /* ── 行 ── */
+    .row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px;
+    }
+    .row-label {
+      font-size: 12px; color: #9b9a97; flex: 1;
+    }
+
+    /* ── Notion接続 ── */
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #e3e2e0; flex-shrink: 0; transition: background .3s;
+    }
+    .status-dot.connected {
+      background: #4dab9a;
+      box-shadow: 0 0 0 3px rgba(77,171,154,.15);
+    }
+    .notion-name {
+      flex: 1; font-size: 13px; color: #37352f;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── ボタン ── */
+    button {
+      border: none; border-radius: 4px;
+      cursor: pointer; font-size: 12px; font-weight: 500;
+      transition: background .1s, opacity .1s;
+    }
+    button:disabled { opacity: .38; cursor: default; }
+
+    .btn-default {
+      padding: 5px 10px;
+      background: rgba(55,53,47,0.08); color: #37352f;
+    }
+    .btn-default:hover:not(:disabled) { background: rgba(55,53,47,0.13); }
+
+    .btn-primary {
+      padding: 6px 14px; font-size: 13px; font-weight: 600;
+      background: #37352f; color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { background: #2f2d28; }
+
+    .btn-record {
+      padding: 6px 14px; font-size: 13px; font-weight: 600;
+      background: #eb5757; color: #fff; border-radius: 4px;
+    }
+    .btn-record:hover:not(:disabled) { background: #d94f4f; }
+    .btn-record.btn-record-stop {
+      background: rgba(55,53,47,0.1); color: #37352f;
+    }
+    .btn-record.btn-record-stop:hover:not(:disabled) { background: rgba(55,53,47,0.17); }
+
+    .btn-text {
+      padding: 5px 10px; font-size: 12px;
+      background: transparent; color: #9b9a97;
+    }
+    .btn-text:hover:not(:disabled) {
+      background: rgba(55,53,47,0.06); color: #37352f;
+    }
+
+    /* ── 使用量 ── */
+    .usage-row {
+      padding: 8px 16px 10px;
+    }
+    .usage-bar {
+      height: 3px; background: #e3e2e0; border-radius: 2px; overflow: hidden; margin-bottom: 5px;
+    }
+    .usage-fill { height: 100%; background: #eb5757; border-radius: 2px; transition: width .4s; }
+    .usage-text { font-size: 11px; color: #9b9a97; }
+
+    /* ── ステップヘッダー ── */
+    .steps-header-row {
+      display: flex; align-items: center;
+      padding: 10px 16px 4px;
+    }
+    .steps-label {
+      flex: 1;
+      font-size: 11px; font-weight: 600; color: #9b9a97;
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+    .ai-setup-link {
+      font-size: 11px; font-weight: 500; color: #9b9a97;
+      background: transparent; border: none; cursor: pointer; padding: 2px 4px;
+      border-radius: 3px; transition: background .1s, color .1s;
+    }
+    .ai-setup-link:hover { background: rgba(55,53,47,0.06); color: #37352f; }
+    .ai-gen-btn {
+      font-size: 11px; font-weight: 600; color: #4dab9a;
+      background: rgba(77,171,154,.08); border: none; cursor: pointer;
+      padding: 3px 8px; border-radius: 3px; transition: background .1s;
+    }
+    .ai-gen-btn:hover:not(:disabled) { background: rgba(77,171,154,.16); }
+    .ai-gen-btn:disabled { opacity: .38; cursor: default; }
+    .ai-gen-btn.loading { color: #9b9a97; }
+
+    /* ── Googleサインイン ── */
+    #google-sign-in-section {
+      margin: 0 16px 8px;
+      padding: 12px;
+      background: #f0f7ff; border: 1px solid rgba(66,133,244,0.2);
+      border-radius: 6px; font-size: 12px; text-align: center;
+    }
+    #google-sign-in-section p {
+      color: #6b6b6b; margin-bottom: 8px; line-height: 1.5;
+    }
+    .btn-google-signin {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 4px;
+      background: #fff; color: #37352f; font-size: 12px; font-weight: 600;
+      border: 1px solid rgba(55,53,47,0.2); cursor: pointer;
+      transition: background .1s, box-shadow .1s;
+    }
+    .btn-google-signin:hover { background: #f8f8f8; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+    /* ── ステップリスト ── */
+    #step-list { max-height: 240px; overflow-y: auto; }
+    #step-list::-webkit-scrollbar { width: 3px; }
+    #step-list::-webkit-scrollbar-thumb { background: #e3e2e0; border-radius: 2px; }
+
+    .step-item {
+      display: flex; flex-direction: column; gap: 4px;
+      padding: 6px 10px 6px 6px;
+      border-bottom: 1px solid rgba(55,53,47,0.06);
+      transition: background .1s;
+    }
+    .step-item:last-child { border-bottom: none; }
+    .step-item:hover { background: rgba(55,53,47,0.03); }
+    .step-item.drag-over { background: rgba(55,53,47,0.07); border-top: 2px solid #eb5757; }
+    .step-item.dragging { opacity: .4; }
+    .step-item-top { display: flex; align-items: center; gap: 8px; }
+
+    .drag-handle {
+      cursor: grab; color: #c7c5c1; font-size: 12px;
+      padding: 2px 3px; flex-shrink: 0; user-select: none;
+      line-height: 1;
+    }
+    .drag-handle:active { cursor: grabbing; }
+
+    .step-num {
+      width: 20px; height: 20px; border-radius: 4px;
+      background: #eb5757; color: #fff;
+      font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .step-thumb {
+      width: 50px; height: 32px; object-fit: cover;
+      border-radius: 3px; border: 1px solid rgba(55,53,47,0.1); flex-shrink: 0;
+      cursor: zoom-in; transition: opacity .1s;
+    }
+    .step-thumb:hover { opacity: .85; }
+    .step-fields { display: flex; flex-direction: column; gap: 4px; }
+    .step-field-row { display: flex; align-items: center; gap: 4px; }
+    .step-field-label {
+      font-size: 10px; color: #9b9a97; flex-shrink: 0; white-space: nowrap; text-align: right;
+      min-width: 28px;
+    }
+    .step-label-input, .step-memo-input {
+      flex: 1; border: 1px solid rgba(55,53,47,0.14); border-radius: 5px;
+      padding: 5px 8px; font-size: 12px; outline: none; color: #37352f;
+      background: rgba(55,53,47,0.03); box-sizing: border-box;
+      transition: border-color .15s, background .15s;
+    }
+    .step-label-input:hover, .step-memo-input:hover { background: rgba(55,53,47,0.06); border-color: rgba(55,53,47,0.2); }
+    .step-label-input:focus, .step-memo-input:focus { border-color: rgba(55,53,47,0.35); background: #fff; }
+    .step-label-input::placeholder, .step-memo-input::placeholder { color: #b8b6b2; }
+    .step-gen-btn {
+      flex-shrink: 0; font-size: 10px; padding: 4px 7px; border-radius: 4px;
+      border: 1px solid rgba(55,53,47,0.16); background: #f7f6f3; color: #37352f;
+      cursor: pointer; transition: background .1s; white-space: nowrap;
+    }
+    .step-gen-btn:hover { background: #efeeeb; }
+    .step-gen-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .step-delete {
+      width: 20px; height: 20px; border-radius: 3px; flex-shrink: 0;
+      background: transparent; color: #c7c5c1;
+      font-size: 14px; line-height: 1; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .1s, background .1s, color .1s;
+      cursor: pointer; border: none;
+    }
+    .step-item:hover .step-delete { opacity: 1; }
+    .step-delete:hover { background: #fef0ee; color: #eb5757; }
+
+    .empty-hint {
+      padding: 28px 16px; text-align: center;
+      color: #c7c5c1; font-size: 12px; line-height: 1.7;
+    }
+
+    /* ── 保存エリア ── */
+    .save-area { padding: 10px 16px 12px; }
+    .save-title-input {
+      width: 100%; border: 1px solid rgba(55,53,47,0.16); border-radius: 4px;
+      padding: 7px 10px; font-size: 13px; outline: none; color: #37352f;
+      background: #fff; margin-bottom: 8px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .save-title-input:focus {
+      border-color: rgba(55,53,47,0.4);
+      box-shadow: 0 0 0 2px rgba(55,53,47,0.08);
+    }
+    .save-title-input::placeholder { color: #c7c5c1; }
+    .save-btns { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+
+    /* ── メッセージ ── */
+    #msg {
+      margin: 0 16px 8px; padding: 8px 10px; border-radius: 4px;
+      font-size: 12px; font-weight: 500; display: none;
+    }
+    #msg.error { background: #fef0ee; color: #eb5757; border: 1px solid #fcd4cf; display: block; }
+    #msg.success { background: #edfaf6; color: #4dab9a; border: 1px solid #bdebd9; display: block; }
+
+    /* ── アップグレード ── */
+    .upgrade-row {
+      padding: 8px 16px 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .upgrade-row span { flex: 1; font-size: 11px; color: #9b9a97; }
+    .upgrade-btns { display: flex; gap: 6px; }
+    .btn-upgrade {
+      font-size: 11px; font-weight: 600; color: #fff;
+      background: #d97706; border: none; border-radius: 4px;
+      padding: 5px 10px; cursor: pointer; white-space: nowrap;
+      transition: background .1s;
+    }
+    .btn-upgrade:hover:not(:disabled) { background: #b45309; }
+    .btn-upgrade:disabled { opacity: .5; cursor: default; }
+    .btn-upgrade-pro { background: #eb5757; }
+    .btn-upgrade-pro:hover:not(:disabled) { background: #d94f4f; }
+
+    /* ── AI使用回数ラベル ── */
+    .ai-calls-label {
+      font-size: 11px; color: #9b9a97; margin-right: 4px;
+    }
+
+    /* ── 記録中バナー ── */
+    #rec-banner {
+      margin: 8px 16px 0;
+      padding: 8px 12px;
+      background: #fff5f5; border: 1px solid #fcd4cf;
+      border-radius: 6px;
+      display: none; align-items: center; gap: 8px;
+      font-size: 12px;
+    }
+    .rec-indicator {
+      width: 8px; height: 8px; border-radius: 50%; background: #eb5757; flex-shrink: 0;
+      animation: rec-blink 1.2s ease-in-out infinite;
+    }
+    @keyframes rec-blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+    #rec-banner span { flex: 1; font-weight: 600; color: #37352f; }
+    #rec-banner .rec-count { font-weight: 400; color: #9b9a97; }
+
+    .view-pad { padding-bottom: 4px; }
+
+    /* ── プライバシー設定 ── */
+    .privacy-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px;
+      background: #f9fafb;
+      border-top: 1px solid rgba(55,53,47,0.09);
+    }
+    .privacy-row label {
+      display: flex; align-items: center; gap: 6px;
+      cursor: pointer; flex: 1;
+      font-size: 12px; color: #37352f; font-weight: 500;
+    }
+    .privacy-row input[type="checkbox"] { margin: 0; cursor: pointer; accent-color: #4dab9a; }
+    .privacy-badge {
+      font-size: 10px; font-weight: 600; color: #4dab9a;
+      background: rgba(77,171,154,.1); padding: 1px 6px; border-radius: 3px;
+    }
+    .privacy-desc { font-size: 11px; color: #9b9a97; padding: 0 16px 8px; background: #f9fafb; }
+
+    /* ── ワークスペースセレクタ ── */
+    #ws-selector {
+      flex-shrink: 0;
+      max-width: 90px;
+      font-size: 11px;
+      border: 1px solid rgba(55,53,47,0.16);
+      border-radius: 4px;
+      padding: 3px 6px;
+      color: #37352f;
+      background: #fff;
+      cursor: pointer;
+    }
+    #ws-add-btn {
+      flex-shrink: 0;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    /* ── 保存先セレクタ ── */
+    .dest-row { padding: 8px 16px 4px; }
+    .dest-label-row {
+      display: flex; align-items: center; margin-bottom: 5px;
+    }
+    .dest-label {
+      font-size: 11px; font-weight: 600; color: #9b9a97;
+      flex: 1;
+    }
+    .btn-dest-refresh {
+      padding: 1px 5px; font-size: 12px; border-radius: 3px;
+      background: transparent; color: #9b9a97; border: none;
+      cursor: pointer; transition: background .1s, color .1s;
+    }
+    .btn-dest-refresh:hover { background: rgba(55,53,47,0.06); color: #37352f; }
+    .dest-filter-wrap { margin-bottom: 4px; }
+    .dest-filter-input {
+      width: 100%; border: 1px solid rgba(55,53,47,0.14); border-radius: 4px;
+      padding: 5px 8px; font-size: 12px; outline: none; color: #37352f;
+      background: rgba(55,53,47,0.03);
+      transition: border-color .15s, background .15s;
+    }
+    .dest-filter-input:focus { border-color: rgba(55,53,47,0.35); background: #fff; }
+    .dest-filter-input::placeholder { color: #c7c5c1; }
+    .page-dest-select {
+      width: 100%; border: 1px solid rgba(55,53,47,0.16); border-radius: 4px;
+      padding: 7px 28px 7px 10px; font-size: 12px; color: #37352f;
+      background: #fff; outline: none; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239b9a97' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      transition: border-color .15s;
+    }
+    .page-dest-select:focus { border-color: rgba(55,53,47,0.4); }
+    .page-dest-select:disabled { opacity: .5; cursor: default; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>Chrome Manual Maker</h1>
+    <span class="plan-badge" id="plan-badge">Free</span>
+    <a id="portal-link"
+       href="https://chrome-manual-maker.vercel.app/dashboard"
+       target="_blank"
+       rel="noopener noreferrer"
+       title="マイページでプラン管理"
+       class="portal-link-btn"
+    >マイページ</a>
+  </header>
+
+  <div class="view-pad">
+
+    <!-- Notion接続 -->
+    <div class="row">
+      <div class="status-dot" id="notion-dot"></div>
+      <div class="notion-name" id="notion-status">Notionに未接続</div>
+      <select id="ws-selector" style="display:none;" title="ワークスペースを切り替え"></select>
+      <button class="btn-default" id="ws-add-btn" style="display:none;" title="ワークスペースを追加">＋</button>
+      <button class="btn-default" id="connect-btn">接続</button>
+    </div>
+
+    <!-- 使用量 -->
+    <div class="usage-row" id="usage-section" style="display:none;">
+      <div class="usage-bar"><div class="usage-fill" id="usage-fill"></div></div>
+      <div class="usage-text" id="usage-text"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 記録開始/停止 -->
+    <div class="row">
+      <span class="row-label" id="record-status">0 ステップ記録済み</span>
+      <button class="btn-record" id="record-btn" disabled>記録開始</button>
+    </div>
+
+    <!-- 記録中バナー -->
+    <div id="rec-banner">
+      <div class="rec-indicator"></div>
+      <span>記録中</span>
+      <span class="rec-count" id="rec-step-count">0 ステップ</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ステップリスト -->
+    <div class="steps-header-row">
+      <span class="steps-label">ステップ</span>
+      <span class="ai-calls-label" id="ai-calls-label" style="display:none"></span>
+      <button class="ai-gen-btn" id="bulk-gen-btn" style="display:none" disabled>一括AI生成</button>
+    </div>
+
+    <!-- プライバシー設定 -->
+    <div class="privacy-row">
+      <label>
+        <input type="checkbox" id="privacy-blur-toggle" checked>
+        <span>個人情報を自動ぼかし</span>
+      </label>
+    </div>
+    <div class="privacy-desc">メール・電話番号・クレカ番号・パスワード欄を黒塗り</div>
+
+    <!-- Googleサインインセクション（未ログイン時表示） -->
+    <div id="google-sign-in-section" style="display:none">
+      <p>プラン管理・AI機能の利用には<br>Googleアカウントが必要です</p>
+      <button class="btn-google-signin" id="google-sign-in-btn">
+        <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Googleでサインイン
+      </button>
+    </div>
+
+    <div id="step-list">
+      <div class="empty-hint" id="empty-hint">
+        記録を開始してページ上をクリックすると<br>スクリーンショットが追加されます
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 保存 -->
+    <div class="save-area">
+      <div class="dest-row" id="dest-row" style="display:none;padding:0 0 6px;">
+        <div class="dest-label-row">
+          <span class="dest-label">保存先</span>
+          <button class="btn-dest-refresh" id="dest-refresh-btn" title="リストを更新">↺</button>
+        </div>
+        <div class="dest-filter-wrap">
+          <input class="dest-filter-input" id="dest-filter" placeholder="ページ名で絞り込み…">
+        </div>
+        <select id="page-dest-select" class="page-dest-select">
+          <option value="">＋ 新規ページとして作成</option>
+        </select>
+      </div>
+      <div id="title-row">
+        <input class="save-title-input" id="page-title" placeholder="ページタイトル（省略可）">
+      </div>
+      <div class="save-btns">
+        <button class="btn-text" id="clear-btn" disabled>クリア</button>
+        <button class="btn-text" id="pdf-btn" disabled>PDF出力</button>
+        <button class="btn-primary" id="save-btn" disabled>Notionへ保存</button>
+      </div>
+    </div>
+
+    <div id="msg"></div>
+
+    <div class="upgrade-row" id="upgrade-section" style="display:none">
+      <span id="upgrade-msg">AI機能を使うにはアップグレードが必要です</span>
+      <div class="upgrade-btns">
+        <button class="btn-upgrade btn-upgrade-pro" id="upgrade-btn">マイページでアップグレード</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

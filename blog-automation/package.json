@@ -1,0 +1,15 @@
+{
+  "name": "blog-automation",
+  "version": "2.0.0",
+  "description": "Notion関連ブログ記事の自動生成・WordPress投稿・SEO PDCA自動化",
+  "scripts": {
+    "post":         "node create-post.js",
+    "dry-run":      "node create-post.js --dry-run",
+    "serp":         "node analyze-serp.js",
+    "outline":      "node generate-outline.js",
+    "gsc":          "node fetch-gsc-data.js",
+    "analyze":      "node rewrite-analyzer.js",
+    "setup-gsc":    "node gsc-setup.js"
+  },
+  "engines": { "node": ">=18" }
+}

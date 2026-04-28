@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: #FFFFFF;
+    color: #37352F;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgba(232, 69, 60, 0.12);
+    color: #37352F;
+  }
+
+  details summary::-webkit-details-marker { display: none; }
+  details summary { list-style: none; }
+}
+
+/* ── Animations ───────────────────────────────── */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 69, 60, 0.45); }
+  60%       { box-shadow: 0 0 0 7px rgba(232, 69, 60, 0); }
+}
+
+.anim-fade-up {
+  opacity: 0;
+  animation: fadeUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.anim-d1 { animation-delay: 0.04s; }
+.anim-d2 { animation-delay: 0.15s; }
+.anim-d3 { animation-delay: 0.28s; }
+.anim-d4 { animation-delay: 0.43s; }
+.anim-d5 { animation-delay: 0.60s; }
+
+.record-dot {
+  animation: pulseDot 1.9s ease-in-out infinite;
+}
+
+@supports (animation-timeline: view()) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: fadeUp 0.52s ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 42%;
+  }
+}

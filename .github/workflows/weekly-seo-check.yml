@@ -1,0 +1,56 @@
+name: 週次SEOパフォーマンスチェック
+
+on:
+  schedule:
+    - cron: '0 1 * * 1'   # 毎週月曜 10:00 JST (01:00 UTC)
+  workflow_dispatch:        # 手動実行も可能
+
+jobs:
+  seo-check:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write         # GitHub Issue作成のため
+      contents: write       # performance.json の push のため
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: GSCデータ取得
+        working-directory: blog-automation
+        env:
+          GSC_SITE_URL:           ${{ secrets.GSC_SITE_URL }}
+          GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:   ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: node fetch-gsc-data.js
+        continue-on-error: true   # GSC未設定でも後続を止めない
+
+      - name: リライト分析レポート生成 & GitHub Issue作成
+        working-directory: blog-automation
+        env:
+          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
+          WP_URL:             ${{ secrets.WP_URL }}
+          WP_USERNAME:        ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD:    ${{ secrets.WP_APP_PASSWORD }}
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY:  ${{ github.repository }}
+        run: node rewrite-analyzer.js --output seo-report.md --github-issue
+
+      - name: performance.json をコミット
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add blog-automation/performance.json || true
+          git diff --staged --quiet || git commit -m "chore: weekly GSC performance update [skip ci]"
+          git push || true
+
+      - name: レポートをArtifactとして保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-report-${{ github.run_number }}
+          path: blog-automation/seo-report.md
+          retention-days: 90

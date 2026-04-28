@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Manual Maker",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoJUXl9JQBUwtFt6HCIVVYm9LprkBacji4rUuS2E3cch34Uay0CfGLAmf2NBlDfH4a3g+XeoXUWVHPjfW9UhGPSsTl3zyOUjzVnL8G444XCtLFE74Wgpxwd1ecUDXO/jQbVzMhwV1e4ibcqWQx8sFBsMyR74rnx3EDZ+WQ5JAyo2pVyhB4VPeBeIQuQMzklrKuTLq48GmIRmu4cv0DmuPn/tTsGkZVnTl4AdHJ/26iccXReNhwDqfqM5Iy8dnPHs7FU1z0SJkYt4zMQQtcMGjlv7CSYw+a6PfF5sdD2tzzgvRtO9RkUXXUhIg/Szs8oDXyNltzflCrYcorT5yfU2vTQIDAQAB",
+  "version": "1.0.0",
+  "description": "クリックするだけでスクリーンショット+矢印をNotionへ自動保存",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs",
+    "identity",
+    "windows",
+    "webNavigation"
+  ],
+  "oauth2": {
+    "client_id": "1097550430323-6r11eua9fustnbffh91c8bi4lbc8a0a9.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
+  },
+  "host_permissions": [
+    "<all_urls>",
+    "https://api.notion.com/*",
+    "https://ouscjeptmkoszcjkrmtm.supabase.co/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
