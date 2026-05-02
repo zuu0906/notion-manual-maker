@@ -1,0 +1,295 @@
+{
+  "nav": {
+    "howItWorks": "How It Works",
+    "pricing": "Pricing",
+    "myPage": "My Page",
+    "addForFree": "Add for Free"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact"
+  },
+  "langSwitch": {
+    "ja": "JP",
+    "en": "EN"
+  },
+  "meta": {
+    "title": "Chrome Manual Maker — Auto-save operation manuals to Notion with one click",
+    "description": "Auto-generate screenshots, arrows, and AI descriptions, then save directly to Notion. Create operation manuals 10x faster. Free to start with the Chrome extension.",
+    "ogLocale": "en_US"
+  },
+  "landing": {
+    "badge": "Chrome × Notion × Gemini AI",
+    "hero": {
+      "headline1": "Create operation manuals",
+      "headline2": "just by clicking",
+      "headline3": "",
+      "sub": "Auto-generate screenshots, arrows, and AI descriptions all at once, then save to Notion.",
+      "subHighlight": "5 minutes",
+      "subSuffix": " instead of an hour.",
+      "ctaPrimary": "Add to Chrome for Free",
+      "ctaSecondary": "See How It Works",
+      "freeNote": "Free plan available · No credit card required · 14-day free trial"
+    },
+    "stats": [
+      { "n": "10×", "label": "faster manual creation" },
+      { "n": "3",   "label": "steps to complete" },
+      { "n": "¥0",  "label": "to get started" }
+    ],
+    "pain": {
+      "eyebrow": "Problem",
+      "title": "Sound familiar?",
+      "sub": "It's time to rethink the \"obvious\" inefficiencies of manual creation",
+      "items": [
+        { "icon": "🖊️", "text": "Drawing arrows in an image editor every time you take a screenshot" },
+        { "icon": "⏱️", "text": "Spending over an hour to create a single procedure document" },
+        { "icon": "🔄", "text": "Rebuilding everything from scratch whenever steps change" },
+        { "icon": "📁", "text": "Files scattered everywhere that no one can find" }
+      ]
+    },
+    "howItWorks": {
+      "eyebrow": "How it works",
+      "title": "3 Steps to Complete",
+      "sub": "From install to Notion save in under 5 minutes",
+      "steps": [
+        {
+          "icon": "🔌",
+          "title": "Launch the extension",
+          "desc": "Click the icon in the Chrome toolbar. Just sign in with your Google account and you're ready to go."
+        },
+        {
+          "icon": "📸",
+          "title": "Click through your workflow",
+          "desc": "Press \"Start Recording\" and click each step you want to document. Screenshots + numbered arrows are auto-generated."
+        },
+        {
+          "icon": "🚀",
+          "title": "Save to Notion with AI labels",
+          "desc": "Press \"Save to Notion\" once. Image blocks with AI descriptions are automatically added to your page."
+        }
+      ],
+      "detailLink": "See detailed instructions →"
+    },
+    "beforeAfter": {
+      "eyebrow": "Before / After",
+      "title": "The Difference It Makes",
+      "before": {
+        "label": "Before",
+        "items": [
+          "Screenshot → image editor → draw arrows manually",
+          "Type each step's text by hand",
+          "Drag & drop images into Notion",
+          "Manually format headings and numbers",
+          "Over 1 hour to finish"
+        ]
+      },
+      "after": {
+        "label": "After",
+        "items": [
+          "Click to auto-generate screenshot + arrow",
+          "AI generates descriptions automatically",
+          "One-click save everything to Notion",
+          "Layout and numbers auto-aligned",
+          "Done in under 5 minutes"
+        ]
+      }
+    },
+    "features": {
+      "eyebrow": "Features",
+      "title": "Key Features",
+      "items": [
+        { "icon": "📸", "title": "Auto screenshot + arrows",     "desc": "Numbered arrow annotations drawn instantly on click. Zero manual editing." },
+        { "icon": "🤖", "title": "AI-generated descriptions",    "desc": "Gemini AI auto-generates step descriptions. No more typing." },
+        { "icon": "📝", "title": "Save directly to Notion",      "desc": "One-click save via OAuth. Image blocks + text added to your chosen page." },
+        { "icon": "📄", "title": "PDF export",                   "desc": "Export finished manuals as PDF too. Great for sharing or printing." },
+        { "icon": "🔒", "title": "Your data stays in Notion",    "desc": "Screenshots are saved directly to your Notion. No external server uploads." },
+        { "icon": "🎭", "title": "Auto PII masking",             "desc": "Automatically detects and blurs personal information. Reduce data leak risk." }
+      ]
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "Simple Pricing",
+      "sub": "Start free, upgrade when you need more",
+      "recommended": "Recommended",
+      "note": "14-day free trial · Cancel anytime",
+      "compareLink": "Compare all plans →",
+      "plans": [
+        {
+          "name": "Free",
+          "emoji": "🌱",
+          "price": "¥0",
+          "period": "forever free",
+          "features": ["20 screenshots/month", "Notion integration", "With watermark"],
+          "cta": "Add to Chrome for Free",
+          "highlight": false,
+          "external": true
+        },
+        {
+          "name": "Standard",
+          "emoji": "⚡",
+          "price": "¥500",
+          "period": "/month (~$3.50)",
+          "features": ["Unlimited screenshots", "100 AI generations/month", "PDF export", "No watermark"],
+          "cta": "Upgrade on My Page",
+          "highlight": false,
+          "external": false
+        },
+        {
+          "name": "Pro",
+          "emoji": "🚀",
+          "price": "¥1,200",
+          "period": "/month (~$8.50)",
+          "features": ["Unlimited screenshots", "500 AI generations/month", "3 Notion workspaces", "No watermark"],
+          "cta": "Upgrade on My Page",
+          "highlight": true,
+          "external": false
+        }
+      ]
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "q": "What can I do on the free plan?",
+          "a": "20 screenshots/month, Notion save, and numbered arrow annotations. AI description generation requires Standard plan or higher."
+        },
+        {
+          "q": "Which Notion plan do I need?",
+          "a": "The free Notion plan works fine. You just need write access to a page."
+        },
+        {
+          "q": "Where are my screenshots stored?",
+          "a": "Images are saved directly to your Notion page. We don't upload to our servers — your data lives only in your Workspace."
+        },
+        {
+          "q": "Can I change plans anytime?",
+          "a": "Yes. You can upgrade or downgrade at any time. Charges are prorated daily."
+        },
+        {
+          "q": "Is there a team plan?",
+          "a": "We offer a Team plan (¥2,980/month, 5 seats). Please contact us for details."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Start for Free Today",
+      "sub": "Up to 20 screenshots/month forever free. No credit card required.",
+      "trial": "Standard plan includes a 14-day free trial",
+      "btn": "Add to Chrome (Free)"
+    },
+    "mockup": {
+      "pageTitle": "Operation Manual",
+      "pageSlug": "notion.so / operation-manual",
+      "generated": "Auto-generated by Chrome Manual Maker",
+      "addBlock": "Add a new block",
+      "steps": [
+        { "title": "Open the dashboard",        "ai": "Open the admin panel in your browser" },
+        { "title": "Click the settings icon",   "ai": "Click the gear icon in the top right" },
+        { "title": "Save your changes",         "ai": "Click the \"Save\" button to finish" }
+      ]
+    }
+  },
+  "pricing": {
+    "metaTitle": "Pricing",
+    "metaDesc": "Chrome Manual Maker pricing. Start with the free plan, upgrade to Pro when you need more.",
+    "eyebrow": "Pricing",
+    "title": "Simple Pricing",
+    "sub": "Start free, scale as your team grows",
+    "recommended": "Recommended",
+    "note": "14-day free trial · Cancel anytime · Prorated billing",
+    "upgraded": {
+      "title": "Upgrade complete!",
+      "desc": "Close and reopen the extension popup to see your new plan."
+    },
+    "plans": [
+      {
+        "name": "Free",
+        "emoji": "🌱",
+        "price": "¥0",
+        "period": "forever free",
+        "features": [
+          "20 screenshots/month",
+          "1 Notion workspace",
+          "Step numbers & arrow annotations",
+          "With watermark"
+        ],
+        "cta": "Start for Free",
+        "highlight": false,
+        "external": true
+      },
+      {
+        "name": "Standard",
+        "emoji": "⚡",
+        "price": "¥500",
+        "period": "/month (~$3.50)",
+        "features": [
+          "Unlimited screenshots",
+          "1 Notion workspace",
+          "100 AI generations/month",
+          "PDF export",
+          "No watermark"
+        ],
+        "cta": "Upgrade on My Page",
+        "highlight": false,
+        "external": false
+      },
+      {
+        "name": "Pro",
+        "emoji": "🚀",
+        "price": "¥1,200",
+        "period": "/month (~$8.50)",
+        "features": [
+          "Unlimited screenshots",
+          "3 Notion workspaces",
+          "500 AI generations/month",
+          "PDF export",
+          "No watermark"
+        ],
+        "cta": "Upgrade on My Page",
+        "highlight": true,
+        "external": false
+      }
+    ]
+  },
+  "howItWorks": {
+    "metaTitle": "How It Works",
+    "metaDesc": "How to use Chrome Manual Maker. Complete from install to Notion save in 3 steps. Auto-create operation manuals with screenshots and arrows.",
+    "title": "Create an Operation Manual in 3 Steps",
+    "sub": "From install to Notion save in under 5 minutes",
+    "steps": [
+      {
+        "title": "Install & Connect Notion",
+        "desc": "Add the extension from the Chrome Web Store. Click \"Connect\" in the popup to link your Notion workspace.",
+        "detail": [
+          "Search for \"Chrome Manual Maker\" on the Chrome Web Store",
+          "Click \"Add to Chrome\"",
+          "Click the toolbar icon → \"Connect\" → log in to Notion",
+          "Authorize workspace access and you're done"
+        ]
+      },
+      {
+        "title": "Click Through Your Screen",
+        "desc": "Press \"Start Recording\" to enter recording mode. Just click each part of the screen you want to document.",
+        "detail": [
+          "Press \"Start Recording\" — the screen dims slightly",
+          "Click step ① location → screenshot + arrow auto-generated",
+          "Continue clicking steps ②③…",
+          "Press Esc or \"Stop Recording\" to finish"
+        ]
+      },
+      {
+        "title": "Save to Notion",
+        "desc": "Add labels to each step and click \"Save to Notion\". Image blocks + text are automatically added to your chosen page.",
+        "detail": [
+          "Enter labels in the step list in the popup (optional)",
+          "Enter a page title (auto-filled with date if omitted)",
+          "Click \"Save to Notion\"",
+          "Image + text blocks added to your Notion page"
+        ]
+      }
+    ],
+    "cta": "Install for Free"
+  }
+}

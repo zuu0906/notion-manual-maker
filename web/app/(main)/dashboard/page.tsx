@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase, SUPABASE_FUNCTIONS_URL, type UserProfile, type Invoice, type Manual, type UsageHistory, type NotionWorkspace } from '../../lib/supabase';
+import { supabase, SUPABASE_FUNCTIONS_URL, type UserProfile, type Invoice, type Manual, type UsageHistory, type NotionWorkspace } from '../../../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
 const STRIPE_STANDARD_PRICE_ID = 'price_1TO5CS1zfFhRe5YPzWfAYSpa';
@@ -206,7 +206,11 @@ export default function DashboardPage() {
         }),
       });
       const data = await res.json();
-      if (data.url) location.href = data.url;
+      if (data.url) {
+        location.href = data.url;
+      } else {
+        setMsg('チェックアウトの開始に失敗しました: ' + (data.error ?? '不明なエラー'));
+      }
     } finally {
       setCheckoutLoading('');
     }
@@ -280,14 +284,19 @@ export default function DashboardPage() {
           ...prev,
           workspaces: prev.workspaces.filter((w) => w.workspace_id !== workspaceId),
         } : prev);
+        setMsg('ワークスペースを切断しました。');
+      } else {
+        setMsg('ワークスペースの切断に失敗しました。');
       }
-    } catch { /* ignore */ }
+    } catch {
+      setMsg('通信エラーが発生しました。');
+    }
   }
 
   async function deleteManual(manualId: string) {
     if (!session?.access_token) return;
     try {
-      await fetch(`${SUPABASE_FUNCTIONS_URL}/delete-manual`, {
+      const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/delete-manual`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -295,11 +304,17 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({ supabase_token: session.access_token, manual_id: manualId }),
       });
-      setProfile((prev) => prev ? {
-        ...prev,
-        manuals: prev.manuals.filter((m) => m.id !== manualId),
-      } : prev);
-    } catch { /* fire-and-forget on error */ }
+      if (res.ok) {
+        setProfile((prev) => prev ? {
+          ...prev,
+          manuals: prev.manuals.filter((m) => m.id !== manualId),
+        } : prev);
+      } else {
+        setMsg('マニュアルの削除に失敗しました。');
+      }
+    } catch {
+      setMsg('通信エラーが発生しました。');
+    }
   }
 
   async function deleteAccount() {

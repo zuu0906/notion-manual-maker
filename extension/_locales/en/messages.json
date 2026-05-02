@@ -1,0 +1,173 @@
+{
+  "extName": { "message": "Chrome Manual Maker" },
+  "extDescription": { "message": "Auto-save screenshots + arrows to Notion with a single click" },
+  "htmlLang": { "message": "en" },
+
+  "myPage": { "message": "My Page" },
+  "portalLinkTitle": { "message": "Manage your plan" },
+  "wsSelectorTitle": { "message": "Switch workspace" },
+  "wsAddTitle": { "message": "Add workspace" },
+  "connect": { "message": "Connect" },
+  "connecting": { "message": "Connecting…" },
+  "reconnect": { "message": "Reconnect" },
+  "startRecording": { "message": "Start Recording" },
+  "stopRecording": { "message": "■ Stop" },
+  "recordingLabel": { "message": "Recording" },
+  "stepsLabel": { "message": "Steps" },
+  "privacyLabel": { "message": "Auto-blur personal info" },
+  "privacyDesc": { "message": "Masks email, phone, credit card, and password fields" },
+  "googleSignInDesc": { "message": "Google account required for plan management and AI features" },
+  "googleSignIn": { "message": "Sign in with Google" },
+  "destLabel": { "message": "Save to" },
+  "destFilterPlaceholder": { "message": "Filter by page name…" },
+  "newPageOption": { "message": "+ Create as new page" },
+  "newPageOptionEmpty": { "message": "+ Create as new page (no existing pages)" },
+  "pageTitlePlaceholder": { "message": "Page title (optional)" },
+  "clearBtn": { "message": "Clear" },
+  "pdfBtn": { "message": "Export PDF" },
+  "saveBtn": { "message": "Save to Notion" },
+  "upgradeMsgFree": { "message": "Upgrade required to use AI features" },
+  "upgradeBtnText": { "message": "Upgrade on My Page" },
+  "emptyHint": { "message": "Start recording and click anywhere on the page to capture screenshots" },
+  "recordStatusZero": { "message": "0 steps recorded" },
+  "recordingStepsZero": { "message": "0 steps" },
+
+  "notionDisconnected": { "message": "Not connected to Notion" },
+  "notionConnected": {
+    "message": "Connected to $NAME$",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "notionConnectFailed": {
+    "message": "Failed to connect to Notion: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+
+  "signingIn": { "message": "Signing in…" },
+  "googleSignInFailed": {
+    "message": "Google sign-in failed: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+  "welcomeMsg": { "message": "Welcome! Please connect Notion first." },
+  "needGoogleSignIn": { "message": "Please sign in with Google first" },
+  "needNotionConnect": { "message": "Please connect Notion first" },
+  "permissionRequired": { "message": "Recording requires access to all sites" },
+
+  "wsMaxReached": {
+    "message": "This plan supports up to $MAX$ workspace(s)",
+    "placeholders": { "max": { "content": "$1" } }
+  },
+  "planUpgraded": {
+    "message": "Upgraded to $PLAN$ plan!",
+    "placeholders": { "plan": { "content": "$1" } }
+  },
+  "planDowngraded": {
+    "message": "Downgraded to Free plan. $NOTE$",
+    "placeholders": { "note": { "content": "$1" } }
+  },
+  "wsDeleted": {
+    "message": "Removed $COUNT$ additional workspace(s).",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "planRestricted": { "message": "Some features are now restricted." },
+
+  "upgradeMsgStandard": {
+    "message": "$REMAINING$ AI uses left — Upgrade to Pro for 500/month",
+    "placeholders": { "remaining": { "content": "$1" } }
+  },
+  "aiCallsRemaining": {
+    "message": "AI: $REMAINING$/$LIMIT$ left",
+    "placeholders": {
+      "remaining": { "content": "$1" },
+      "limit": { "content": "$2" }
+    }
+  },
+  "aiLimitReached": { "message": "Monthly AI usage limit reached" },
+  "preparingImages": { "message": "Preparing images…" },
+  "generatingPartial": {
+    "message": "Generating $SEND$/$TOTAL$… ($REMAINING$ uses left)",
+    "placeholders": {
+      "send": { "content": "$1" },
+      "total": { "content": "$2" },
+      "remaining": { "content": "$3" }
+    }
+  },
+  "generatingAll": {
+    "message": "Generating $TOTAL$ items…",
+    "placeholders": { "total": { "content": "$1" } }
+  },
+  "bulkGenBtn": { "message": "AI Generate All" },
+  "aiGeneratedPartial": {
+    "message": "Generated $GENERATED$ items ($SKIPPED$ skipped due to limit)",
+    "placeholders": {
+      "generated": { "content": "$1" },
+      "skipped": { "content": "$2" }
+    }
+  },
+  "aiGeneratedN": {
+    "message": "Generated $GENERATED$/$TOTAL$ descriptions",
+    "placeholders": {
+      "generated": { "content": "$1" },
+      "total": { "content": "$2" }
+    }
+  },
+  "aiFailed": {
+    "message": "AI generation failed: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+  "generating": { "message": "Generating…" },
+  "aiGenBtn": { "message": "AI Generate" },
+  "aiGenTitle": { "message": "Generate this description with AI" },
+
+  "saving": { "message": "Saving…" },
+  "savedToNotion": { "message": "Saved to Notion!" },
+
+  "recordStatusN": {
+    "message": "$COUNT$ step(s) recorded",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "recordingSteps": {
+    "message": "$COUNT$ step(s)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "loading": { "message": "Loading…" },
+  "destLoadFailed": {
+    "message": "Failed to load destinations: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+  "untitled": { "message": "(Untitled)" },
+  "pdfDefaultTitle": { "message": "Manual" },
+
+  "usageText": {
+    "message": "$USED$ / $LIMIT$ screenshots / month",
+    "placeholders": {
+      "used": { "content": "$1" },
+      "limit": { "content": "$2" }
+    }
+  },
+
+  "dragHandle": { "message": "Drag to reorder" },
+  "zoomHint": { "message": "Click to zoom" },
+  "deleteStep": { "message": "Delete" },
+  "stepDescLabel": { "message": "Desc" },
+  "stepDescPlaceholder": { "message": "AI generate or type manually…" },
+  "stepMemoLabel": { "message": "Memo" },
+  "stepMemoPlaceholder": { "message": "Additional notes (optional)…" },
+  "stepTitleLabel": { "message": "Title" },
+  "stepTitlePlaceholder": { "message": "Enter title…" },
+  "piiBlurApplied": { "message": "Personal info auto-blurred" },
+
+  "noImageData": { "message": "No image data" },
+  "imageLoadFailed": { "message": "Image load failed" },
+
+  "contentHint": { "message": "Click to record — click extension icon to stop" },
+  "thisField": { "message": "this field" },
+  "inputDialogTitle": {
+    "message": "Enter value for \"$HINT$\"",
+    "placeholders": { "hint": { "content": "$1" } }
+  },
+  "inputDialogPlaceholder": { "message": "Enter the value to record..." },
+  "skip": { "message": "Skip" },
+  "passwordDialogTitle": { "message": "Recording password field" },
+  "passwordDialogMsg": { "message": "Password will not be saved. The step will be recorded as \"Enter password\" instead." }
+}

@@ -1,0 +1,173 @@
+{
+  "extName": { "message": "Chrome Manual Maker" },
+  "extDescription": { "message": "クリックするだけでスクリーンショット+矢印をNotionへ自動保存" },
+  "htmlLang": { "message": "ja" },
+
+  "myPage": { "message": "マイページ" },
+  "portalLinkTitle": { "message": "マイページでプラン管理" },
+  "wsSelectorTitle": { "message": "ワークスペースを切り替え" },
+  "wsAddTitle": { "message": "ワークスペースを追加" },
+  "connect": { "message": "接続" },
+  "connecting": { "message": "接続中…" },
+  "reconnect": { "message": "再接続" },
+  "startRecording": { "message": "記録開始" },
+  "stopRecording": { "message": "■ 停止" },
+  "recordingLabel": { "message": "記録中" },
+  "stepsLabel": { "message": "ステップ" },
+  "privacyLabel": { "message": "個人情報を自動ぼかし" },
+  "privacyDesc": { "message": "メール・電話番号・クレカ番号・パスワード欄を黒塗り" },
+  "googleSignInDesc": { "message": "プラン管理・AI機能の利用にはGoogleアカウントが必要です" },
+  "googleSignIn": { "message": "Googleでサインイン" },
+  "destLabel": { "message": "保存先" },
+  "destFilterPlaceholder": { "message": "ページ名で絞り込み…" },
+  "newPageOption": { "message": "＋ 新規ページとして作成" },
+  "newPageOptionEmpty": { "message": "＋ 新規ページとして作成（既存ページなし）" },
+  "pageTitlePlaceholder": { "message": "ページタイトル（省略可）" },
+  "clearBtn": { "message": "クリア" },
+  "pdfBtn": { "message": "PDF出力" },
+  "saveBtn": { "message": "Notionへ保存" },
+  "upgradeMsgFree": { "message": "AI機能を使うにはアップグレードが必要です" },
+  "upgradeBtnText": { "message": "マイページでアップグレード" },
+  "emptyHint": { "message": "記録を開始してページ上をクリックするとスクリーンショットが追加されます" },
+  "recordStatusZero": { "message": "0 ステップ記録済み" },
+  "recordingStepsZero": { "message": "0 ステップ" },
+
+  "notionDisconnected": { "message": "Notionに未接続" },
+  "notionConnected": {
+    "message": "$NAME$に接続済み",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "notionConnectFailed": {
+    "message": "Notion接続に失敗しました: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+
+  "signingIn": { "message": "サインイン中…" },
+  "googleSignInFailed": {
+    "message": "Googleサインインに失敗しました: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+  "welcomeMsg": { "message": "ようこそ！まずNotionを接続してください。" },
+  "needGoogleSignIn": { "message": "先にGoogleサインインが必要です" },
+  "needNotionConnect": { "message": "先にNotionを接続してください" },
+  "permissionRequired": { "message": "記録にはすべてのサイトへのアクセス許可が必要です" },
+
+  "wsMaxReached": {
+    "message": "このプランでは最大$MAX$ワークスペースまで接続できます",
+    "placeholders": { "max": { "content": "$1" } }
+  },
+  "planUpgraded": {
+    "message": "$PLAN$プランにアップグレードしました！",
+    "placeholders": { "plan": { "content": "$1" } }
+  },
+  "planDowngraded": {
+    "message": "Freeプランに変更されました。$NOTE$",
+    "placeholders": { "note": { "content": "$1" } }
+  },
+  "wsDeleted": {
+    "message": "追加ワークスペース$COUNT$件を削除しました。",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "planRestricted": { "message": "一部機能が制限されています。" },
+
+  "upgradeMsgStandard": {
+    "message": "AI使用回数が残り$REMAINING$回です — Proプランで月500回に",
+    "placeholders": { "remaining": { "content": "$1" } }
+  },
+  "aiCallsRemaining": {
+    "message": "AI残り$REMAINING$/$LIMIT$",
+    "placeholders": {
+      "remaining": { "content": "$1" },
+      "limit": { "content": "$2" }
+    }
+  },
+  "aiLimitReached": { "message": "月間AI使用回数の上限に達しました" },
+  "preparingImages": { "message": "画像を準備中…" },
+  "generatingPartial": {
+    "message": "$SEND$/$TOTAL$件 生成中…（残り$REMAINING$回）",
+    "placeholders": {
+      "send": { "content": "$1" },
+      "total": { "content": "$2" },
+      "remaining": { "content": "$3" }
+    }
+  },
+  "generatingAll": {
+    "message": "$TOTAL$件 生成中…",
+    "placeholders": { "total": { "content": "$1" } }
+  },
+  "bulkGenBtn": { "message": "一括AI生成" },
+  "aiGeneratedPartial": {
+    "message": "$GENERATED$件生成（残り$SKIPPED$件は上限超過のためスキップ）",
+    "placeholders": {
+      "generated": { "content": "$1" },
+      "skipped": { "content": "$2" }
+    }
+  },
+  "aiGeneratedN": {
+    "message": "$GENERATED$/$TOTAL$件の説明を生成しました",
+    "placeholders": {
+      "generated": { "content": "$1" },
+      "total": { "content": "$2" }
+    }
+  },
+  "aiFailed": {
+    "message": "AI生成に失敗しました: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+  "generating": { "message": "生成中…" },
+  "aiGenBtn": { "message": "AI生成" },
+  "aiGenTitle": { "message": "この説明をAI生成" },
+
+  "saving": { "message": "保存中…" },
+  "savedToNotion": { "message": "Notionに保存しました！" },
+
+  "recordStatusN": {
+    "message": "$COUNT$ ステップ記録済み",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "recordingSteps": {
+    "message": "$COUNT$ ステップ",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "loading": { "message": "読み込み中…" },
+  "destLoadFailed": {
+    "message": "保存先の取得に失敗: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+  "untitled": { "message": "（無題）" },
+  "pdfDefaultTitle": { "message": "マニュアル" },
+
+  "usageText": {
+    "message": "$USED$ / $LIMIT$ スクショ / 月",
+    "placeholders": {
+      "used": { "content": "$1" },
+      "limit": { "content": "$2" }
+    }
+  },
+
+  "dragHandle": { "message": "ドラッグして並び替え" },
+  "zoomHint": { "message": "クリックで拡大" },
+  "deleteStep": { "message": "削除" },
+  "stepDescLabel": { "message": "説明" },
+  "stepDescPlaceholder": { "message": "AI生成または手入力…" },
+  "stepMemoLabel": { "message": "メモ" },
+  "stepMemoPlaceholder": { "message": "補足メモ（任意）…" },
+  "stepTitleLabel": { "message": "タイトル" },
+  "stepTitlePlaceholder": { "message": "タイトルを入力…" },
+  "piiBlurApplied": { "message": "個人情報を自動ぼかし済み" },
+
+  "noImageData": { "message": "画像データなし" },
+  "imageLoadFailed": { "message": "画像の読み込み失敗" },
+
+  "contentHint": { "message": "記録したい箇所をクリック　拡張機能アイコンで停止" },
+  "thisField": { "message": "この入力欄" },
+  "inputDialogTitle": {
+    "message": "「$HINT$」に入力する内容",
+    "placeholders": { "hint": { "content": "$1" } }
+  },
+  "inputDialogPlaceholder": { "message": "入力する内容を記録..." },
+  "skip": { "message": "スキップ" },
+  "passwordDialogTitle": { "message": "パスワード欄への入力を記録" },
+  "passwordDialogMsg": { "message": "パスワードは保存されません。代わりに「パスワードを入力」としてステップに記録します。" }
+}
