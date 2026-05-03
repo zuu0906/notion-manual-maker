@@ -3,13 +3,19 @@
   "version": "2.0.0",
   "description": "Notion関連ブログ記事の自動生成・WordPress投稿・SEO PDCA自動化",
   "scripts": {
-    "post":         "node create-post.js",
-    "dry-run":      "node create-post.js --dry-run",
-    "serp":         "node analyze-serp.js",
-    "outline":      "node generate-outline.js",
-    "gsc":          "node fetch-gsc-data.js",
-    "analyze":      "node rewrite-analyzer.js",
-    "setup-gsc":    "node gsc-setup.js"
+    "next": "node next-theme.js",
+    "post": "node post-article.js",
+    "dry-run": "node post-article.js --dry-run",
+    "serp": "node analyze-serp.js",
+    "outline": "node generate-outline.js",
+    "gsc": "node fetch-gsc-data.js",
+    "analyze": "node rewrite-analyzer.js",
+    "setup-gsc": "node gsc-setup.js"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "playwright": "^1.59.1"
+  }
 }
