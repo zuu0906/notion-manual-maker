@@ -46,8 +46,8 @@ const CTA_HTML = `<div style="background:#fff5f5;border:1px solid #fca5a5;border
 <p style="font-size:16px;font-weight:700;margin:0 0 8px;">📸 Notionのマニュアル作成、まだ手動でやっていますか？</p>
 <p style="margin:0 0 16px;color:#4b5563;">クリックするだけでスクリーンショット＋赤丸注釈が自動でNotionに保存される Chrome 拡張機能です。無料プランあり・インストール30秒。</p>
 <div style="display:flex;gap:12px;flex-wrap:wrap;">
-<a href="https://chrome-manual-maker.s-tasklog.com" style="display:inline-block;background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">無料でインストール →</a>
-<a href="https://chrome-manual-maker.s-tasklog.com" style="display:inline-block;background:#fff;color:#e53e3e;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;border:1px solid #e53e3e;">詳細を見る</a>
+<a href="https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpjjkiojneipicd" style="display:inline-block;background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">無料でインストール →</a>
+<a href="https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpjjkiojneipicd" style="display:inline-block;background:#fff;color:#e53e3e;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;border:1px solid #e53e3e;">詳細を見る</a>
 </div>
 </div>`;
 

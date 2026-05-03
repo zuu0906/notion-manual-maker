@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-const STORE_URL = 'https://chrome.google.com/webstore';
+const STORE_URL = 'https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpjjkiojneipicd';
 
 type MockupStep = { title: string; ai: string };
 
