@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>PII自動ぼかし — 検証デモ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, 'Helvetica Neue', 'Segoe UI', sans-serif;
+      font-size: 14px; color: #37352f; background: #f5f4f0; min-height: 100vh;
+    }
+
+    /* ── トップバー ── */
+    .topbar {
+      background: #1a1a1a; color: #fff; padding: 12px 28px;
+      display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100;
+    }
+    .topbar h1 { font-size: 14px; font-weight: 700; flex: 1; }
+    .topbar-note { font-size: 11px; color: #aaa; }
+
+    /* ── 2カラムレイアウト ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      min-height: calc(100vh - 44px);
+    }
+
+    /* ── 左サイドバー：ステップ一覧 ── */
+    .sidebar {
+      background: #fff; border-right: 1px solid rgba(55,53,47,0.1);
+      padding: 20px 14px;
+      position: sticky; top: 44px; align-self: start; height: calc(100vh - 44px);
+      overflow-y: auto;
+    }
+    .sidebar-title {
+      font-size: 10px; font-weight: 700; color: #9b9a97;
+      text-transform: uppercase; letter-spacing: .8px;
+      margin-bottom: 12px;
+    }
+    .step-nav {
+      list-style: none; display: flex; flex-direction: column; gap: 6px;
+    }
+    .step-nav li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 12px; line-height: 1.5; color: #6b6b6b;
+      padding: 6px 8px; border-radius: 6px; cursor: pointer;
+      transition: background .1s;
+    }
+    .step-nav li:hover { background: rgba(55,53,47,0.05); }
+    .step-nav .n {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+    .step-nav .n.pii  { background: #fef0ee; color: #eb5757; }
+    .step-nav .n.safe { background: #edfaf6; color: #4dab9a; }
+
+    /* ── 右メインエリア ── */
+    .main { padding: 28px 32px; max-width: 620px; }
+    .main > * + * { margin-top: 20px; }
+
+    /* ── セクションタイトル ── */
+    .section-label {
+      font-size: 10px; font-weight: 700; color: #9b9a97;
+      text-transform: uppercase; letter-spacing: .8px;
+      padding-bottom: 8px; border-bottom: 1px solid rgba(55,53,47,0.09);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── カード ── */
+    .card {
+      background: #fff; border-radius: 10px;
+      border: 1px solid rgba(55,53,47,0.1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 12px 18px; border-bottom: 1px solid rgba(55,53,47,0.07);
+      display: flex; align-items: center; gap: 10px;
+      background: #fafafa;
+    }
+    .step-chip {
+      width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-chip.pii  { background: #eb5757; color: #fff; }
+    .step-chip.safe { background: #4dab9a; color: #fff; }
+    .card-title { font-size: 13px; font-weight: 600; flex: 1; }
+    .expect-tag {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+    }
+    .expect-tag.blur { background: #fef0ee; color: #eb5757; }
+    .expect-tag.no-blur { background: #edfaf6; color: #4dab9a; }
+
+    .card-body { padding: 16px 18px; }
+
+    /* ── フォーム ── */
+    label {
+      display: block; font-size: 11px; font-weight: 600; color: #9b9a97; margin-bottom: 5px;
+    }
+    input[type="text"], input[type="email"], input[type="tel"],
+    input[type="password"], input[type="number"] {
+      width: 100%; border: 1px solid rgba(55,53,47,0.18); border-radius: 6px;
+      padding: 9px 11px; font-size: 13px; color: #37352f; background: #fff;
+      outline: none; transition: border-color .15s; font-family: 'Courier New', monospace;
+    }
+    input[type="text"]:not([id^="card"]),
+    input[type="email"], input[type="tel"] { font-family: inherit; }
+    input:focus { border-color: rgba(55,53,47,0.45); }
+
+    .hint { font-size: 11px; color: #9b9a97; margin-top: 5px; }
+
+    /* ── 情報テーブル ── */
+    .info-grid {
+      display: grid; grid-template-columns: 80px 1fr; gap: 0;
+    }
+    .info-grid .k {
+      font-size: 11px; font-weight: 600; color: #9b9a97;
+      padding: 9px 0; border-bottom: 1px solid rgba(55,53,47,0.06);
+      display: flex; align-items: center;
+    }
+    .info-grid .v {
+      font-size: 13px; color: #37352f;
+      padding: 9px 0; border-bottom: 1px solid rgba(55,53,47,0.06);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .info-grid .k:last-of-type,
+    .info-grid .v:last-of-type { border-bottom: none; }
+    .info-grid .v.mono { font-family: 'Courier New', monospace; }
+    .pii-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #eb5757; flex-shrink: 0;
+    }
+
+    /* ── 期待結果バナー ── */
+    .expect-blur {
+      margin-top: 12px; padding: 8px 12px; border-radius: 6px;
+      background: #fef0ee; border-left: 3px solid #eb5757;
+      font-size: 11px; color: #92400e; line-height: 1.65;
+    }
+    .expect-safe {
+      margin-top: 12px; padding: 8px 12px; border-radius: 6px;
+      background: #edfaf6; border-left: 3px solid #4dab9a;
+      font-size: 11px; color: #166534; line-height: 1.65;
+    }
+
+    /* ── カード番号表示パネル ── */
+    .card-number-panel {
+      background: #f9fafb; border: 1px solid rgba(55,53,47,0.1);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
+    }
+    .card-number-panel .panel-label {
+      font-size: 10px; font-weight: 700; color: #9b9a97;
+      text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px;
+    }
+    .card-number-display {
+      font-family: 'Courier New', monospace;
+      font-size: 20px; font-weight: 700; color: #37352f;
+      letter-spacing: 4px;
+    }
+    .card-meta { font-size: 11px; color: #9b9a97; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <h1>アカウント設定 — PII自動ぼかし検証デモ</h1>
+    <span class="topbar-note">拡張機能で記録して各ステップを確認</span>
+  </div>
+
+  <div class="layout">
+
+    <!-- 左サイドバー -->
+    <nav class="sidebar">
+      <div class="sidebar-title">検証ステップ</div>
+      <ul class="step-nav">
+        <li onclick="document.getElementById('s1').scrollIntoView({behavior:'smooth'})">
+          <span class="n pii">1</span>メールアドレス欄に「abc」と入力
+        </li>
+        <li onclick="document.getElementById('s2').scrollIntoView({behavior:'smooth'})">
+          <span class="n pii">2</span>パスワード欄にパスワードを入力
+        </li>
+        <li onclick="document.getElementById('s3').scrollIntoView({behavior:'smooth'})">
+          <span class="n safe">3</span>お名前欄に「aaa」と入力
+        </li>
+        <li onclick="document.getElementById('s4').scrollIntoView({behavior:'smooth'})">
+          <span class="n pii">4</span>カード番号欄に番号を入力
+        </li>
+        <li onclick="document.getElementById('s5').scrollIntoView({behavior:'smooth'})">
+          <span class="n pii">5</span>メールアドレスの表示を確認
+        </li>
+        <li onclick="document.getElementById('s6').scrollIntoView({behavior:'smooth'})">
+          <span class="n pii">6</span>メールアドレス欄に「aaa」と入力
+        </li>
+      </ul>
+    </nav>
+
+    <!-- 右メインエリア -->
+    <main class="main">
+
+      <!-- STEP 1 -->
+      <div class="section-label" id="s1">ログイン情報</div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="step-chip pii">1</span>
+          <span class="card-title">メールアドレス欄に「abc」と入力</span>
+          <span class="expect-tag blur">ぼかし期待</span>
+        </div>
+        <div class="card-body">
+          <label>メールアドレス</label>
+          <input type="email" id="email-login" placeholder="メールアドレスを入力" autocomplete="off">
+          <p class="hint">クリック後ダイアログで「abc」と入力 → OK</p>
+          <div class="expect-blur">
+            ⬛ ページ上に表示されているメールアドレスが黒塗りになるはずです。
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="card" id="s2">
+        <div class="card-head">
+          <span class="step-chip pii">2</span>
+          <span class="card-title">パスワード欄にパスワードを入力</span>
+          <span class="expect-tag blur">ぼかし期待</span>
+        </div>
+        <div class="card-body">
+          <label>パスワード</label>
+          <input type="password" placeholder="パスワードを入力" autocomplete="new-password">
+          <div class="expect-blur">
+            ⬛ パスワード欄（入力エリア全体）が黒塗りになるはずです。<br>
+            確認ダイアログが表示されたら「OK」を押してください。
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="section-label" id="s3">プロフィール</div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="step-chip safe">3</span>
+          <span class="card-title">お名前欄に「aaa」と入力</span>
+          <span class="expect-tag no-blur">ぼかしなし</span>
+        </div>
+        <div class="card-body">
+          <label>お名前</label>
+          <input type="text" id="name-input" placeholder="お名前を入力" autocomplete="off">
+          <p class="hint">クリック後ダイアログで「aaa」と入力 → OK</p>
+          <div class="expect-safe">
+            ✅ 名前はPIIパターン非該当 → 黒塗りなし（比較対象）
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="section-label" id="s4">お支払い情報</div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="step-chip pii">4</span>
+          <span class="card-title">カード番号欄に「4532 1234 5678 9012」と入力</span>
+          <span class="expect-tag blur">ぼかし期待</span>
+        </div>
+        <div class="card-body">
+          <!-- カード番号をシンプルなテキスト表示パネルで表示（黒塗りが見やすい白背景） -->
+          <div class="card-number-panel">
+            <div class="panel-label">登録カード番号</div>
+            <div class="card-number-display" id="card-display">---- ---- ---- ----</div>
+            <div class="card-meta" id="card-meta">カード未登録</div>
+          </div>
+
+          <label>カード番号</label>
+          <input type="text" id="card-number"
+            placeholder="0000 0000 0000 0000"
+            maxlength="19" inputmode="numeric" autocomplete="off">
+          <p class="hint">入力例：4532 1234 5678 9012（数字のみでも可）</p>
+
+          <div class="expect-blur">
+            ⬛ カード番号欄と上の「登録カード番号」パネルの両方が黒塗りになるはずです。<br>
+            ※ 白い背景のため黒塗りがはっきり確認できます。
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="section-label" id="s5">アカウント情報（確認）</div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="step-chip pii">5</span>
+          <span class="card-title">メールアドレスの表示を確認（クリック）</span>
+          <span class="expect-tag blur">ぼかし期待</span>
+        </div>
+        <div class="card-body">
+          <div class="info-grid">
+            <span class="k">お名前</span>
+            <span class="v">田中 太郎</span>
+
+            <span class="k">メール</span>
+            <span class="v mono">
+              <span class="pii-dot"></span>
+              tanaka.taro@example-company.co.jp
+            </span>
+
+            <span class="k">電話番号</span>
+            <span class="v mono">
+              <span class="pii-dot"></span>
+              03-1234-5678
+            </span>
+
+            <span class="k">プラン</span>
+            <span class="v">Pro（年間）</span>
+          </div>
+
+          <div class="expect-blur">
+            ⬛ メールアドレス行をクリック → スクリーンショットでメール・電話が黒塗りになるはずです。<br>
+            ステップラベルは「tanaka.taro@example-company.co.jp」になるはずです。
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="section-label" id="s6">メールアドレス変更</div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="step-chip pii">6</span>
+          <span class="card-title">メールアドレス欄に「aaa」と入力</span>
+          <span class="expect-tag blur">ぼかし期待</span>
+        </div>
+        <div class="card-body">
+          <label>新しいメールアドレス</label>
+          <input type="email" id="email-new" placeholder="新しいメールアドレスを入力" autocomplete="off">
+          <p class="hint">クリック後ダイアログで「aaa」と入力 → OK</p>
+          <div class="expect-blur">
+            ⬛ STEP 1と同様、ページ上のメールアドレス表示が黒塗りになるはずです。
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const cardInput = document.getElementById('card-number');
+    const cardDisplay = document.getElementById('card-display');
+    const cardMeta = document.getElementById('card-meta');
+
+    cardInput.addEventListener('input', (e) => {
+      let val = e.target.value.replace(/\D/g, '').slice(0, 16);
+      const formatted = val.replace(/(.{4})/g, '$1 ').trim();
+      e.target.value = formatted;
+
+      if (val.length === 16) {
+        cardDisplay.textContent = formatted;
+        cardMeta.textContent = '有効期限 12/28　セキュリティコード 要確認';
+      } else if (val.length > 0) {
+        cardDisplay.textContent = formatted.padEnd(19, '-').replace(/-{4}/g, m => m);
+        cardMeta.textContent = '入力中…';
+      } else {
+        cardDisplay.textContent = '---- ---- ---- ----';
+        cardMeta.textContent = 'カード未登録';
+      }
+    });
+  </script>
+</body>
+</html>

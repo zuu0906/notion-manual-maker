@@ -15,7 +15,7 @@
   "recordingLabel": { "message": "Recording" },
   "stepsLabel": { "message": "Steps" },
   "privacyLabel": { "message": "Auto-blur personal info" },
-  "privacyDesc": { "message": "Masks email, phone, credit card, and password fields" },
+  "privacyDesc": { "message": "Masks email, phone, card & password fields" },
   "googleSignInDesc": { "message": "Google account required for plan management and AI features" },
   "googleSignIn": { "message": "Sign in with Google" },
   "destLabel": { "message": "Save to" },
@@ -26,8 +26,8 @@
   "clearBtn": { "message": "Clear" },
   "pdfBtn": { "message": "Export PDF" },
   "saveBtn": { "message": "Save to Notion" },
-  "upgradeMsgFree": { "message": "Upgrade required to use AI features" },
-  "upgradeBtnText": { "message": "Upgrade on My Page" },
+  "upgradeMsgFree": { "message": "Upgrade to unlock AI features" },
+  "upgradeBtnText": { "message": "Upgrade" },
   "emptyHint": { "message": "Start recording and click anywhere on the page to capture screenshots" },
   "recordStatusZero": { "message": "0 steps recorded" },
   "recordingStepsZero": { "message": "0 steps" },
@@ -71,7 +71,7 @@
   "planRestricted": { "message": "Some features are now restricted." },
 
   "upgradeMsgStandard": {
-    "message": "$REMAINING$ AI uses left — Upgrade to Pro for 500/month",
+    "message": "$REMAINING$ AI uses left · Go Pro",
     "placeholders": { "remaining": { "content": "$1" } }
   },
   "aiCallsRemaining": {

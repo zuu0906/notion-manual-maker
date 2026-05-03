@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Manual Maker",
+  "version": "1.0.0",
+  "description": "クリックするだけでスクリーンショット+矢印をNotionへ自動保存",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs",
+    "identity",
+    "windows",
+    "webNavigation"
+  ],
+  "oauth2": {
+    "client_id": "1097550430323-6r11eua9fustnbffh91c8bi4lbc8a0a9.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
+  },
+  "host_permissions": [
+    "<all_urls>",
+    "https://api.notion.com/*",
+    "https://ouscjeptmkoszcjkrmtm.supabase.co/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
