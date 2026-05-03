@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { supabase, SUPABASE_FUNCTIONS_URL, type UserProfile, type Invoice, type Manual, type UsageHistory, type NotionWorkspace } from '../../../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
@@ -13,6 +14,9 @@ const NOTION_PROXY_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/n
 const WEB_NOTION_REDIRECT_URI = 'https://chrome-manual-maker.s-tasklog.com/auth/notion-callback';
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard');
+  const locale = useLocale();
+
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -121,9 +125,9 @@ export default function DashboardPage() {
       const data = await res.json();
       if (data.success) {
         setProfile((prev) => prev ? { ...prev, plan: 'pro', ai_calls_limit: 500 } : prev);
-        setMsg('Proプランにアップグレードしました！AI生成が500回/月になりました。');
+        setMsg(t('upgradeSuccess'));
       } else {
-        setMsg('エラーが発生しました: ' + (data.error ?? '不明なエラー'));
+        setMsg(t('upgradeError', { error: data.error ?? '不明なエラー' }));
       }
     } finally {
       setCheckoutLoading('');
@@ -149,9 +153,9 @@ export default function DashboardPage() {
       const data = await res.json();
       if (data.success) {
         setProfile((prev) => prev ? { ...prev, plan: 'standard', ai_calls_limit: 100 } : prev);
-        setMsg('Standardプランにダウングレードしました。');
+        setMsg(t('downgradeSuccess'));
       } else {
-        setMsg('エラーが発生しました: ' + (data.error ?? '不明なエラー'));
+        setMsg(t('upgradeError', { error: data.error ?? '不明なエラー' }));
       }
     } finally {
       setCheckoutLoading('');
@@ -174,14 +178,14 @@ export default function DashboardPage() {
       const data = await res.json();
       if (data.success) {
         const cancelDate = data.cancel_at
-          ? new Date(data.cancel_at * 1000).toLocaleDateString('ja-JP')
+          ? new Date(data.cancel_at * 1000).toLocaleDateString(locale === 'ja' ? 'ja-JP' : 'en-US')
           : null;
         setCancelAt(cancelDate);
         setMsg(cancelDate
-          ? `${cancelDate} にサブスクリプションが終了します。それまでは現在のプランをご利用いただけます。`
-          : 'サブスクリプションの解約を受け付けました。');
+          ? t('cancelWithDate', { date: cancelDate })
+          : t('cancelNoDate'));
       } else {
-        setMsg('エラーが発生しました: ' + (data.error ?? '不明なエラー'));
+        setMsg(t('upgradeError', { error: data.error ?? '不明なエラー' }));
       }
     } finally {
       setCheckoutLoading('');
@@ -209,7 +213,7 @@ export default function DashboardPage() {
       if (data.url) {
         location.href = data.url;
       } else {
-        setMsg('チェックアウトの開始に失敗しました: ' + (data.error ?? '不明なエラー'));
+        setMsg(t('checkoutFailed', { error: data.error ?? '不明なエラー' }));
       }
     } finally {
       setCheckoutLoading('');
@@ -219,18 +223,17 @@ export default function DashboardPage() {
   async function handleNotionCode(code: string, s: Session) {
     setNotionConnecting(true);
     try {
-      const redirectUri = WEB_NOTION_REDIRECT_URI;
       const proxyRes = await fetch(NOTION_PROXY_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ code, redirect_uri: redirectUri }),
+        body: JSON.stringify({ code, redirect_uri: WEB_NOTION_REDIRECT_URI }),
       });
       const data = await proxyRes.json();
       if (data.error || !data.access_token) {
-        setMsg('Notion 接続に失敗しました: ' + (data.error ?? 'access_token missing'));
+        setMsg(t('notionConnectFailed', { error: data.error ?? 'access_token missing' }));
         return;
       }
 
@@ -250,9 +253,9 @@ export default function DashboardPage() {
         }),
       });
 
-      setMsg(`${workspaceName} を接続しました。`);
+      setMsg(t('notionConnected', { name: workspaceName }));
     } catch {
-      setMsg('Notion 接続中にエラーが発生しました。');
+      setMsg(t('notionConnectError'));
     } finally {
       setNotionConnecting(false);
     }
@@ -261,7 +264,7 @@ export default function DashboardPage() {
   function connectNotion(s: Session, plan: string, currentWsCount: number) {
     const maxWs = plan === 'pro' ? 3 : 1;
     if (currentWsCount >= maxWs) {
-      setMsg(`このプランでは最大 ${maxWs} ワークスペースまで接続できます。`);
+      setMsg(t('wsMaxReached', { max: String(maxWs) }));
       return;
     }
     const redirectUri = encodeURIComponent(WEB_NOTION_REDIRECT_URI);
@@ -284,12 +287,12 @@ export default function DashboardPage() {
           ...prev,
           workspaces: prev.workspaces.filter((w) => w.workspace_id !== workspaceId),
         } : prev);
-        setMsg('ワークスペースを切断しました。');
+        setMsg(t('wsDisconnected'));
       } else {
-        setMsg('ワークスペースの切断に失敗しました。');
+        setMsg(t('wsDisconnectFailed'));
       }
     } catch {
-      setMsg('通信エラーが発生しました。');
+      setMsg(t('networkError'));
     }
   }
 
@@ -310,10 +313,10 @@ export default function DashboardPage() {
           manuals: prev.manuals.filter((m) => m.id !== manualId),
         } : prev);
       } else {
-        setMsg('マニュアルの削除に失敗しました。');
+        setMsg(t('manualDeleteFailed'));
       }
     } catch {
-      setMsg('通信エラーが発生しました。');
+      setMsg(t('networkError'));
     }
   }
 
@@ -330,29 +333,33 @@ export default function DashboardPage() {
       });
       if (res.ok) {
         await supabase.auth.signOut();
-        setMsg('アカウントを削除しました。');
+        setMsg(t('accountDeleted'));
       } else {
-        setMsg('削除に失敗しました。しばらくしてから再試行してください。');
+        setMsg(t('deleteFailed'));
       }
     } catch {
-      setMsg('通信エラーが発生しました。');
+      setMsg(t('networkError'));
     }
     setDeleteConfirm(false);
   }
 
+  const dateLocale = locale === 'ja' ? 'ja-JP' : 'en-US';
+
   function fmtResetDate(iso: string | null | undefined): string {
     if (!iso) return '';
     const d = new Date(iso);
-    return `${d.getMonth() + 1}月${d.getDate()}日`;
+    if (locale === 'ja') return `${d.getMonth() + 1}月${d.getDate()}日`;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   function fmtInvoiceDate(unix: number): string {
     const d = new Date(unix * 1000);
-    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    if (locale === 'ja') return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   function fmtAmount(amount: number, currency: string): string {
-    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: currency.toUpperCase() }).format(amount / 100);
+    return new Intl.NumberFormat(dateLocale, { style: 'currency', currency: currency.toUpperCase() }).format(amount / 100);
   }
 
   const planLabel: Record<string, { label: string; emoji: string }> = {
@@ -373,7 +380,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="max-w-xl mx-auto px-6 py-24 text-center text-n-400 text-sm">
-        読み込み中…
+        {t('loading')}
       </div>
     );
   }
@@ -383,10 +390,8 @@ export default function DashboardPage() {
     return (
       <div className="max-w-sm mx-auto px-6 py-32 text-center">
         <div className="text-5xl mb-4">👤</div>
-        <h1 className="text-xl font-bold text-n-900 mb-2">マイページ</h1>
-        <p className="text-n-500 text-sm mb-8 leading-relaxed">
-          利用状況の確認やプラン管理は<br />Google アカウントでログインしてください。
-        </p>
+        <h1 className="text-xl font-bold text-n-900 mb-2">{t('title')}</h1>
+        <p className="text-n-500 text-sm mb-8 leading-relaxed">{t('loginPromptDesc')}</p>
         <button
           onClick={signIn}
           className="inline-flex items-center gap-2.5 bg-white border border-n-200 px-5 py-2.5 rounded-notion font-medium text-sm text-n-900 shadow-notion hover:shadow-notion-md hover:border-n-300 transition-all"
@@ -397,7 +402,7 @@ export default function DashboardPage() {
             <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
             <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
           </svg>
-          Google でログイン
+          {t('loginWithGoogle')}
         </button>
       </div>
     );
@@ -410,14 +415,14 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-lg font-bold text-n-900">マイページ</h1>
+          <h1 className="text-lg font-bold text-n-900">{t('title')}</h1>
           <p className="text-sm text-n-500 mt-0.5">{session.user.email}</p>
         </div>
         <button
           onClick={signOut}
           className="text-xs text-n-500 border border-n-200 px-3 py-1.5 rounded-notion hover:bg-n-50 hover:border-n-300 transition-colors"
         >
-          ログアウト
+          {t('logout')}
         </button>
       </div>
 
@@ -435,13 +440,13 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2.5">
             <span className="text-2xl">{planInfo.emoji}</span>
             <div>
-              <p className="text-xs text-n-500 mb-0.5">現在のプラン</p>
+              <p className="text-xs text-n-500 mb-0.5">{t('currentPlan')}</p>
               <p className="text-lg font-bold text-n-900">{planInfo.label}</p>
             </div>
           </div>
           {profile?.plan !== 'free' && cancelAt && (
             <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-notion">
-              {cancelAt} に終了予定
+              {t('endsAt', { date: cancelAt })}
             </span>
           )}
         </div>
@@ -450,19 +455,16 @@ export default function DashboardPage() {
         {profile?.plan === 'free' && (
           <div className="mb-4">
             <div className="flex justify-between text-xs text-n-500 mb-1.5">
-              <span>スクリーンショット</span>
+              <span>{t('screenshotLabel')}</span>
               <span className="flex items-center gap-2">
-                <span>{profile.monthly_screenshots} / 20 枚</span>
+                <span>{t('screenshotCount', { used: String(profile.monthly_screenshots) })}</span>
                 {profile.screenshot_reset_at && (
-                  <span className="text-n-400">· {fmtResetDate(profile.screenshot_reset_at)}リセット</span>
+                  <span className="text-n-400">· {t('resetsOn', { date: fmtResetDate(profile.screenshot_reset_at) })}</span>
                 )}
               </span>
             </div>
             <div className="h-1.5 bg-n-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-brand rounded-full transition-all"
-                style={{ width: `${screenshotPct}%` }}
-              />
+              <div className="h-full bg-brand rounded-full transition-all" style={{ width: `${screenshotPct}%` }} />
             </div>
           </div>
         )}
@@ -471,19 +473,16 @@ export default function DashboardPage() {
         {profile && profile.ai_calls_limit > 0 && (
           <div>
             <div className="flex justify-between text-xs text-n-500 mb-1.5">
-              <span>AI生成</span>
+              <span>{t('aiLabel')}</span>
               <span className="flex items-center gap-2">
-                <span>{profile.ai_calls_used} / {profile.ai_calls_limit} 回</span>
+                <span>{t('aiCount', { used: String(profile.ai_calls_used), limit: String(profile.ai_calls_limit) })}</span>
                 {profile.ai_calls_reset_at && (
-                  <span className="text-n-400">· {fmtResetDate(profile.ai_calls_reset_at)}リセット</span>
+                  <span className="text-n-400">· {t('resetsOn', { date: fmtResetDate(profile.ai_calls_reset_at) })}</span>
                 )}
               </span>
             </div>
             <div className="h-1.5 bg-n-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-400 rounded-full transition-all"
-                style={{ width: `${aiPct}%` }}
-              />
+              <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${aiPct}%` }} />
             </div>
           </div>
         )}
@@ -492,22 +491,22 @@ export default function DashboardPage() {
       {/* Free → Upgrade */}
       {profile?.plan === 'free' && (
         <div className="bg-n-50 border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-1">プランをアップグレード</p>
-          <p className="text-sm text-n-500 mb-4">14日間無料トライアル。いつでもキャンセル可能。</p>
+          <p className="font-semibold text-n-900 mb-1">{t('upgradePlanTitle')}</p>
+          <p className="text-sm text-n-500 mb-4">{t('upgradePlanDesc')}</p>
           <div className="flex gap-3 flex-wrap">
             <button
               onClick={() => startCheckout(STRIPE_STANDARD_PRICE_ID)}
               disabled={!!checkoutLoading}
               className="text-sm font-semibold px-4 py-2 rounded-notion border border-n-200 bg-white text-n-700 hover:bg-n-50 hover:border-n-300 disabled:opacity-50 transition-colors shadow-notion"
             >
-              {checkoutLoading === STRIPE_STANDARD_PRICE_ID ? '処理中…' : '⚡ Standard ¥500/月'}
+              {checkoutLoading === STRIPE_STANDARD_PRICE_ID ? t('processing') : '⚡ Standard ¥500/month'}
             </button>
             <button
               onClick={() => startCheckout(STRIPE_PRO_PRICE_ID)}
               disabled={!!checkoutLoading}
               className="text-sm font-semibold px-4 py-2 rounded-notion bg-brand text-white hover:bg-red-600 disabled:opacity-50 transition-colors shadow-notion"
             >
-              {checkoutLoading === STRIPE_PRO_PRICE_ID ? '処理中…' : '🚀 Pro ¥1,200/月'}
+              {checkoutLoading === STRIPE_PRO_PRICE_ID ? t('processing') : '🚀 Pro ¥1,200/month'}
             </button>
           </div>
         </div>
@@ -516,37 +515,34 @@ export default function DashboardPage() {
       {/* Standard → Pro */}
       {profile?.plan === 'standard' && (
         <div className="bg-n-50 border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-1">🚀 Pro にアップグレード</p>
-          <p className="text-sm text-n-500 mb-4">AI生成 500回/月・ワークスペース3つ。</p>
+          <p className="font-semibold text-n-900 mb-1">{t('upgradeToProTitle')}</p>
+          <p className="text-sm text-n-500 mb-4">{t('upgradeToProDesc')}</p>
           {!proUpgradeConfirm ? (
             <button
               onClick={() => setProUpgradeConfirm(true)}
               disabled={!!checkoutLoading}
               className="text-sm font-semibold px-4 py-2 rounded-notion bg-brand text-white hover:bg-red-600 disabled:opacity-50 transition-colors shadow-notion"
             >
-              Pro ¥1,200/月 にアップグレード
+              {t('upgradeToProBtn')}
             </button>
           ) : (
             <div className="bg-white border border-n-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-n-900 mb-1">Pro プランへの変更を確認</p>
-              <p className="text-xs text-n-500 mb-4 leading-relaxed">
-                月額 <span className="font-semibold text-n-900">¥1,200</span> に変更されます。
-                差額は本日分から日割りで請求されます。
-              </p>
+              <p className="text-sm font-medium text-n-900 mb-1">{t('confirmUpgradeTitle')}</p>
+              <p className="text-xs text-n-500 mb-4 leading-relaxed">{t('confirmUpgradeDesc')}</p>
               <div className="flex gap-2">
                 <button
                   onClick={upgradeToPro}
                   disabled={!!checkoutLoading}
                   className="text-sm font-semibold px-4 py-2 rounded-notion bg-brand text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                 >
-                  {checkoutLoading === STRIPE_PRO_PRICE_ID ? '処理中…' : '確定する'}
+                  {checkoutLoading === STRIPE_PRO_PRICE_ID ? t('processing') : t('confirm')}
                 </button>
                 <button
                   onClick={() => setProUpgradeConfirm(false)}
                   disabled={!!checkoutLoading}
                   className="text-sm px-4 py-2 rounded-notion border border-n-200 text-n-600 hover:bg-n-100 disabled:opacity-50 transition-colors"
                 >
-                  キャンセル
+                  {t('cancel')}
                 </button>
               </div>
             </div>
@@ -554,40 +550,37 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Pro → Standard ダウングレード */}
+      {/* Pro → Standard downgrade */}
       {profile?.plan === 'pro' && !cancelAt && (
         <div className="bg-n-50 border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-1">Standard にダウングレード</p>
-          <p className="text-sm text-n-500 mb-4">AI生成 100回/月・ワークスペース1つ。差額は日割りで返金されます。</p>
+          <p className="font-semibold text-n-900 mb-1">{t('downgradeTitle')}</p>
+          <p className="text-sm text-n-500 mb-4">{t('downgradeDesc')}</p>
           {!downgradeConfirm ? (
             <button
               onClick={() => setDowngradeConfirm(true)}
               disabled={!!checkoutLoading}
               className="text-sm px-4 py-2 rounded-notion border border-n-200 bg-white text-n-700 hover:bg-n-50 disabled:opacity-50 transition-colors"
             >
-              Standard ¥500/月 にダウングレード
+              {t('downgradeBtn')}
             </button>
           ) : (
             <div className="bg-white border border-n-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-n-900 mb-1">ダウングレードを確認</p>
-              <p className="text-xs text-n-500 mb-4 leading-relaxed">
-                月額 <span className="font-semibold text-n-900">¥500</span> に変更されます。
-                ワークスペースが1つに制限され、AI生成は100回/月になります。
-              </p>
+              <p className="text-sm font-medium text-n-900 mb-1">{t('confirmDowngradeTitle')}</p>
+              <p className="text-xs text-n-500 mb-4 leading-relaxed">{t('confirmDowngradeDesc')}</p>
               <div className="flex gap-2">
                 <button
                   onClick={downgradeToStandard}
                   disabled={!!checkoutLoading}
                   className="text-sm font-semibold px-4 py-2 rounded-notion bg-n-800 text-white hover:bg-n-900 disabled:opacity-50 transition-colors"
                 >
-                  {checkoutLoading === STRIPE_STANDARD_PRICE_ID ? '処理中…' : '確定する'}
+                  {checkoutLoading === STRIPE_STANDARD_PRICE_ID ? t('processing') : t('confirm')}
                 </button>
                 <button
                   onClick={() => setDowngradeConfirm(false)}
                   disabled={!!checkoutLoading}
                   className="text-sm px-4 py-2 rounded-notion border border-n-200 text-n-600 hover:bg-n-100 disabled:opacity-50 transition-colors"
                 >
-                  キャンセル
+                  {t('cancel')}
                 </button>
               </div>
             </div>
@@ -595,39 +588,37 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 解約 */}
+      {/* Cancel subscription */}
       {profile?.plan !== 'free' && !cancelAt && (
         <div className="bg-n-50 border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-1">サブスクリプションを解約</p>
-          <p className="text-sm text-n-500 mb-4">解約後も当月末まではご利用いただけます。翌月からFreeプランに移行します。</p>
+          <p className="font-semibold text-n-900 mb-1">{t('cancelSubTitle')}</p>
+          <p className="text-sm text-n-500 mb-4">{t('cancelSubDesc')}</p>
           {!cancelConfirm ? (
             <button
               onClick={() => setCancelConfirm(true)}
               disabled={!!checkoutLoading}
               className="text-sm px-4 py-2 rounded-notion border border-brand/30 text-brand hover:bg-brand/5 disabled:opacity-50 transition-colors"
             >
-              解約する
+              {t('cancelSubBtn')}
             </button>
           ) : (
             <div className="bg-white border border-brand/20 rounded-xl p-4">
-              <p className="text-sm font-medium text-n-900 mb-1">解約を確認</p>
-              <p className="text-xs text-n-500 mb-4 leading-relaxed">
-                当月末までは現在のプランをご利用いただけます。以降はFreeプラン（スクショ20枚/月）に移行します。
-              </p>
+              <p className="text-sm font-medium text-n-900 mb-1">{t('confirmCancelTitle')}</p>
+              <p className="text-xs text-n-500 mb-4 leading-relaxed">{t('confirmCancelDesc')}</p>
               <div className="flex gap-2">
                 <button
                   onClick={cancelSubscription}
                   disabled={!!checkoutLoading}
                   className="text-sm font-semibold px-4 py-2 rounded-notion bg-brand text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                 >
-                  {checkoutLoading === 'cancel' ? '処理中…' : '解約を確定する'}
+                  {checkoutLoading === 'cancel' ? t('processing') : t('confirmCancelBtn')}
                 </button>
                 <button
                   onClick={() => setCancelConfirm(false)}
                   disabled={!!checkoutLoading}
                   className="text-sm px-4 py-2 rounded-notion border border-n-200 text-n-600 hover:bg-n-100 disabled:opacity-50 transition-colors"
                 >
-                  キャンセル
+                  {t('cancel')}
                 </button>
               </div>
             </div>
@@ -639,13 +630,13 @@ export default function DashboardPage() {
       {profile && (
         <div className="bg-white border border-n-200 rounded-xl shadow-notion p-5 sm:p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <p className="font-semibold text-n-900">Notion ワークスペース</p>
+            <p className="font-semibold text-n-900">{t('notionWorkspacesTitle')}</p>
             <span className="text-xs text-n-400">
-              {profile.workspaces.length} / {profile.plan === 'pro' ? 3 : 1} 接続中
+              {t('connectedCount', { count: String(profile.workspaces.length), max: String(profile.plan === 'pro' ? 3 : 1) })}
             </span>
           </div>
           {profile.workspaces.length === 0 ? (
-            <p className="text-sm text-n-400 mb-3">まだ Notion ワークスペースが接続されていません。</p>
+            <p className="text-sm text-n-400 mb-3">{t('noWorkspace')}</p>
           ) : (
             <ul className="space-y-1 mb-3">
               {profile.workspaces.map((ws: NotionWorkspace) => (
@@ -653,12 +644,14 @@ export default function DashboardPage() {
                   <span className="text-base">📄</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-n-900 truncate">{ws.workspace_name}</p>
-                    <p className="text-xs text-n-400">接続: {new Date(ws.connected_at).toLocaleDateString('ja-JP')}</p>
+                    <p className="text-xs text-n-400">
+                      {new Date(ws.connected_at).toLocaleDateString(dateLocale)}
+                    </p>
                   </div>
                   <button
                     onClick={() => disconnectWorkspace(ws.workspace_id)}
                     className="text-xs text-n-400 hover:text-brand transition-colors px-1.5 py-1 flex-shrink-0"
-                    title="切断"
+                    title={t('disconnect')}
                   >
                     ✕
                   </button>
@@ -672,7 +665,7 @@ export default function DashboardPage() {
               disabled={notionConnecting}
               className="text-sm text-n-700 border border-n-200 px-3 py-1.5 rounded-notion hover:bg-n-50 hover:border-n-300 disabled:opacity-50 transition-colors"
             >
-              {notionConnecting ? '接続中…' : '＋ Notion を接続する'}
+              {notionConnecting ? t('connecting') : t('addNotion')}
             </button>
           )}
         </div>
@@ -681,7 +674,7 @@ export default function DashboardPage() {
       {/* Usage history chart */}
       {profile && profile.usage_history.length > 0 && (
         <div className="bg-white border border-n-200 rounded-xl shadow-notion p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-4">使用量グラフ（月別）</p>
+          <p className="font-semibold text-n-900 mb-4">{t('usageChartTitle')}</p>
           {(() => {
             const history: UsageHistory[] = [...profile.usage_history].reverse();
             const maxShots = Math.max(...history.map(h => h.screenshots), 1);
@@ -690,25 +683,27 @@ export default function DashboardPage() {
               <div className="flex items-end gap-2 h-24">
                 {history.map((h) => {
                   const shotPct = Math.round((h.screenshots / maxShots) * 100);
-                  const aiPct = Math.round((h.ai_calls / maxAi) * 100);
+                  const aiPct2 = Math.round((h.ai_calls / maxAi) * 100);
                   const [y, m] = h.month.split('-');
+                  const monthLabel = new Date(parseInt(y), parseInt(m) - 1)
+                    .toLocaleDateString(dateLocale, { month: 'short' });
                   return (
                     <div key={h.month} className="flex-1 flex flex-col items-center gap-1">
                       <div className="w-full flex gap-0.5 items-end" style={{ height: '72px' }}>
                         <div
-                          title={`スクショ ${h.screenshots}枚`}
+                          title={t('screenshotTooltip', { n: String(h.screenshots) })}
                           className="flex-1 bg-brand/70 rounded-t-sm transition-all"
                           style={{ height: `${shotPct}%` }}
                         />
                         {h.ai_calls > 0 && (
                           <div
-                            title={`AI ${h.ai_calls}回`}
+                            title={t('aiTooltip', { n: String(h.ai_calls) })}
                             className="flex-1 bg-emerald-400/70 rounded-t-sm transition-all"
-                            style={{ height: `${aiPct}%` }}
+                            style={{ height: `${aiPct2}%` }}
                           />
                         )}
                       </div>
-                      <p className="text-[10px] text-n-400">{m}月</p>
+                      <p className="text-[10px] text-n-400">{monthLabel}</p>
                     </div>
                   );
                 })}
@@ -716,8 +711,12 @@ export default function DashboardPage() {
             );
           })()}
           <div className="flex gap-4 mt-3">
-            <span className="flex items-center gap-1.5 text-xs text-n-500"><span className="w-2.5 h-2.5 rounded-sm bg-brand/70 inline-block" />スクショ</span>
-            <span className="flex items-center gap-1.5 text-xs text-n-500"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-400/70 inline-block" />AI生成</span>
+            <span className="flex items-center gap-1.5 text-xs text-n-500">
+              <span className="w-2.5 h-2.5 rounded-sm bg-brand/70 inline-block" />{t('screenshotChartLabel')}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-n-500">
+              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-400/70 inline-block" />{t('aiChartLabel')}
+            </span>
           </div>
         </div>
       )}
@@ -725,7 +724,7 @@ export default function DashboardPage() {
       {/* Manuals list */}
       {profile && profile.manuals.length > 0 && (
         <div className="border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-4">作成したマニュアル</p>
+          <p className="font-semibold text-n-900 mb-4">{t('manualsTitle')}</p>
           <div className="space-y-1">
             {profile.manuals.map((m: Manual) => (
               <div key={m.id} className="flex items-center gap-3 py-2.5 border-b border-n-100 last:border-0">
@@ -733,7 +732,7 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-n-900 truncate">{m.title}</p>
                   <p className="text-xs text-n-400 mt-0.5">
-                    {m.step_count} ステップ · {new Date(m.created_at).toLocaleDateString('ja-JP')}
+                    {t('steps', { n: String(m.step_count) })} · {new Date(m.created_at).toLocaleDateString(dateLocale)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -750,7 +749,7 @@ export default function DashboardPage() {
                   <button
                     onClick={() => deleteManual(m.id)}
                     className="text-xs text-n-400 hover:text-brand transition-colors px-1.5 py-1"
-                    title="削除"
+                    title={t('deleteBtn')}
                   >
                     ✕
                   </button>
@@ -764,7 +763,7 @@ export default function DashboardPage() {
       {/* Billing history */}
       {invoices.length > 0 && (
         <div className="border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-4">請求履歴</p>
+          <p className="font-semibold text-n-900 mb-4">{t('billingTitle')}</p>
           <div className="space-y-2">
             {invoices.map((inv) => (
               <div key={inv.id} className="flex items-center justify-between py-2 border-b border-n-100 last:border-0">
@@ -783,31 +782,29 @@ export default function DashboardPage() {
 
       {/* Account deletion */}
       <div className="border border-n-200 rounded-xl p-5 sm:p-6 mt-6">
-        <p className="font-semibold text-n-900 mb-1">アカウント削除</p>
-        <p className="text-sm text-n-500 mb-4">
-          メールアドレスとスクリーンショット画像が削除されます。有料プランをご利用中の場合はサブスクリプションも解約されます。
-        </p>
+        <p className="font-semibold text-n-900 mb-1">{t('deleteAccountTitle')}</p>
+        <p className="text-sm text-n-500 mb-4">{t('deleteAccountDesc')}</p>
         {!deleteConfirm ? (
           <button
             onClick={() => setDeleteConfirm(true)}
             className="text-sm text-brand border border-brand/25 px-4 py-2 rounded-notion hover:bg-brand/5 transition-colors"
           >
-            アカウントを削除する
+            {t('deleteAccountBtn')}
           </button>
         ) : (
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm font-medium text-brand">本当に削除しますか？</p>
+            <p className="text-sm font-medium text-brand">{t('confirmDeleteMsg')}</p>
             <button
               onClick={deleteAccount}
               className="text-sm bg-brand text-white px-4 py-2 rounded-notion hover:bg-red-600 transition-colors"
             >
-              削除する
+              {t('deleteBtn')}
             </button>
             <button
               onClick={() => setDeleteConfirm(false)}
               className="text-sm text-n-500 border border-n-200 px-4 py-2 rounded-notion hover:bg-n-50 transition-colors"
             >
-              キャンセル
+              {t('cancel')}
             </button>
           </div>
         )}
