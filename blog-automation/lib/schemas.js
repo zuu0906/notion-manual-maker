@@ -42,10 +42,13 @@ function buildSerpSummary(serpData) {
   };
 }
 
-const CTA_HTML = `<div style="background:#fff5f5;border-left:4px solid #e53e3e;padding:16px;margin:24px 0;">
-<p>📸 <strong>スクリーンショットを撮りながらNotionに貼るのが面倒…</strong>と感じたことはありませんか？</p>
-<p><strong>Chrome Manual Maker</strong>を使えば、Chromeでクリックするだけでスクリーンショット＋赤丸注釈がNotionに自動保存されます。</p>
-<a href="https://chrome-manual-maker.s-tasklog.com" style="display:inline-block;background:#e53e3e;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Chrome Manual Makerを無料で試す →</a>
+const CTA_HTML = `<div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:20px 24px;margin:32px 0;">
+<p style="font-size:16px;font-weight:700;margin:0 0 8px;">📸 Notionのマニュアル作成、まだ手動でやっていますか？</p>
+<p style="margin:0 0 16px;color:#4b5563;">クリックするだけでスクリーンショット＋赤丸注釈が自動でNotionに保存される Chrome 拡張機能です。無料プランあり・インストール30秒。</p>
+<div style="display:flex;gap:12px;flex-wrap:wrap;">
+<a href="https://chrome-manual-maker.s-tasklog.com" style="display:inline-block;background:#e53e3e;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">無料でインストール →</a>
+<a href="https://chrome-manual-maker.s-tasklog.com" style="display:inline-block;background:#fff;color:#e53e3e;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;border:1px solid #e53e3e;">詳細を見る</a>
+</div>
 </div>`;
 
 module.exports = { kwHash, loadSerpCache, buildSerpSummary, CTA_HTML };

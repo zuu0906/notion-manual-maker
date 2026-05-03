@@ -138,6 +138,14 @@ async function runWriter(outline) {
     previousHeadings.push(heading.text);
   }
 
+  // 記事末尾に必ずまとめ＋CTAを追加
+  const CLOSING_CTA = `<div style="background:#f9fafb;border-radius:8px;padding:24px;margin:32px 0;text-align:center;">
+<p style="font-size:18px;font-weight:700;margin:0 0 12px;">Notionマニュアル作成を、もっとラクに。</p>
+<p style="color:#6b7280;margin:0 0 20px;">Chrome Manual Maker はクリックするだけでスクリーンショット＋説明文をNotionに自動保存します。<br>無料プランでまず試してみてください。</p>
+<a href="https://chrome-manual-maker.s-tasklog.com" style="display:inline-block;background:#e53e3e;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">無料でインストールする →</a>
+</div>`;
+  content += `\n${CLOSING_CTA}\n`;
+
   const totalChars = content.replace(/<[^>]+>/g, '').replace(/\s+/g, '').length;
   const ctaCount = (content.match(/chrome-manual-maker\.s-tasklog\.com/g) || []).length;
 
