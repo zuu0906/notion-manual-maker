@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="__MSG_htmlLang__">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <title>Chrome Manual Maker</title>
@@ -380,9 +380,10 @@
        href="https://chrome-manual-maker.vercel.app/dashboard"
        target="_blank"
        rel="noopener noreferrer"
-       title="__MSG_portalLinkTitle__"
+       data-i18n-title="portalLinkTitle"
+       data-i18n="myPage"
        class="portal-link-btn"
-    >__MSG_myPage__</a>
+    ></a>
   </header>
 
   <div class="view-pad">
@@ -390,10 +391,10 @@
     <!-- Notion接続 -->
     <div class="row">
       <div class="status-dot" id="notion-dot"></div>
-      <div class="notion-name" id="notion-status">__MSG_notionDisconnected__</div>
-      <select id="ws-selector" style="display:none;" title="__MSG_wsSelectorTitle__"></select>
-      <button class="btn-default" id="ws-add-btn" style="display:none;" title="__MSG_wsAddTitle__">＋</button>
-      <button class="btn-default" id="connect-btn">__MSG_connect__</button>
+      <div class="notion-name" id="notion-status" data-i18n="notionDisconnected"></div>
+      <select id="ws-selector" style="display:none;" data-i18n-title="wsSelectorTitle"></select>
+      <button class="btn-default" id="ws-add-btn" style="display:none;" data-i18n-title="wsAddTitle">＋</button>
+      <button class="btn-default" id="connect-btn" data-i18n="connect"></button>
     </div>
 
     <!-- 使用量 -->
@@ -406,46 +407,46 @@
 
     <!-- 記録開始/停止 -->
     <div class="row">
-      <span class="row-label" id="record-status">__MSG_recordStatusZero__</span>
-      <button class="btn-record" id="record-btn" disabled>__MSG_startRecording__</button>
+      <span class="row-label" id="record-status" data-i18n="recordStatusZero"></span>
+      <button class="btn-record" id="record-btn" disabled data-i18n="startRecording"></button>
     </div>
 
     <!-- 記録中バナー -->
     <div id="rec-banner">
       <div class="rec-indicator"></div>
-      <span>__MSG_recordingLabel__</span>
-      <span class="rec-count" id="rec-step-count">__MSG_recordingStepsZero__</span>
+      <span data-i18n="recordingLabel"></span>
+      <span class="rec-count" id="rec-step-count" data-i18n="recordingStepsZero"></span>
     </div>
 
     <div class="divider"></div>
 
     <!-- ステップリスト -->
     <div class="steps-header-row">
-      <span class="steps-label">__MSG_stepsLabel__</span>
+      <span class="steps-label" data-i18n="stepsLabel"></span>
       <span class="ai-calls-label" id="ai-calls-label" style="display:none"></span>
-      <button class="ai-gen-btn" id="bulk-gen-btn" style="display:none" disabled>__MSG_bulkGenBtn__</button>
+      <button class="ai-gen-btn" id="bulk-gen-btn" style="display:none" disabled data-i18n="bulkGenBtn"></button>
     </div>
 
     <!-- プライバシー設定 -->
     <div class="privacy-row">
       <label>
         <input type="checkbox" id="privacy-blur-toggle" checked>
-        <span>__MSG_privacyLabel__</span>
+        <span data-i18n="privacyLabel"></span>
       </label>
     </div>
-    <div class="privacy-desc">__MSG_privacyDesc__</div>
+    <div class="privacy-desc" data-i18n="privacyDesc"></div>
 
     <!-- Googleサインインセクション（未ログイン時表示） -->
     <div id="google-sign-in-section" style="display:none">
-      <p>__MSG_googleSignInDesc__</p>
+      <p data-i18n="googleSignInDesc"></p>
       <button class="btn-google-signin" id="google-sign-in-btn">
         <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
-        <span id="google-sign-in-text">__MSG_googleSignIn__</span>
+        <span id="google-sign-in-text" data-i18n="googleSignIn"></span>
       </button>
     </div>
 
     <div id="step-list">
-      <div class="empty-hint" id="empty-hint">__MSG_emptyHint__</div>
+      <div class="empty-hint" id="empty-hint" data-i18n="emptyHint"></div>
     </div>
 
     <div class="divider"></div>
@@ -454,32 +455,32 @@
     <div class="save-area">
       <div class="dest-row" id="dest-row" style="display:none;padding:0 0 6px;">
         <div class="dest-label-row">
-          <span class="dest-label">__MSG_destLabel__</span>
+          <span class="dest-label" data-i18n="destLabel"></span>
           <button class="btn-dest-refresh" id="dest-refresh-btn" title="↺">↺</button>
         </div>
         <div class="dest-filter-wrap">
-          <input class="dest-filter-input" id="dest-filter" placeholder="__MSG_destFilterPlaceholder__">
+          <input class="dest-filter-input" id="dest-filter" data-i18n-placeholder="destFilterPlaceholder">
         </div>
         <select id="page-dest-select" class="page-dest-select">
-          <option value="">__MSG_newPageOption__</option>
+          <option value="" data-i18n="newPageOption"></option>
         </select>
       </div>
       <div id="title-row">
-        <input class="save-title-input" id="page-title" placeholder="__MSG_pageTitlePlaceholder__">
+        <input class="save-title-input" id="page-title" data-i18n-placeholder="pageTitlePlaceholder">
       </div>
       <div class="save-btns">
-        <button class="btn-text" id="clear-btn" disabled>__MSG_clearBtn__</button>
-        <button class="btn-text" id="pdf-btn" disabled>__MSG_pdfBtn__</button>
-        <button class="btn-primary" id="save-btn" disabled>__MSG_saveBtn__</button>
+        <button class="btn-text" id="clear-btn" disabled data-i18n="clearBtn"></button>
+        <button class="btn-text" id="pdf-btn" disabled data-i18n="pdfBtn"></button>
+        <button class="btn-primary" id="save-btn" disabled data-i18n="saveBtn"></button>
       </div>
     </div>
 
     <div id="msg"></div>
 
     <div class="upgrade-row" id="upgrade-section" style="display:none">
-      <span id="upgrade-msg">__MSG_upgradeMsgFree__</span>
+      <span id="upgrade-msg" data-i18n="upgradeMsgFree"></span>
       <div class="upgrade-btns">
-        <button class="btn-upgrade btn-upgrade-pro" id="upgrade-btn">__MSG_upgradeBtnText__</button>
+        <button class="btn-upgrade btn-upgrade-pro" id="upgrade-btn" data-i18n="upgradeBtnText"></button>
       </div>
     </div>
 

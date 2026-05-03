@@ -19,6 +19,20 @@ let state = {
 let sessionInitDone = false;
 let showUpgradeMsg = false;
 
+function applyI18n() {
+  document.documentElement.lang = chrome.i18n.getMessage('htmlLang') || 'ja';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = chrome.i18n.getMessage(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    el.title = chrome.i18n.getMessage(el.dataset.i18nTitle);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = chrome.i18n.getMessage(el.dataset.i18nPlaceholder);
+  });
+}
+applyI18n();
+
 // DOM refs
 const notionDot = document.getElementById('notion-dot');
 const notionStatus = document.getElementById('notion-status');
