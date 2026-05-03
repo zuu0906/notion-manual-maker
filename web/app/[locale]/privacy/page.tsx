@@ -32,6 +32,9 @@ function PrivacyJa() {
             <li><span className="font-medium text-gray-800">Googleアカウント情報：</span>メールアドレス・Google ID（認証およびプラン管理のため）</li>
             <li><span className="font-medium text-gray-800">Notionアクセストークン：</span>お使いのデバイス上のローカルストレージにのみ保存します。サーバーには送信しません。</li>
             <li><span className="font-medium text-gray-800">利用統計：</span>月間スクリーンショット枚数・AI機能利用回数（プラン制限管理のため）</li>
+            <li><span className="font-medium text-gray-800">操作記録対象サイトのドメイン名：</span>マニュアル作成対象ツールの把握・サービス改善のため（例: salesforce.com）。個別ページURLは収集しません。</li>
+            <li><span className="font-medium text-gray-800">操作記録セッションの所要時間：</span>拡張機能の使用状況メタデータ（サービス改善目的）</li>
+            <li><span className="font-medium text-gray-800">主要機能の初回利用日時：</span>初回マニュアル作成・Notion接続・AI機能利用の日時（プラン管理・サービス改善目的）</li>
             <li><span className="font-medium text-gray-800">スクリーンショット画像：</span>ユーザーが操作記録を行ったWebページのスクリーンショット</li>
             <li><span className="font-medium text-gray-800">Stripe決済情報：</span>有料プランをご利用の場合、Stripe社がカード情報を管理します。当サービスはカード番号を保持しません。</li>
           </ul>

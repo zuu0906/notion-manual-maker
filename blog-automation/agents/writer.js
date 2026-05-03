@@ -36,6 +36,12 @@ Notionに関する記事をHTMLで書きます。
 - ステップフロー: 操作手順が3ステップ以上あるセクションで使用
 - スクリーンショット指示: 「画面を操作する」ステップの直後に必ず挿入
 
+## 文章・改行ルール（スマホ読みやすさ重視）
+- 1つの<p>タグはスマホ画面で3行以内（目安: テキスト70文字以内）
+- 長い説明は<p>を分割する（1つの<p>に1〜2文）
+- 1つのH2セクション直下の<p>は最大4つまで
+- 同じ語尾（〜です、〜ます）を3回以上連続させない
+
 ## 出力
 指定されたセクション内容のHTML本文のみ出力。余計な説明や前置きは不要。`;
 
@@ -123,7 +129,7 @@ function stripMeta(text) {
   // ```html や ``` などのコードブロックマーカーを除去
   let t = text.replace(/^```[a-z]*\n?/gim, '').replace(/^```\n?/gim, '');
   // **文字数:** や **キーワード:** などの分析テキスト行を除去
-  t = t.replace(/^\*\*[^*\n]+\*\*[:：][^\n]*\n?/gm, '');
+  t = t.replace(/^\*\*[^\n]*\n?/gm, '');
   return t.trim();
 }
 
@@ -150,7 +156,7 @@ async function runWriter(outline) {
   const CLOSING_CTA = `<div style="background:#f9fafb;border-radius:8px;padding:24px;margin:32px 0;text-align:center;">
 <p style="font-size:18px;font-weight:700;margin:0 0 12px;">Notionマニュアル作成を、もっとラクに。</p>
 <p style="color:#6b7280;margin:0 0 20px;">Chrome Manual Maker はクリックするだけでスクリーンショット＋説明文をNotionに自動保存します。<br>無料プランでまず試してみてください。</p>
-<a href="https://chrome-manual-maker.s-tasklog.com" style="display:inline-block;background:#e53e3e;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">無料でインストールする →</a>
+<a href="https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpjjkiojneipicd" style="display:inline-block;background:#e53e3e;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">無料でインストールする →</a>
 </div>`;
   content += `\n${CLOSING_CTA}\n`;
 

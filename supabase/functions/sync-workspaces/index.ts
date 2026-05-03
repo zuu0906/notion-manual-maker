@@ -74,6 +74,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 初回 Notion 接続日時を記録（first_notion_connect_at が未設定の場合のみ）
+    if (workspaces.length > 0) {
+      await supabase.from('users')
+        .update({ first_notion_connect_at: new Date().toISOString() })
+        .eq('google_id', google_id)
+        .is('first_notion_connect_at', null);
+    }
+
     return json({ ok: true });
   } catch (e) {
     return json({ error: String(e) }, 500);

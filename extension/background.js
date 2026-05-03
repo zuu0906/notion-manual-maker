@@ -11,6 +11,7 @@ let isRecording = false;
 let recordingTabId = null;
 let clickQueue = Promise.resolve();
 let lastCaptureTime = 0;
+let recordingStartTime = null;
 const MIN_CAPTURE_INTERVAL = 300;
 
 // drawOnOffscreen でのストレージ呼び出しを避けるためのプランキャッシュ
@@ -90,6 +91,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 async function startRecording(tabId) {
   isRecording = true;
   recordingTabId = tabId;
+  recordingStartTime = Date.now();
   await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
   notifyPopup({ type: 'STATE_UPDATE', isRecording: true, steps: pendingClicks });
 }
@@ -291,6 +293,8 @@ async function saveToNotion(notionPageId, title, steps) {
   const { notion_active_workspace_id } = await chrome.storage.local.get('notion_active_workspace_id');
   const notionPageUrl = `https://notion.so/${notionPage.id.replace(/-/g, '')}`;
   if (googleToken) {
+    const page_domain = stepsToSave[0]?.pageUrl ? (() => { try { return new URL(stepsToSave[0].pageUrl).hostname; } catch { return null; } })() : null;
+    const recording_duration_sec = recordingStartTime ? Math.round((Date.now() - recordingStartTime) / 1000) : null;
     fetch(`${SUPABASE_URL}/functions/v1/record-manual`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
@@ -300,6 +304,8 @@ async function saveToNotion(notionPageId, title, steps) {
         step_count: stepsToSave.length,
         notion_page_url: notionPageUrl,
         notion_workspace_id: notion_active_workspace_id ?? null,
+        page_domain,
+        recording_duration_sec,
       }),
     }).catch(() => {});
   }

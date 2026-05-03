@@ -141,6 +141,12 @@ Deno.serve(async (req) => {
         .update({ ai_calls_used: user.ai_calls_used + count })
         .eq('id', user.id);
 
+      // 初回 AI 利用日時を記録（first_ai_call_at が未設定の場合のみ）
+      await supabase.from('users')
+        .update({ first_ai_call_at: new Date().toISOString() })
+        .eq('id', user.id)
+        .is('first_ai_call_at', null);
+
       return json({ results, ai_calls_used: user.ai_calls_used + count, ai_calls_limit: limit });
     }
 
@@ -154,6 +160,12 @@ Deno.serve(async (req) => {
       .from('users')
       .update({ ai_calls_used: user.ai_calls_used + 1 })
       .eq('id', user.id);
+
+    // 初回 AI 利用日時を記録（first_ai_call_at が未設定の場合のみ）
+    await supabase.from('users')
+      .update({ first_ai_call_at: new Date().toISOString() })
+      .eq('id', user.id)
+      .is('first_ai_call_at', null);
 
     return json({ result, ai_calls_used: user.ai_calls_used + 1, ai_calls_limit: limit });
   } catch (e) {
