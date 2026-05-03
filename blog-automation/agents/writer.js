@@ -119,19 +119,27 @@ function autoImagePrompt(keyword) {
   return `Japanese business person using Notion, ${kw}, professional office workspace, clean flat illustration, minimal, digital productivity`;
 }
 
+function stripMeta(text) {
+  // ```html や ``` などのコードブロックマーカーを除去
+  let t = text.replace(/^```[a-z]*\n?/gim, '').replace(/^```\n?/gim, '');
+  // **文字数:** や **キーワード:** などの分析テキスト行を除去
+  t = t.replace(/^\*\*[^*\n]+\*\*[:：][^\n]*\n?/gm, '');
+  return t.trim();
+}
+
 async function runWriter(outline) {
   const log = msg => console.log(`[${new Date().toISOString()}] ${msg}`);
   const sections = groupHeadings(outline.headings || []);
 
   log('  リード文生成中...');
   const leadResult = await writeLeadParagraph(outline);
-  let content = leadResult.text + '\n';
+  let content = stripMeta(leadResult.text) + '\n';
 
   const previousHeadings = [];
   for (const heading of sections) {
     log(`  セクション生成中: "${heading.text}"`);
     const sectionResult = await writeSection(heading, outline, previousHeadings);
-    content += `\n<h2>${heading.text}</h2>\n${sectionResult.text}\n`;
+    content += `\n<h2>${heading.text}</h2>\n${stripMeta(sectionResult.text)}\n`;
     if (heading.ctaHere) {
       content += `\n${CTA_HTML}\n`;
     }
