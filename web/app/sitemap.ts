@@ -10,5 +10,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/en/pricing`,           lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/ja/how-it-works`,      lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/en/how-it-works`,      lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/ja/privacy`,           lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/en/privacy`,           lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/ja/terms`,             lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/en/terms`,             lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.3 },
   ];
 }
