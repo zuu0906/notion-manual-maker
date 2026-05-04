@@ -163,7 +163,7 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
   let mediaId = 0;
   try {
     const imageBuffer = await generateImage(state.finalArticle.imagePrompt);
-    mediaId = await uploadMedia(imageBuffer, `notion-blog-${runId}.png`);
+    ({ id: mediaId } = await uploadMedia(imageBuffer, `notion-blog-${runId}.png`));
   } catch (e) {
     log(`⚠️ 画像生成/アップロード失敗（記事は投稿します）: ${e.message}`);
   }

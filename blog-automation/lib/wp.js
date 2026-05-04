@@ -59,7 +59,33 @@ async function uploadMedia(imageBuffer, filename) {
   }
   const data = JSON.parse(res.body.toString());
   log(`メディアID: ${data.id}`);
-  return data.id;
+  return { id: data.id, url: data.source_url || '' };
+}
+
+async function getPost(wpId) {
+  const WP_URL = (process.env.WP_URL || '').replace(/\/$/, '');
+  const auth = Buffer.from(`${process.env.WP_USERNAME}:${process.env.WP_APP_PASSWORD}`).toString('base64');
+  const res = await request(`${WP_URL}/wp-json/wp/v2/posts/${wpId}`, {
+    headers: { 'Authorization': `Basic ${auth}` },
+  });
+  if (res.status !== 200) throw new Error(`Post fetch failed ${res.status}`);
+  return JSON.parse(res.body.toString());
+}
+
+async function updatePost(wpId, content) {
+  const WP_URL = (process.env.WP_URL || '').replace(/\/$/, '');
+  const auth = Buffer.from(`${process.env.WP_USERNAME}:${process.env.WP_APP_PASSWORD}`).toString('base64');
+  const body = Buffer.from(JSON.stringify({ content }));
+  const res = await request(`${WP_URL}/wp-json/wp/v2/posts/${wpId}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/json',
+    },
+  }, body);
+  if (res.status < 200 || res.status >= 300) throw new Error(`Post update failed ${res.status}`);
+  log(`記事更新完了: ID ${wpId}`);
+  return JSON.parse(res.body.toString());
 }
 
 async function postToWordPress(article, mediaId) {
@@ -110,4 +136,4 @@ function savePerformanceRecord(wpPost, theme, themeIndex) {
   log(`パフォーマンス記録を追加: ${wpPost.link}`);
 }
 
-module.exports = { generateImage, uploadMedia, postToWordPress, savePerformanceRecord };
+module.exports = { generateImage, uploadMedia, postToWordPress, savePerformanceRecord, getPost, updatePost };
