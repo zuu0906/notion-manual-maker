@@ -59,7 +59,7 @@ async function uploadMedia(imageBuffer, filename) {
   }
   const data = JSON.parse(res.body.toString());
   log(`メディアID: ${data.id}`);
-  return data.id;
+  return { id: data.id, url: data.source_url || '' };
 }
 
 async function postToWordPress(article, mediaId) {
