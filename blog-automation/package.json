@@ -16,7 +16,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "playwright": "^1.59.1",
-    "puppeteer": "^24.42.0"
+    "playwright": "^1.59.1"
   }
 }

@@ -25,13 +25,12 @@ if (fs.existsSync(envPath)) {
 const THEMES = require('./themes');
 const { initRun, loadState, saveState, markDone, markFailed } = require('./lib/state');
 const { generateImage, uploadMedia, postToWordPress, savePerformanceRecord } = require('./lib/wp');
-const { runPlanner }        = require('./agents/planner');
-const { runResearcher }     = require('./agents/researcher');
-const { runStructurer }     = require('./agents/structurer');
-const { runWriter }         = require('./agents/writer');
-const { runReviewer }       = require('./agents/reviewer');
-const { runRewriter }       = require('./agents/rewriter');
-const { runImageGenerator } = require('./agents/image-generator');
+const { runPlanner }    = require('./agents/planner');
+const { runResearcher } = require('./agents/researcher');
+const { runStructurer } = require('./agents/structurer');
+const { runWriter }     = require('./agents/writer');
+const { runReviewer }   = require('./agents/reviewer');
+const { runRewriter }   = require('./agents/rewriter');
 
 function log(msg) { console.log(`[${new Date().toISOString()}] ${msg}`); }
 
@@ -159,42 +158,17 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
     return;
   }
 
-  // セクション画像生成
-  log('[7/7] セクション画像生成中...');
-  try {
-    state.finalArticle = await runImageGenerator(state.finalArticle);
-    log(`      画像生成完了: ${(state.finalArticle.sectionImages || []).length}枚`);
-  } catch (e) {
-    log(`⚠️ セクション画像生成失敗（記事は投稿します）: ${e.message}`);
-    state.finalArticle.sectionImages = [];
-  }
-
-  // セクション画像を WP にアップロードして content に挿入
-  let articleContent = state.finalArticle.content;
-  for (const { tag, buf, alt } of (state.finalArticle.sectionImages || [])) {
-    try {
-      const { url } = await uploadMedia(buf, `section-${Date.now()}.png`);
-      if (url) {
-        const figure = `<figure><img src="${url}" alt="${alt}" style="width:100%;border-radius:8px;margin:16px 0 24px;"></figure>`;
-        articleContent = articleContent.replace(tag, tag + '\n' + figure);
-      }
-    } catch (e) {
-      log(`⚠️ セクション画像アップロード失敗 "${alt}": ${e.message}`);
-    }
-  }
-
   // アイキャッチ画像生成
-  log('アイキャッチ画像生成中...');
+  log('画像生成中...');
   let mediaId = 0;
   try {
     const imageBuffer = await generateImage(state.finalArticle.imagePrompt);
-    const { id } = await uploadMedia(imageBuffer, `notion-blog-${runId}.png`);
-    mediaId = id;
+    mediaId = await uploadMedia(imageBuffer, `notion-blog-${runId}.png`);
   } catch (e) {
-    log(`⚠️ アイキャッチ画像生成/アップロード失敗（記事は投稿します）: ${e.message}`);
+    log(`⚠️ 画像生成/アップロード失敗（記事は投稿します）: ${e.message}`);
   }
 
-  const wpPost = await postToWordPress({ ...state.finalArticle, content: articleContent }, mediaId);
+  const wpPost = await postToWordPress(state.finalArticle, mediaId);
   markDone(runId, state.finalArticle);
   savePerformanceRecord(wpPost, theme, themeIndex);
   saveUsed([...loadUsed(), themeIndex]);
