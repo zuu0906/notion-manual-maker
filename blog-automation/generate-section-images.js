@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
- * NotebookLMが生成したプロンプトJSON → Gemini画像生成 → WP記事に挿入
+ * H2セクションごとに Imagen 4 で画像生成して WP 記事に挿入する
  *
  * 使い方:
  *   node generate-section-images.js --wp-id 1303
  *
- * 事前準備:
- *   blog-automation/notebooklm-output.json を用意
- *   形式: [{ "section": "見出し", "prompt": "英語プロンプト" }, ...]
+ * 動作:
+ *   1. WP記事のH2見出しを取得
+ *   2. Gemini Flash でセクションごとの英語アイコン説明を生成（数十トークン）
+ *   3. Imagen 4 で1200x630px 画像を生成
+ *   4. WP メディアにアップロード
+ *   5. <h2> 直後に <figure><img> を挿入して記事を更新
  */
 
 const fs   = require('fs');
@@ -25,38 +28,62 @@ if (fs.existsSync(envPath)) {
 
 const args  = process.argv.slice(2);
 const wpId  = args.includes('--wp-id') ? args[args.indexOf('--wp-id') + 1] : null;
-const INPUT = path.join(__dirname, 'notebooklm-output.json');
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
 function log(msg) { console.log(`[${new Date().toISOString()}] ${msg}`); }
 
-async function generateWithGemini(prompt) {
-  const GEMINI_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY が未設定');
-
-  const body = JSON.stringify({
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
-  });
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${GEMINI_KEY}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-  });
-
+// H2見出しからアイコン説明3点を Gemini Flash で生成（小トークン）
+async function buildIconDescription(heading) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text:
+          `Output exactly 3 flat design icon descriptions for this blog section topic. ` +
+          `Format: icon1, icon2, icon3 (comma-separated, one line, no extra text). ` +
+          `Each description: 2-5 English words describing a simple icon. ` +
+          `Topic: "${heading}"`,
+        }] }],
+        generationConfig: { maxOutputTokens: 100, temperature: 0.3 },
+      }),
+    }
+  );
   const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+  // コンマ区切りで3要素あることを確認、足りなければフォールバック
+  const parts = text.split(',').map(s => s.trim()).filter(Boolean);
+  if (parts.length >= 3) return parts.slice(0, 3).join(', ');
+  return 'document with checkmark, arrow connecting boxes, clipboard with list';
+}
 
-  if (!res.ok) {
-    throw new Error(`Gemini API エラー ${res.status}: ${data.error?.message || JSON.stringify(data)}`);
-  }
+// Imagen 4 で画像生成
+async function generateWithImagen4(iconDesc) {
+  const prompt =
+    'Flat design infographic illustration, wide horizontal 16:9 banner, very light gray background. ' +
+    'Three rounded white cards arranged in a single horizontal row with soft drop shadows. ' +
+    `Each card contains one simple clean icon: ${iconDesc}. ` +
+    'Left card has blue accent border, center card has red accent border, right card has green accent border. ' +
+    'Absolutely no text, no letters, no numbers, no words, no labels anywhere. ' +
+    'Minimalist professional flat illustration, pastel colors, generous white space.';
 
-  // レスポンスから画像データを抽出
-  const parts = data.candidates?.[0]?.content?.parts || [];
-  const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
-  if (!imagePart) throw new Error('画像データがレスポンスに含まれていません');
-
-  return Buffer.from(imagePart.inlineData.data, 'base64');
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instances: [{ prompt }],
+        parameters: { sampleCount: 1, aspectRatio: '16:9' },
+      }),
+    }
+  );
+  const data = await res.json();
+  if (data.error) throw new Error(`Imagen 4 エラー: ${data.error.message}`);
+  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error('画像データがありません');
+  return Buffer.from(b64, 'base64');
 }
 
 async function main() {
@@ -64,48 +91,41 @@ async function main() {
     console.error('使い方: node generate-section-images.js --wp-id <WP記事ID>');
     process.exit(1);
   }
-  if (!fs.existsSync(INPUT)) {
-    console.error(`notebooklm-output.json が見つかりません: ${INPUT}`);
-    console.error('NotebookLMの出力をこのファイルに保存してください');
+  if (!GEMINI_KEY) {
+    console.error('GEMINI_API_KEY が .env に未設定');
     process.exit(1);
   }
 
-  const prompts = JSON.parse(fs.readFileSync(INPUT, 'utf8'));
-  log(`プロンプト読み込み: ${prompts.length}件`);
-
-  // WP記事の現在のcontentを取得
   log(`WP記事取得中: ID ${wpId}`);
   const post = await getPost(wpId);
-  let content = post.content?.raw || post.content?.rendered || '';
 
-  // rendered の場合はエンティティをデコード
+  // raw を優先、なければ rendered をデコード
+  let content = post.content?.raw || post.content?.rendered || '';
   content = content
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"');
 
-  // セクションごとに画像生成・挿入
-  for (const { section, prompt } of prompts) {
-    log(`  画像生成中: "${section}"`);
-    try {
-      const buf = await generateWithGemini(prompt);
-      const { url } = await uploadMedia(buf, `section-${Date.now()}.png`);
-      if (!url) { log(`  ⚠️ URL取得失敗: "${section}"`); continue; }
+  // H2見出しを抽出
+  const h2s = [...content.matchAll(/<h2>([^<]+)<\/h2>/g)];
+  if (h2s.length === 0) { log('H2見出しが見つかりません'); process.exit(0); }
+  log(`H2セクション数: ${h2s.length}件`);
 
-      // <h2>見出し</h2> の直後に figure を挿入（見出しテキストで照合）
-      const escaped = section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const h2Regex = new RegExp(`(<h2>${escaped}<\\/h2>)`, 'i');
-      if (h2Regex.test(content)) {
-        const figure = `<figure><img src="${url}" alt="${section}" style="width:100%;border-radius:8px;margin:16px 0 24px;"></figure>`;
-        content = content.replace(h2Regex, `$1\n${figure}`);
-        log(`  ✅ 挿入完了: "${section}"`);
-      } else {
-        log(`  ⚠️ 見出しが記事内に見つかりません: "${section}"`);
-      }
+  for (const [tag, heading] of h2s) {
+    log(`  処理中: "${heading}"`);
+    try {
+      const iconDesc = await buildIconDescription(heading);
+      log(`    アイコン: ${iconDesc}`);
+      const buf = await generateWithImagen4(iconDesc);
+      const { url } = await uploadMedia(buf, `section-${Date.now()}.png`);
+      if (!url) { log(`    ⚠️ URL取得失敗`); continue; }
+
+      const figure = `<figure><img src="${url}" alt="${heading}" style="width:100%;border-radius:8px;margin:16px 0 24px;"></figure>`;
+      content = content.replace(tag, `${tag}\n${figure}`);
+      log(`    ✅ 挿入完了`);
     } catch (e) {
-      log(`  ❌ エラー "${section}": ${e.message}`);
+      log(`    ❌ ${e.message}`);
     }
   }
 
-  // WP記事を更新
   await updatePost(wpId, content);
   log(`=== 完了: https://s-tasklog.com/?p=${wpId} ===`);
 }
