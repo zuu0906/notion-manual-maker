@@ -120,6 +120,7 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
       h2Count,
       targetCharCount: state.outline.targetCharCount,
       keyword,
+      persona:         state.outline.persona || null,
     });
     saveState(runId, { review: state.review });
     const status = state.review.passed ? '✓ PASS' : '✗ FAIL';

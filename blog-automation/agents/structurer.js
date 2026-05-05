@@ -2,7 +2,7 @@ const { callClaude } = require('../lib/claude');
 const { CTA_HTML } = require('../lib/schemas');
 
 const SYSTEM = `あなたはSEOと日本語コンテンツ戦略の専門家です。
-競合分析データをもとに、Notionブログ記事の最適なアウトラインを生成します。
+競合分析データとペルソナ情報をもとに、Notionブログ記事の最適なアウトラインを生成します。
 
 ## アウトライン生成ルール
 1. 競合記事が多く使っているH2は「必須要素」として含める
@@ -12,6 +12,7 @@ const SYSTEM = `あなたはSEOと日本語コンテンツ戦略の専門家で�
 5. wordBudgetは各セクションの目標文字数（合計でtargetCharCountになるよう配分）
 6. targetCharCountは10000〜20000の範囲で設定する（記事の深さに応じて調整）
 7. H2ごとのwordBudgetは最低1200、平均2000〜3000文字を目安にする
+8. 見出し構成はペルソナの「問題→原因→解決策→実践」というストーリーに沿って設計する
 
 ## 出力形式（JSONのみ・コードブロック不要）
 {
@@ -36,6 +37,10 @@ async function runStructurer(research) {
     ? research.topH2s.slice(0, 8).map(h => `- "${h.text}"（${h.count}件）`).join('\n')
     : '（SERPデータなし）';
 
+  const personaBlock = research.persona
+    ? `\n## ペルソナ情報\nペルソナ: ${research.persona.name}（${research.persona.role}）\n状況: ${research.persona.situation}\n悩み: ${research.persona.pain}\n解決する問題: ${research.readerProblem}\n解決後の姿: ${research.problemSolution}`
+    : '';
+
   const userMsg = `## リサーチデータ
 キーワード: ${research.keyword}
 記事の切り口: ${research.angle}
@@ -48,8 +53,9 @@ ${topH2Lines}
 
 競合が触れていない可能性があるトピック:
 ${(research.competitorGaps || []).map(g => `- ${g}`).join('\n') || '- なし'}
+${personaBlock}
 
-上記データをもとにアウトラインJSONを生成してください。`;
+上記データをもとに、ペルソナの問題解決ストーリーに沿ったアウトラインJSONを生成してください。`;
 
   const result = await callClaude({
     model: 'claude-haiku-4-5-20251001',
@@ -67,17 +73,20 @@ ${(research.competitorGaps || []).map(g => `- ${g}`).join('\n') || '- なし'}
   }
   outline.ctaHtml = CTA_HTML;
 
+  // ペルソナ情報をoutlineに引き継ぐ（writerで利用）
+  outline.persona = research.persona || null;
+  outline.readerProblem = research.readerProblem || '';
+  outline.problemSolution = research.problemSolution || '';
+
   // 末尾のH2に必ずCTAを保証する
   const h2s = outline.headings.filter(h => h.level === 'h2');
   if (h2s.length > 0) {
     const lastH2 = h2s[h2s.length - 1];
     if (!h2s.some(h => h.ctaHere)) {
-      // 末尾H2と中盤H2にCTA付与
       const midIdx = Math.floor(h2s.length / 2) - 1;
       if (midIdx >= 0) h2s[Math.max(0, midIdx)].ctaHere = true;
       lastH2.ctaHere = true;
     } else if (!lastH2.ctaHere) {
-      // 末尾だけ必ず付ける
       lastH2.ctaHere = true;
     }
   }

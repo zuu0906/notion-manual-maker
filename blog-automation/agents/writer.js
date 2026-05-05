@@ -10,6 +10,13 @@ Notionに関する記事をHTMLで書きます。
 - 文体: です・ます調。「〜してみましょう」「〜がおすすめです」など柔らかく話しかけるトーン
 - 体言止め・箇条書きは適切に使いつつ、地の文はです・ます調を崩さない
 
+## 執筆の3原則（必ず守ること）
+1. 問題解決: 記事全体がペルソナの「具体的な問題を解決するコンテンツ」であることを常に意識する
+2. ペルソナ共鳴: ペルソナが抱えている状況・悩みに刺さる言葉・視点で書く（共感→解決→行動のフロー）
+3. 具体例必須: 各H2セクションに必ず1つ以上の具体例を入れる
+   - 形式例: 「例えば、〇〇のような場合は〜」「〇〇さんのようなケースでは〜」「実際に〇〇社では〜」
+   - 数字・状況・固有名詞を使うとリアリティが増す（架空でよいが具体的に）
+
 ## 使用できるHTMLコンポーネント（<h2>は使用禁止）
 
 ### 通常タグ
@@ -50,7 +57,17 @@ function buildH3Context(heading) {
   return `\nこのセクションで使うH3サブ見出し:\n${heading.children.map(h => `- <h3>${h.text}</h3>`).join('\n')}`;
 }
 
+function buildPersonaContext(outline) {
+  if (!outline.persona) return '';
+  return `\n## ペルソナ情報（この読者に刺さる内容を書くこと）\nペルソナ: ${outline.persona.name}（${outline.persona.role}）\n状況: ${outline.persona.situation}\n悩み: ${outline.persona.pain}\n解決する問題: ${outline.readerProblem}\n解決後の姿: ${outline.problemSolution}`;
+}
+
 async function writeLeadParagraph(outline) {
+  const personaCtx = buildPersonaContext(outline);
+  const personaInstruction = outline.persona
+    ? `\n\n【重要】「${outline.persona.name}」のような${outline.persona.role}が抱える「${outline.persona.pain}」という悩みに共感し、この記事を読めば「${outline.problemSolution}」ことを伝えてください。`
+    : '';
+
   return callClaude({
     model: 'claude-sonnet-4-6',
     system: SYSTEM,
@@ -60,9 +77,10 @@ async function writeLeadParagraph(outline) {
 記事タイトル: ${outline.suggestedTitle}
 キーワード: ${outline.keyword}
 検索意図: ${outline.searchIntent}
+${personaCtx}
 
 読者の悩みに共感し、この記事で解決できることを伝えるリード文（150〜200文字）を<p>タグで書いてください。
-最初の100文字以内にキーワード「${outline.keyword}」を含めること。`,
+最初の100文字以内にキーワード「${outline.keyword}」を含めること。${personaInstruction}`,
     }],
     maxTokens: 400,
     expectJson: false,
@@ -74,10 +92,15 @@ async function writeSection(heading, outline, previousHeadings) {
     ? `\n既に書いたセクション（内容の重複を避けること）:\n${previousHeadings.map(h => `- ${h}`).join('\n')}`
     : '';
   const h3Ctx = buildH3Context(heading);
+  const personaCtx = buildPersonaContext(outline);
 
   // wordBudgetに応じてトークン上限を調整（日本語は1文字≒1.5トークン）
   const budget = heading.wordBudget || 1500;
   const maxTokens = Math.min(4000, Math.max(1500, Math.ceil(budget * 1.8)));
+
+  const exampleInstruction = outline.persona
+    ? `\n\n【具体例必須】このセクションには必ず1つ以上の具体例を入れてください。${outline.persona.name}（${outline.persona.role}）のような状況を想定した「例えば〜」「〇〇さんのケースでは〜」などのリアルな事例を使ってください。`
+    : '\n\n【具体例必須】このセクションには必ず1つ以上の具体例（「例えば〜」「〜のような場合は〜」など）を入れてください。';
 
   return callClaude({
     model: 'claude-sonnet-4-6',
@@ -87,7 +110,7 @@ async function writeSection(heading, outline, previousHeadings) {
       content: `## 見出しセクションを書いてください
 見出し: ${heading.text}
 目標文字数: ${budget}文字（テキストのみで${budget}文字以上になるよう必ず書いてください。短すぎる出力は禁止です）
-キーワード: ${outline.keyword}${h3Ctx}${prevCtx}
+キーワード: ${outline.keyword}${h3Ctx}${personaCtx}${prevCtx}${exampleInstruction}
 
 <h2>タグは出力しない。見出し配下のコンテンツ（<p>, <ul>, <li>, <h3>等）のみ出力してください。`,
     }],
@@ -126,9 +149,7 @@ function autoImagePrompt(keyword) {
 }
 
 function stripMeta(text) {
-  // ```html や ``` などのコードブロックマーカーを除去
   let t = text.replace(/^```[a-z]*\n?/gim, '').replace(/^```\n?/gim, '');
-  // **文字数:** や **キーワード:** などの分析テキスト行を除去
   t = t.replace(/^\*\*[^\n]*\n?/gm, '');
   return t.trim();
 }
@@ -136,6 +157,11 @@ function stripMeta(text) {
 async function runWriter(outline) {
   const log = msg => console.log(`[${new Date().toISOString()}] ${msg}`);
   const sections = groupHeadings(outline.headings || []);
+
+  if (outline.persona) {
+    log(`  ペルソナ: ${outline.persona.name}（${outline.persona.role}）`);
+    log(`  解決する問題: ${outline.readerProblem}`);
+  }
 
   log('  リード文生成中...');
   const leadResult = await writeLeadParagraph(outline);
@@ -152,7 +178,6 @@ async function runWriter(outline) {
     previousHeadings.push(heading.text);
   }
 
-  // 記事末尾に必ずまとめ＋CTAを追加
   const CLOSING_CTA = `<div style="background:#f9fafb;border-radius:8px;padding:24px;margin:32px 0;text-align:center;">
 <p style="font-size:18px;font-weight:700;margin:0 0 12px;">Notionマニュアル作成を、もっとラクに。</p>
 <p style="color:#6b7280;margin:0 0 20px;">Chrome Manual Maker はクリックするだけでスクリーンショット＋説明文をNotionに自動保存します。<br>無料プランでまず試してみてください。</p>

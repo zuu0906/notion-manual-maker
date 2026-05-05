@@ -13,6 +13,9 @@ async function runResearcher({ keyword, plan }) {
     angle: plan.angle,
     uniqueValue: plan.uniqueValue,
     competitorGaps: plan.competitorGaps || [],
+    persona: plan.persona || null,
+    readerProblem: plan.readerProblem || '',
+    problemSolution: plan.problemSolution || '',
   };
 }
 
