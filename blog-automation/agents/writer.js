@@ -11,11 +11,12 @@ Notionに関する記事をHTMLで書きます。
 - 体言止め・箇条書きは適切に使いつつ、地の文はです・ます調を崩さない
 
 ## 執筆の3原則（必ず守ること）
-1. 問題解決: 記事全体がペルソナの「具体的な問題を解決するコンテンツ」であることを常に意識する
-2. ペルソナ共鳴: ペルソナが抱えている状況・悩みに刺さる言葉・視点で書く（共感→解決→行動のフロー）
+1. 問題解決: 記事全体が「読者の具体的な問題を解決するコンテンツ」であることを常に意識する
+2. ペルソナ共鳴: ペルソナは書き手の頭の中にある読者像。ペルソナ名や「〇〇さんのケースでは」といった表現は本文に出さない。その人の悩み・状況から逆算した言葉選び・視点・深さで書く
 3. 具体例必須: 各H2セクションに必ず1つ以上の具体例を入れる
-   - 形式例: 「例えば、〇〇のような場合は〜」「〇〇さんのようなケースでは〜」「実際に〇〇社では〜」
-   - 数字・状況・固有名詞を使うとリアリティが増す（架空でよいが具体的に）
+   - 形式例: 「例えば、〇〇のような場合は〜」「実際に〇〇社では〜」「〜という状況なら〜」
+   - 数字・状況・職種などを使うとリアリティが増す（架空でよいが具体的に）
+   - ペルソナ名を固有名詞として本文に登場させてはいけない
 
 ## 使用できるHTMLコンポーネント（<h2>は使用禁止）
 
@@ -59,7 +60,7 @@ function buildH3Context(heading) {
 
 function buildPersonaContext(outline) {
   if (!outline.persona) return '';
-  return `\n## ペルソナ情報（この読者に刺さる内容を書くこと）\nペルソナ: ${outline.persona.name}（${outline.persona.role}）\n状況: ${outline.persona.situation}\n悩み: ${outline.persona.pain}\n解決する問題: ${outline.readerProblem}\n解決後の姿: ${outline.problemSolution}`;
+  return `\n## 想定読者（本文には登場させない・書き手の内部文脈として使うこと）\n役職・立場: ${outline.persona.role}\n状況: ${outline.persona.situation}\n悩み: ${outline.persona.pain}\n解決する問題: ${outline.readerProblem}\n解決後の姿: ${outline.problemSolution}`;
 }
 
 async function writeLeadParagraph(outline) {
@@ -98,9 +99,7 @@ async function writeSection(heading, outline, previousHeadings) {
   const budget = heading.wordBudget || 1500;
   const maxTokens = Math.min(4000, Math.max(1500, Math.ceil(budget * 1.8)));
 
-  const exampleInstruction = outline.persona
-    ? `\n\n【具体例必須】このセクションには必ず1つ以上の具体例を入れてください。${outline.persona.name}（${outline.persona.role}）のような状況を想定した「例えば〜」「〇〇さんのケースでは〜」などのリアルな事例を使ってください。`
-    : '\n\n【具体例必須】このセクションには必ず1つ以上の具体例（「例えば〜」「〜のような場合は〜」など）を入れてください。';
+  const exampleInstruction = '\n\n【具体例必須】このセクションには必ず1つ以上の具体例を入れてください（「例えば〜」「〜のような場合は〜」「実際に〇〇業種では〜」など）。数字・職種・状況を使ってリアリティを出すこと。ペルソナ名は本文に出さないこと。';
 
   return callClaude({
     model: 'claude-sonnet-4-6',
