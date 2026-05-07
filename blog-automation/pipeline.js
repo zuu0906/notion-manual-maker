@@ -30,7 +30,8 @@ const { runResearcher } = require('./agents/researcher');
 const { runStructurer } = require('./agents/structurer');
 const { runWriter }     = require('./agents/writer');
 const { runReviewer }   = require('./agents/reviewer');
-const { runRewriter }   = require('./agents/rewriter');
+const { runRewriter }          = require('./agents/rewriter');
+const { runInfographicPrompter } = require('./agents/infographic-prompter');
 
 function log(msg) { console.log(`[${new Date().toISOString()}] ${msg}`); }
 
@@ -151,11 +152,22 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
     log('[6/6] リライトエージェント スキップ（既存ステートあり）');
   }
 
+  // Stage 7: インフォグラフィックプロンプト生成（本文には影響しない）
+  if (!state.infographicPrompts) {
+    log('[7] インフォグラフィックプロンプト生成中...');
+    state.infographicPrompts = await runInfographicPrompter(state.finalArticle, runId);
+    saveState(runId, { infographicPrompts: state.infographicPrompts });
+    log(`    → state/${runId}-infographics.md に保存しました`);
+  } else {
+    log('[7] インフォグラフィックプロンプト スキップ（既存ステートあり）');
+  }
+
   if (dryRun) {
     log('--- DRY RUN: WordPressへの投稿をスキップ ---');
     console.log('\n=== 生成された記事 ===');
     console.log(JSON.stringify(state.finalArticle, null, 2));
     log(`ステートファイル: blog-automation/state/${runId}.json`);
+    log(`インフォグラフィックプロンプト: blog-automation/state/${runId}-infographics.md`);
     return;
   }
 
