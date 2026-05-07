@@ -31,6 +31,7 @@ const { runStructurer } = require('./agents/structurer');
 const { runWriter }     = require('./agents/writer');
 const { runReviewer }   = require('./agents/reviewer');
 const { runRewriter }          = require('./agents/rewriter');
+const { runNarrativeSpine }    = require('./agents/narrative-spine');
 const { runInfographicPrompter } = require('./agents/infographic-prompter');
 
 function log(msg) { console.log(`[${new Date().toISOString()}] ${msg}`); }
@@ -99,10 +100,20 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
     log('[3/6] 構成エージェント スキップ（既存ステートあり）');
   }
 
+  // Stage 3.5: ナラティブスパイン生成
+  if (!state.narrativeSpine) {
+    log('[3.5/7] ナラティブスパイン生成...');
+    state.narrativeSpine = await runNarrativeSpine(state.outline);
+    saveState(runId, { narrativeSpine: state.narrativeSpine });
+    log(`      中心メッセージ: ${state.narrativeSpine.centralMessage}`);
+  } else {
+    log('[3.5/7] ナラティブスパイン スキップ（既存ステートあり）');
+  }
+
   // Stage 4: ライターエージェント（セクション別）
   if (!state.draft) {
-    log('[4/6] ライターエージェント...');
-    state.draft = await runWriter(state.outline);
+    log('[4/7] ライターエージェント...');
+    state.draft = await runWriter(state.outline, state.narrativeSpine);
     saveState(runId, { draft: state.draft });
     log(`      文字数: ${state.draft.totalChars} / CTA数: ${state.draft.ctaCount}`);
   } else {
@@ -111,7 +122,7 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
 
   // Stage 5: レビューエージェント
   if (!state.review) {
-    log('[5/6] レビューエージェント...');
+    log('[5/7] レビューエージェント...');
     const h2Count = (state.draft.content.match(/<h2[^>]*>/gi) || []).length;
     state.review = await runReviewer({
       title:           state.draft.title,
@@ -130,16 +141,16 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
       state.review.issues.forEach(i => log(`      [${i.severity}] ${i.type}: ${i.detail}`));
     }
   } else {
-    log('[5/6] レビューエージェント スキップ（既存ステートあり）');
+    log('[5/7] レビューエージェント スキップ（既存ステートあり）');
   }
 
   // Stage 6: リライトエージェント（スコア<75のみ）
   if (!state.finalArticle) {
     if (state.review.passed) {
-      log(`[6/6] リライトエージェント スキップ（スコア ${state.review.score}/100 合格）`);
+      log(`[6/7] リライトエージェント スキップ（スコア ${state.review.score}/100 合格）`);
       state.finalArticle = state.draft;
     } else {
-      log(`[6/6] リライトエージェント実行（スコア ${state.review.score}/100 不合格）`);
+      log(`[6/7] リライトエージェント実行（スコア ${state.review.score}/100 不合格）`);
       const rewrittenContent = await runRewriter({
         content:              state.draft.content,
         rewriteInstructions:  state.review.rewriteInstructions,
@@ -149,7 +160,7 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
     }
     saveState(runId, { finalArticle: state.finalArticle });
   } else {
-    log('[6/6] リライトエージェント スキップ（既存ステートあり）');
+    log('[6/7] リライトエージェント スキップ（既存ステートあり）');
   }
 
   // Stage 7: インフォグラフィックプロンプト生成（本文には影響しない）

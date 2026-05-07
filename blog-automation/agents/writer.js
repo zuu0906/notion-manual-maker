@@ -63,10 +63,36 @@ function buildPersonaContext(outline) {
   return `\n## 想定読者（本文には登場させない・書き手の内部文脈として使うこと）\n役職・立場: ${outline.persona.role}\n状況: ${outline.persona.situation}\n悩み: ${outline.persona.pain}\n解決する問題: ${outline.readerProblem}\n解決後の姿: ${outline.problemSolution}`;
 }
 
-async function writeLeadParagraph(outline) {
+function buildSpineContext(heading, narrativeSpine, previousSectionTail) {
+  if (!narrativeSpine) return '';
+
+  const section = (narrativeSpine.sections || []).find(s => s.h2 === heading.text);
+  let ctx = `\n## ナラティブスパイン（記事全体の物語設計書）\n`;
+  ctx += `中心メッセージ: ${narrativeSpine.centralMessage}\n`;
+  ctx += `文体・トーン: ${narrativeSpine.tone}\n`;
+
+  if (section) {
+    ctx += `\n## このセクションの物語上の役割\n`;
+    ctx += `役割: ${section.narrativeRole}\n`;
+    ctx += `読者に感じてほしいこと: ${section.readerFeeling}\n`;
+    ctx += `書き出しのヒント: ${section.openingHint}\n`;
+  }
+
+  if (previousSectionTail) {
+    ctx += `\n## 直前セクションの末尾（文体・リズムをこのセクションに引き継ぐこと）\n${previousSectionTail}`;
+  }
+
+  return ctx;
+}
+
+async function writeLeadParagraph(outline, narrativeSpine) {
   const personaCtx = buildPersonaContext(outline);
   const personaInstruction = outline.persona
     ? `\n\n【重要】「${outline.persona.name}」のような${outline.persona.role}が抱える「${outline.persona.pain}」という悩みに共感し、この記事を読めば「${outline.problemSolution}」ことを伝えてください。`
+    : '';
+
+  const spineCtx = narrativeSpine
+    ? `\n\n## ナラティブスパイン\n中心メッセージ: ${narrativeSpine.centralMessage}\n読者の旅: ${narrativeSpine.readerJourney}\n文体・トーン: ${narrativeSpine.tone}`
     : '';
 
   return callClaude({
@@ -78,7 +104,7 @@ async function writeLeadParagraph(outline) {
 記事タイトル: ${outline.suggestedTitle}
 キーワード: ${outline.keyword}
 検索意図: ${outline.searchIntent}
-${personaCtx}
+${personaCtx}${spineCtx}
 
 読者の悩みに共感し、この記事で解決できることを伝えるリード文（150〜200文字）を<p>タグで書いてください。
 最初の100文字以内にキーワード「${outline.keyword}」を含めること。${personaInstruction}`,
@@ -88,14 +114,21 @@ ${personaCtx}
   });
 }
 
-async function writeSection(heading, outline, previousHeadings) {
-  const prevCtx = previousHeadings.length
-    ? `\n既に書いたセクション（内容の重複を避けること）:\n${previousHeadings.map(h => `- ${h}`).join('\n')}`
+async function writeSection(heading, outline, previousSections, narrativeSpine) {
+  // 直前セクションの末尾テキストを取り出す
+  const lastSection = previousSections.length ? previousSections[previousSections.length - 1] : null;
+  const previousSectionTail = lastSection ? lastSection.tail : null;
+
+  // 重複回避用: 既に書いたセクション名リスト（headingのみ、内容重複チェック用）
+  const prevHeadingNames = previousSections.map(s => `- ${s.h2}`).join('\n');
+  const prevCtx = prevHeadingNames
+    ? `\n既に書いたセクション（内容の重複を避けること）:\n${prevHeadingNames}`
     : '';
+
   const h3Ctx = buildH3Context(heading);
   const personaCtx = buildPersonaContext(outline);
+  const spineCtx = buildSpineContext(heading, narrativeSpine, previousSectionTail);
 
-  // wordBudgetに応じてトークン上限を調整（日本語は1文字≒1.5トークン）
   const budget = heading.wordBudget || 1500;
   const maxTokens = Math.min(4000, Math.max(1500, Math.ceil(budget * 1.8)));
 
@@ -109,7 +142,7 @@ async function writeSection(heading, outline, previousHeadings) {
       content: `## 見出しセクションを書いてください
 見出し: ${heading.text}
 目標文字数: ${budget}文字（テキストのみで${budget}文字以上になるよう必ず書いてください。短すぎる出力は禁止です）
-キーワード: ${outline.keyword}${h3Ctx}${personaCtx}${prevCtx}${exampleInstruction}
+キーワード: ${outline.keyword}${h3Ctx}${personaCtx}${spineCtx}${prevCtx}${exampleInstruction}
 
 <h2>タグは出力しない。見出し配下のコンテンツ（<p>, <ul>, <li>, <h3>等）のみ出力してください。`,
     }],
@@ -153,7 +186,7 @@ function stripMeta(text) {
   return t.trim();
 }
 
-async function runWriter(outline) {
+async function runWriter(outline, narrativeSpine = null) {
   const log = msg => console.log(`[${new Date().toISOString()}] ${msg}`);
   const sections = groupHeadings(outline.headings || []);
 
@@ -161,20 +194,27 @@ async function runWriter(outline) {
     log(`  ペルソナ: ${outline.persona.name}（${outline.persona.role}）`);
     log(`  解決する問題: ${outline.readerProblem}`);
   }
+  if (narrativeSpine) {
+    log(`  中心メッセージ: ${narrativeSpine.centralMessage}`);
+  }
 
   log('  リード文生成中...');
-  const leadResult = await writeLeadParagraph(outline);
+  const leadResult = await writeLeadParagraph(outline, narrativeSpine);
   let content = stripMeta(leadResult.text) + '\n';
 
-  const previousHeadings = [];
+  // 各セクションの末尾300字を蓄積（文体・リズムの引き継ぎ用）
+  const previousSections = [];
   for (const heading of sections) {
     log(`  セクション生成中: "${heading.text}"`);
-    const sectionResult = await writeSection(heading, outline, previousHeadings);
-    content += `\n<h2>${heading.text}</h2>\n${stripMeta(sectionResult.text)}\n`;
+    const sectionResult = await writeSection(heading, outline, previousSections, narrativeSpine);
+    const written = stripMeta(sectionResult.text);
+    content += `\n<h2>${heading.text}</h2>\n${written}\n`;
     if (heading.ctaHere) {
       content += `\n${CTA_HTML}\n`;
     }
-    previousHeadings.push(heading.text);
+    // 末尾300字をHTMLタグ除去して蓄積
+    const plainTail = written.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(-300);
+    previousSections.push({ h2: heading.text, tail: plainTail });
   }
 
   const CLOSING_CTA = `<div style="background:#f9fafb;border-radius:8px;padding:24px;margin:32px 0;text-align:center;">
