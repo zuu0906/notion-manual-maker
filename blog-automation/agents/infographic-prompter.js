@@ -65,14 +65,14 @@ async function runInfographicPrompter(finalArticle, runId) {
     return { sections: [] };
   }
 
-  log(`  ${sections.length}セクションを並列処理中...`);
-  const results = await Promise.all(
-    sections.map(async (sec, i) => {
-      const prompt = await buildPrompt(sec, finalArticle.title || '');
-      log(`  [${i + 1}/${sections.length}] 完了: ${sec.h2}`);
-      return { h2: sec.h2, prompt };
-    })
-  );
+  log(`  ${sections.length}セクションを順次処理中...`);
+  const results = [];
+  for (let i = 0; i < sections.length; i++) {
+    const sec = sections[i];
+    const prompt = await buildPrompt(sec, finalArticle.title || '');
+    log(`  [${i + 1}/${sections.length}] 完了: ${sec.h2}`);
+    results.push({ h2: sec.h2, prompt });
+  }
 
   // Markdown ファイルに書き出す
   const now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
