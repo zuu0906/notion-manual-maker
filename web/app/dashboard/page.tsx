@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
-import { supabase, SUPABASE_FUNCTIONS_URL, type UserProfile, type Invoice, type Manual, type UsageHistory, type NotionWorkspace } from '../../../lib/supabase';
+import { supabase, SUPABASE_FUNCTIONS_URL, type UserProfile, type Invoice, type Manual, type UsageHistory, type NotionWorkspace } from '../../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
 const STRIPE_STANDARD_PRICE_ID = 'price_1TO5CS1zfFhRe5YPzWfAYSpa';
@@ -13,9 +12,166 @@ const NOTION_CLIENT_ID = '345d872b-594c-810c-9c3d-00376d7425b3';
 const NOTION_PROXY_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion-proxy`;
 const WEB_NOTION_REDIRECT_URI = 'https://chrome-manual-maker.s-tasklog.com/auth/notion-callback';
 
+type Locale = 'ja' | 'en';
+type Msgs = Record<string, string>;
+
+const MESSAGES: Record<Locale, Msgs> = {
+  ja: {
+    loading: '読み込み中…',
+    title: 'マイページ',
+    loginPromptDesc: '利用状況の確認やプラン管理はGoogle アカウントでログインしてください。',
+    loginWithGoogle: 'Google でログイン',
+    logout: 'ログアウト',
+    currentPlan: '現在のプラン',
+    endsAt: '{date} に終了予定',
+    screenshotLabel: 'スクリーンショット',
+    screenshotCount: '{used} / 20 枚',
+    resetsOn: '{date}リセット',
+    aiLabel: 'AI生成',
+    aiCount: '{used} / {limit} 回',
+    upgradePlanTitle: 'プランをアップグレード',
+    upgradePlanDesc: '14日間無料トライアル。いつでもキャンセル可能。',
+    processing: '処理中…',
+    upgradeToProTitle: '🚀 Pro にアップグレード',
+    upgradeToProDesc: 'AI生成 500回/月・ワークスペース3つ。',
+    upgradeToProBtn: 'Pro ¥1,200/月 にアップグレード',
+    confirmUpgradeTitle: 'Pro プランへの変更を確認',
+    confirmUpgradeDesc: '月額 ¥1,200 に変更されます。差額は本日分から日割りで請求されます。',
+    confirm: '確定する',
+    cancel: 'キャンセル',
+    downgradeTitle: 'Standard にダウングレード',
+    downgradeDesc: 'AI生成 100回/月・ワークスペース1つ。差額は日割りで返金されます。',
+    downgradeBtn: 'Standard ¥500/月 にダウングレード',
+    confirmDowngradeTitle: 'ダウングレードを確認',
+    confirmDowngradeDesc: '月額 ¥500 に変更されます。ワークスペースが1つに制限され、AI生成は100回/月になります。',
+    cancelSubTitle: 'サブスクリプションを解約',
+    cancelSubDesc: '解約後も当月末まではご利用いただけます。翌月からFreeプランに移行します。',
+    cancelSubBtn: '解約する',
+    confirmCancelTitle: '解約を確認',
+    confirmCancelDesc: '当月末までは現在のプランをご利用いただけます。以降はFreeプラン（スクショ20枚/月）に移行します。',
+    confirmCancelBtn: '解約を確定する',
+    notionWorkspacesTitle: 'Notion ワークスペース',
+    connectedCount: '{count} / {max} 接続中',
+    noWorkspace: 'まだ Notion ワークスペースが接続されていません。',
+    disconnect: '切断',
+    addNotion: '＋ Notion を接続する',
+    connecting: '接続中…',
+    usageChartTitle: '使用量グラフ（月別）',
+    screenshotChartLabel: 'スクショ',
+    aiChartLabel: 'AI生成',
+    screenshotTooltip: 'スクショ {n}枚',
+    aiTooltip: 'AI {n}回',
+    manualsTitle: '作成したマニュアル',
+    steps: '{n} ステップ',
+    billingTitle: '請求履歴',
+    deleteAccountTitle: 'アカウント削除',
+    deleteAccountDesc: 'メールアドレスとスクリーンショット画像が削除されます。有料プランをご利用中の場合はサブスクリプションも解約されます。',
+    deleteAccountBtn: 'アカウントを削除する',
+    confirmDeleteMsg: '本当に削除しますか？',
+    deleteBtn: '削除する',
+    wsDisconnected: 'ワークスペースを切断しました。',
+    wsDisconnectFailed: 'ワークスペースの切断に失敗しました。',
+    manualDeleteFailed: 'マニュアルの削除に失敗しました。',
+    networkError: '通信エラーが発生しました。',
+    accountDeleted: 'アカウントを削除しました。',
+    deleteFailed: '削除に失敗しました。しばらくしてから再試行してください。',
+    notionConnected: '{name} を接続しました。',
+    notionConnectFailed: 'Notion 接続に失敗しました: {error}',
+    notionConnectError: 'Notion 接続中にエラーが発生しました。',
+    wsMaxReached: 'このプランでは最大 {max} ワークスペースまで接続できます。',
+    upgradeSuccess: 'Proプランにアップグレードしました！AI生成が500回/月になりました。',
+    upgradeError: 'エラーが発生しました: {error}',
+    downgradeSuccess: 'Standardプランにダウングレードしました。',
+    checkoutFailed: 'チェックアウトの開始に失敗しました: {error}',
+    cancelWithDate: '{date} にサブスクリプションが終了します。それまでは現在のプランをご利用いただけます。',
+    cancelNoDate: 'サブスクリプションの解約を受け付けました。',
+  },
+  en: {
+    loading: 'Loading…',
+    title: 'My Page',
+    loginPromptDesc: 'Sign in with your Google account to check usage and manage your plan.',
+    loginWithGoogle: 'Sign in with Google',
+    logout: 'Sign out',
+    currentPlan: 'Current plan',
+    endsAt: 'Ends on {date}',
+    screenshotLabel: 'Screenshots',
+    screenshotCount: '{used} / 20',
+    resetsOn: 'Resets {date}',
+    aiLabel: 'AI generations',
+    aiCount: '{used} / {limit}',
+    upgradePlanTitle: 'Upgrade your plan',
+    upgradePlanDesc: '14-day free trial. Cancel anytime.',
+    processing: 'Processing…',
+    upgradeToProTitle: '🚀 Upgrade to Pro',
+    upgradeToProDesc: '500 AI generations/month · 3 Notion workspaces.',
+    upgradeToProBtn: 'Upgrade to Pro ¥1,200/month',
+    confirmUpgradeTitle: 'Confirm upgrade to Pro',
+    confirmUpgradeDesc: 'Your plan will change to ¥1,200/month. The difference will be charged on a prorated basis.',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    downgradeTitle: 'Downgrade to Standard',
+    downgradeDesc: '100 AI generations/month · 1 Notion workspace. Difference refunded daily.',
+    downgradeBtn: 'Downgrade to Standard ¥500/month',
+    confirmDowngradeTitle: 'Confirm downgrade',
+    confirmDowngradeDesc: 'Your plan will change to ¥500/month. Workspaces limited to 1, AI generations to 100/month.',
+    cancelSubTitle: 'Cancel subscription',
+    cancelSubDesc: 'You can continue using the current plan until the end of the month. It will switch to Free after that.',
+    cancelSubBtn: 'Cancel subscription',
+    confirmCancelTitle: 'Confirm cancellation',
+    confirmCancelDesc: 'You can use the current plan until end of month. After that you\'ll move to Free (20 screenshots/month).',
+    confirmCancelBtn: 'Confirm cancellation',
+    notionWorkspacesTitle: 'Notion Workspaces',
+    connectedCount: '{count} / {max} connected',
+    noWorkspace: 'No Notion workspace connected yet.',
+    disconnect: 'Disconnect',
+    addNotion: '+ Connect Notion',
+    connecting: 'Connecting…',
+    usageChartTitle: 'Usage history (monthly)',
+    screenshotChartLabel: 'Screenshots',
+    aiChartLabel: 'AI',
+    screenshotTooltip: '{n} screenshots',
+    aiTooltip: 'AI: {n}',
+    manualsTitle: 'Created manuals',
+    steps: '{n} steps',
+    billingTitle: 'Billing history',
+    deleteAccountTitle: 'Delete account',
+    deleteAccountDesc: 'Your email and screenshot images will be deleted. If you have an active subscription, it will also be cancelled.',
+    deleteAccountBtn: 'Delete account',
+    confirmDeleteMsg: 'Are you sure you want to delete?',
+    deleteBtn: 'Delete',
+    wsDisconnected: 'Workspace disconnected.',
+    wsDisconnectFailed: 'Failed to disconnect workspace.',
+    manualDeleteFailed: 'Failed to delete manual.',
+    networkError: 'A network error occurred.',
+    accountDeleted: 'Account deleted.',
+    deleteFailed: 'Deletion failed. Please try again later.',
+    notionConnected: 'Connected to {name}.',
+    notionConnectFailed: 'Notion connection failed: {error}',
+    notionConnectError: 'An error occurred while connecting to Notion.',
+    wsMaxReached: 'Your plan allows up to {max} workspace(s).',
+    upgradeSuccess: 'Upgraded to Pro! You now have 500 AI generations/month.',
+    upgradeError: 'An error occurred: {error}',
+    downgradeSuccess: 'Downgraded to Standard.',
+    checkoutFailed: 'Failed to start checkout: {error}',
+    cancelWithDate: 'Your subscription will end on {date}. You can continue using the current plan until then.',
+    cancelNoDate: 'Cancellation request received.',
+  },
+};
+
+function interpolate(msg: string, vars: Record<string, string> = {}): string {
+  return msg.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+}
+
 export default function DashboardPage() {
-  const t = useTranslations('dashboard');
-  const locale = useLocale();
+  const [locale, setLocale] = useState<Locale>('ja');
+
+  useEffect(() => {
+    const lang = navigator.language.toLowerCase();
+    setLocale(lang.startsWith('ja') ? 'ja' : 'en');
+  }, []);
+
+  const t = (key: string, vars?: Record<string, string>) =>
+    interpolate(MESSAGES[locale][key] ?? key, vars);
 
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
