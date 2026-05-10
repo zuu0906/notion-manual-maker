@@ -43,9 +43,12 @@ async function resolveIdentity(body: {
 
   // Google アクセストークン（拡張機能からの呼び出し）
   if (body.google_token) {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 5000);
     const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${body.google_token}` },
-    });
+      signal: ac.signal,
+    }).finally(() => clearTimeout(timer));
     if (!gRes.ok) return null;
     const { sub: google_id, email } = await gRes.json();
     if (!google_id) return null;

@@ -26,9 +26,12 @@ Deno.serve(async (req) => {
       return json({ error: 'invalid params' }, 400);
     }
 
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 5000);
     const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${google_token}` },
-    });
+      signal: ac.signal,
+    }).finally(() => clearTimeout(timer));
     if (!gRes.ok) return json({ error: 'invalid google token' }, 401);
 
     const { sub: google_id } = await gRes.json();
