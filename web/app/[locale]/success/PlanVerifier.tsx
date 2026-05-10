@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { supabase, SUPABASE_FUNCTIONS_URL } from '../../../lib/supabase';
+import { supabase } from '../../../lib/supabase';
 
 export default function PlanVerifier() {
   const searchParams = useSearchParams();
@@ -15,13 +15,10 @@ export default function PlanVerifier() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
       try {
-        const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/verify-checkout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: sessionId, supabase_token: session.access_token }),
+        const { data, error } = await supabase.functions.invoke('verify-checkout', {
+          body: { session_id: sessionId, supabase_token: session.access_token },
         });
-        const data = await res.json();
-        if (data.plan) setPlan(data.plan);
+        if (!error && data?.plan) setPlan(data.plan);
       } catch (_) {}
     })();
   }, [sessionId]);
