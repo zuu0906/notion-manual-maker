@@ -34,32 +34,50 @@ Deno.serve(async (req) => {
     }).finally(() => clearTimeout(timer));
     if (!gRes.ok) return json({ error: 'invalid google token' }, 401);
 
-    const { sub: google_id, email } = await gRes.json();
+    const { sub: google_id } = await gRes.json();
     if (!google_id) return json({ error: 'missing google profile' }, 401);
 
-    const { data: user } = await supabase
+    let { data: user } = await supabase
       .from('users')
-      .select('id, monthly_screenshots, plan')
+      .select('id, monthly_screenshots')
       .eq('google_id', google_id)
-      .single();
+      .maybeSingle();
 
+    // users レコードが未作成の場合は auth-user を呼び出して作成してからリトライ
     if (!user) {
-      // users レコードがない場合は作成してカウントをセット
-      const { error: upsertErr } = await supabase
+      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/auth-user`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ google_token }),
+      });
+
+      const { data: retryUser } = await supabase
         .from('users')
-        .upsert({ google_id, email, monthly_screenshots: count }, { onConflict: 'google_id' });
-      if (upsertErr) return json({ error: upsertErr.message }, 500);
-      return json({ monthly_screenshots: count });
+        .select('id, monthly_screenshots')
+        .eq('google_id', google_id)
+        .maybeSingle();
+
+      if (!retryUser) return json({ error: 'user not found' }, 404);
+      user = retryUser;
     }
 
     const newCount = (user.monthly_screenshots ?? 0) + count;
-    await supabase
+    const { error: updateErr } = await supabase
       .from('users')
       .update({ monthly_screenshots: newCount })
       .eq('id', user.id);
 
+    if (updateErr) {
+      console.error('[record-screenshots] update error:', updateErr.message);
+      return json({ error: updateErr.message }, 500);
+    }
+
     return json({ monthly_screenshots: newCount });
   } catch (e) {
+    console.error('[record-screenshots] exception:', String(e));
     return json({ error: String(e) }, 500);
   }
 });
