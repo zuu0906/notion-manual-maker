@@ -2,6 +2,10 @@
 ALTER TABLE public.users
   ADD COLUMN IF NOT EXISTS monthly_screenshots integer NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS screenshot_reset_at timestamptz NOT NULL DEFAULT (date_trunc('month', now()) + interval '1 month'),
+  ADD COLUMN IF NOT EXISTS stripe_customer_id text,
+  ADD COLUMN IF NOT EXISTS notion_access_token text,
+  ADD COLUMN IF NOT EXISTS notion_workspace_id text,
+  ADD COLUMN IF NOT EXISTS notion_workspace_name text,
   ADD COLUMN IF NOT EXISTS first_record_at timestamptz;
 
 -- manuals テーブルの不足カラム（record-manual で参照）
