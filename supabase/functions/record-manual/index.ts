@@ -37,9 +37,18 @@ Deno.serve(async (req) => {
       step_count: body.step_count ?? 0,
       notion_page_url: body.notion_page_url ?? null,
       notion_workspace_id: body.notion_workspace_id ?? null,
+      page_domain: body.page_domain ?? null,
+      recording_duration_sec: body.recording_duration_sec ?? null,
     }).select('id').single();
 
     if (error) return json({ error: error.message }, 500);
+
+    // 初回マニュアル作成日時を記録（first_record_at が未設定の場合のみ）
+    await supabase.from('users')
+      .update({ first_record_at: new Date().toISOString() })
+      .eq('google_id', google_id)
+      .is('first_record_at', null);
+
     return json({ ok: true, id: data.id });
   } catch (e) {
     return json({ error: String(e) }, 500);
