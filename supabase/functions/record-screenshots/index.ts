@@ -37,31 +37,46 @@ Deno.serve(async (req) => {
     const { sub: google_id } = await gRes.json();
     if (!google_id) return json({ error: 'missing google profile' }, 401);
 
-    let { data: user } = await supabase
+    // maybeSingle() の代わりに limit(1) + 配列アクセスで取得（型不一致対策）
+    const { data: userRows, error: selectErr } = await supabase
       .from('users')
       .select('id, monthly_screenshots')
       .eq('google_id', google_id)
-      .maybeSingle();
+      .limit(1);
+
+    if (selectErr) console.error('[record-screenshots] select error:', selectErr.message, selectErr.code);
+    let user = userRows?.[0] ?? null;
 
     // users レコードが未作成の場合は auth-user を呼び出して作成してからリトライ
     if (!user) {
-      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/auth-user`, {
+      console.error('[record-screenshots] user not found for google_id:', google_id, 'len:', google_id.length);
+
+      // SUPABASE_ANON_KEY を使用（service_role は Edge Function 間呼び出しで拒否される）
+      const authRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/auth-user`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ google_token }),
       });
+      const authBody = await authRes.json().catch(() => ({}));
+      console.error('[record-screenshots] auth-user result:', authRes.status, JSON.stringify(authBody).slice(0, 200));
 
-      const { data: retryUser } = await supabase
+      const { data: retryRows, error: retryErr } = await supabase
         .from('users')
         .select('id, monthly_screenshots')
         .eq('google_id', google_id)
-        .maybeSingle();
+        .limit(1);
 
-      if (!retryUser) return json({ error: 'user not found' }, 404);
-      user = retryUser;
+      if (retryErr) console.error('[record-screenshots] retry select error:', retryErr.message);
+      user = retryRows?.[0] ?? null;
+
+      if (!user) {
+        const { data: allUsers } = await supabase.from('users').select('google_id, email').limit(5);
+        console.error('[record-screenshots] users table sample:', JSON.stringify(allUsers));
+        return json({ error: 'user not found', google_id }, 404);
+      }
     }
 
     const newCount = (user.monthly_screenshots ?? 0) + count;
