@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     }).finally(() => clearTimeout(timer));
     if (!gRes.ok) return json({ error: 'invalid google token' }, 401);
 
-    const { sub: google_id } = await gRes.json();
+    const { sub: google_id, email } = await gRes.json();
     if (!google_id) return json({ error: 'missing google profile' }, 401);
 
     const { data: user } = await supabase
@@ -43,7 +43,14 @@ Deno.serve(async (req) => {
       .eq('google_id', google_id)
       .single();
 
-    if (!user) return json({ error: 'user not found' }, 404);
+    if (!user) {
+      // users レコードがない場合は作成してカウントをセット
+      const { error: upsertErr } = await supabase
+        .from('users')
+        .upsert({ google_id, email, monthly_screenshots: count }, { onConflict: 'google_id' });
+      if (upsertErr) return json({ error: upsertErr.message }, 500);
+      return json({ monthly_screenshots: count });
+    }
 
     const newCount = (user.monthly_screenshots ?? 0) + count;
     await supabase
