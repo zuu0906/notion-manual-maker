@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import PlanVerifier from './PlanVerifier';
 
 export async function generateMetadata({
   params,
@@ -26,6 +28,9 @@ export default async function SuccessPage({ params }: { params: Promise<{ locale
     <section className="max-w-xl mx-auto px-4 py-32 text-center">
       <div className="text-5xl mb-6">🎉</div>
       <h1 className="text-2xl font-bold mb-4">{t('title')}</h1>
+      <Suspense>
+        <PlanVerifier />
+      </Suspense>
       <p className="text-gray-500 mb-8 leading-relaxed">{t('desc')}</p>
 
       <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-8 text-left">
