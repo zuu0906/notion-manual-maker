@@ -37,22 +37,18 @@ Deno.serve(async (req) => {
     const { sub: google_id } = await gRes.json();
     if (!google_id) return json({ error: 'missing google profile' }, 401);
 
-    // maybeSingle() の代わりに limit(1) + 配列アクセスで取得（型不一致対策）
     const { data: userRows, error: selectErr } = await supabase
       .from('users')
       .select('id, monthly_screenshots')
       .eq('google_id', google_id)
       .limit(1);
 
-    if (selectErr) console.error('[record-screenshots] select error:', selectErr.message, selectErr.code);
+    if (selectErr) return json({ error: selectErr.message }, 500);
     let user = userRows?.[0] ?? null;
 
-    // users レコードが未作成の場合は auth-user を呼び出して作成してからリトライ
     if (!user) {
-      console.error('[record-screenshots] user not found for google_id:', google_id, 'len:', google_id.length);
-
-      // SUPABASE_ANON_KEY を使用（service_role は Edge Function 間呼び出しで拒否される）
-      const authRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/auth-user`, {
+      // users レコード未作成の場合は auth-user 経由で作成してリトライ
+      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/auth-user`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
@@ -60,8 +56,6 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({ google_token }),
       });
-      const authBody = await authRes.json().catch(() => ({}));
-      console.error('[record-screenshots] auth-user result:', authRes.status, JSON.stringify(authBody).slice(0, 200));
 
       const { data: retryRows, error: retryErr } = await supabase
         .from('users')
@@ -69,14 +63,9 @@ Deno.serve(async (req) => {
         .eq('google_id', google_id)
         .limit(1);
 
-      if (retryErr) console.error('[record-screenshots] retry select error:', retryErr.message);
+      if (retryErr) return json({ error: retryErr.message }, 500);
       user = retryRows?.[0] ?? null;
-
-      if (!user) {
-        const { data: allUsers } = await supabase.from('users').select('google_id, email').limit(5);
-        console.error('[record-screenshots] users table sample:', JSON.stringify(allUsers));
-        return json({ error: 'user not found', google_id }, 404);
-      }
+      if (!user) return json({ error: 'user not found' }, 404);
     }
 
     const newCount = (user.monthly_screenshots ?? 0) + count;
@@ -85,14 +74,10 @@ Deno.serve(async (req) => {
       .update({ monthly_screenshots: newCount })
       .eq('id', user.id);
 
-    if (updateErr) {
-      console.error('[record-screenshots] update error:', updateErr.message);
-      return json({ error: updateErr.message }, 500);
-    }
+    if (updateErr) return json({ error: updateErr.message }, 500);
 
     return json({ monthly_screenshots: newCount });
   } catch (e) {
-    console.error('[record-screenshots] exception:', String(e));
     return json({ error: String(e) }, 500);
   }
 });
