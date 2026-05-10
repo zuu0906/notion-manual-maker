@@ -136,6 +136,15 @@ async function initUserSession() {
       state.plan = newPlan;
       const localCount = state.monthly_screenshots ?? 0;
       const serverCount = user.monthly_screenshots ?? 0;
+      const diff = localCount - serverCount;
+      // ローカルのほうが多い場合、未送信分をサーバーに同期
+      if (diff > 0) {
+        fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ google_token: token, count: diff }),
+        }).catch(() => {});
+      }
       state.monthly_screenshots = Math.max(localCount, serverCount);
       await chrome.storage.sync.set({
         plan: newPlan,
@@ -231,6 +240,14 @@ googleSignInBtn.addEventListener('click', async () => {
       state.plan = user.plan ?? 'free';
       const localCount2 = state.monthly_screenshots ?? 0;
       const serverCount2 = user.monthly_screenshots ?? 0;
+      const diff2 = localCount2 - serverCount2;
+      if (diff2 > 0) {
+        fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ google_token: token, count: diff2 }),
+        }).catch(() => {});
+      }
       state.monthly_screenshots = Math.max(localCount2, serverCount2);
       await chrome.storage.sync.set({
         plan: user.plan ?? 'free',
