@@ -427,13 +427,28 @@ async function incrementScreenshotCount(count) {
   await chrome.storage.sync.set({ monthly_screenshots: newCount });
 
   // DB側も更新（ポップアップを再開した際に0リセットされないよう）
-  const { googleToken } = await chrome.storage.session.get('googleToken');
+  let { googleToken } = await chrome.storage.session.get('googleToken');
+  // セッションクリア後（ブラウザ再起動等）はサイレントに再取得
+  if (!googleToken) {
+    try {
+      googleToken = await new Promise((resolve, reject) =>
+        chrome.identity.getAuthToken({ interactive: false }, t =>
+          chrome.runtime.lastError ? reject(chrome.runtime.lastError) : resolve(t)
+        )
+      );
+      if (googleToken) await chrome.storage.session.set({ googleToken });
+    } catch (_) {}
+  }
+
   if (googleToken) {
     fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ google_token: googleToken, count }),
-    }).catch(() => {});
+    })
+      .then(r => r.json())
+      .then(d => { if (d.error) console.error('[record-screenshots]', d.error); })
+      .catch(e => console.error('[record-screenshots]', e.message));
   }
 }
 
