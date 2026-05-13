@@ -132,7 +132,7 @@
           "period": "/月",
           "features": ["スクショ 無制限", "AI生成 100回/月", "PDF出力", "ウォーターマークなし"],
           "cta": "マイページからアップグレード",
-          "highlight": false,
+          "highlight": true,
           "external": false
         },
         {
@@ -142,7 +142,7 @@
           "period": "/月",
           "features": ["スクショ 無制限", "AI生成 500回/月", "Notion 3WS", "ウォーターマークなし"],
           "cta": "マイページからアップグレード",
-          "highlight": true,
+          "highlight": false,
           "external": false
         }
       ]

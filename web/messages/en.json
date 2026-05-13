@@ -232,7 +232,7 @@
           "No watermark"
         ],
         "cta": "Upgrade on My Page",
-        "highlight": false,
+        "highlight": true,
         "external": false
       },
       {
@@ -248,7 +248,7 @@
           "No watermark"
         ],
         "cta": "Upgrade on My Page",
-        "highlight": true,
+        "highlight": false,
         "external": false
       }
     ]
