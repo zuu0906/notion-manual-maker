@@ -1054,30 +1054,6 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Support */}
-            <div className="card tight flat">
-              <div className="card-h">
-                <span className="card-title">{t('support')}</span>
-              </div>
-              <ul className="list">
-                <li>
-                  <div className="row-glyph">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.3"/>
-                      <path d="M5 5.5c0-1.1.9-2 2-2s2 .9 2 2c0 1-1 1.5-1 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                      <circle cx="7" cy="10.5" r=".6" fill="currentColor"/>
-                    </svg>
-                  </div>
-                  <div className="row-body">
-                    <div className="row-title">{t('contactSupport')}</div>
-                    <div className="row-sub"><span>support@s-tasklog.com</span></div>
-                  </div>
-                  <div className="row-actions">
-                    <a href="mailto:support@s-tasklog.com" className="btn-outline">{t('send')}</a>
-                  </div>
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
 
