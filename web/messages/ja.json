@@ -232,7 +232,7 @@
           "ウォーターマークなし"
         ],
         "cta": "マイページからアップグレード",
-        "highlight": false,
+        "highlight": true,
         "external": false
       },
       {
@@ -248,7 +248,7 @@
           "ウォーターマークなし"
         ],
         "cta": "マイページからアップグレード",
-        "highlight": true,
+        "highlight": false,
         "external": false
       }
     ]
