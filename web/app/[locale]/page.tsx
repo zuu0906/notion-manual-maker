@@ -96,7 +96,6 @@ const COPY = {
         { q: 'Notionのどのプランが必要ですか？', a: 'Notionの無料プランで連携できます。ページへの書き込み権限さえあれば、追加の費用はかかりません。' },
         { q: 'スクショはどこに保存されますか？', a: '画像は直接あなたのNotionページへ保存されます。弊社サーバーへのアップロードはなく、データはあなたのWorkspaceにのみ存在します。' },
         { q: 'プランはいつでも変更できますか？', a: 'はい。アップグレード・ダウングレードはいつでも可能で、日割り計算でお支払いいただきます。' },
-        { q: '法人・チームでの利用はできますか？', a: 'Teamプラン（¥2,980/月・5席〜）をご用意しています。詳細はお問い合わせください。' },
       ],
     },
     final: {
@@ -197,7 +196,6 @@ const COPY = {
         { q: 'Which Notion plan do I need?', a: 'Any plan, including the free one. As long as the connected user can write to your page, you\'re good.' },
         { q: 'Where are my screenshots stored?', a: "Directly in your Notion page. We don't upload them to our servers — your data stays in your workspace." },
         { q: 'Can I change plans whenever?', a: 'Yes — upgrades and downgrades are pro-rated and take effect immediately.' },
-        { q: 'Is there a team plan?', a: 'Yes. The Team plan starts at $29/month for 5 seats. Reach out for details.' },
       ],
     },
     final: {

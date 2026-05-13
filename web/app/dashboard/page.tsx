@@ -1054,27 +1054,6 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Shortcuts */}
-            <div className="card tight">
-              <div className="card-h">
-                <span className="card-title">{t('shortcuts')}</span>
-              </div>
-              <ul className="list">
-                <li>
-                  <div className="row-body">
-                    <div className="row-title">{t('captureShortcut')}</div>
-                  </div>
-                  <div className="row-actions"><kbd className="kbd">Alt+S</kbd></div>
-                </li>
-                <li>
-                  <div className="row-body">
-                    <div className="row-title">{t('saveShortcut')}</div>
-                  </div>
-                  <div className="row-actions"><kbd className="kbd">Alt+N</kbd></div>
-                </li>
-              </ul>
-            </div>
-
             {/* Support */}
             <div className="card tight flat">
               <div className="card-h">

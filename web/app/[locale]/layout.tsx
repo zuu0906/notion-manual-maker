@@ -66,7 +66,7 @@ export default async function LocaleLayout({
       <nav className="lp-nav">
         <div className="lp-container nav-inner">
           <a href={`/${locale}`} className="brand">
-            <span className="brand-mark"></span>
+            <img src="/icon.png" alt="" width={26} height={26} style={{ borderRadius: 7 }} />
             <span>Chrome Manual Maker</span>
           </a>
 
@@ -94,7 +94,7 @@ export default async function LocaleLayout({
       <footer className="lp-footer">
         <div className="lp-container footer-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="brand-mark"></span>
+            <img src="/icon.png" alt="" width={32} height={32} style={{ borderRadius: 8 }} />
             <div>
               <div style={{ color: 'var(--ink)', fontWeight: 600, fontSize: 14 }}>Chrome Manual Maker</div>
               <div style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 2 }}>
