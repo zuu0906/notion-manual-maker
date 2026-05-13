@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design system CSS variables (shared by LP and Dashboard) ── */
+:root {
+  --bg: #FAF9F7;
+  --bg-2: #F4F2EE;
+  --bg-3: #EFEBE4;
+  --ink: #1F1D1A;
+  --ink-2: #37352F;
+  --ink-3: #6B6357;
+  --ink-4: #9A9287;
+  --line: #E7E2D9;
+  --line-2: #D9D3C7;
+  --paper: #FFFFFF;
+  --accent: oklch(0.55 0.13 250);
+  --accent-soft: oklch(0.96 0.02 250);
+  --accent-ink: oklch(0.42 0.12 250);
+  --terracotta: oklch(0.64 0.13 42);
+  --terracotta-soft: oklch(0.96 0.025 42);
+  --green: oklch(0.62 0.10 155);
+  --yellow: oklch(0.86 0.10 90);
+  --shadow-sm: 0 1px 2px rgba(31,29,26,0.04), 0 1px 1px rgba(31,29,26,0.03);
+  --shadow-md: 0 1px 2px rgba(31,29,26,0.04), 0 8px 24px -8px rgba(31,29,26,0.10);
+  --shadow-lg: 0 1px 2px rgba(31,29,26,0.04), 0 24px 60px -20px rgba(31,29,26,0.18);
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --font-sans: "Inter", "Inter Display", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 @layer base {
   html { scroll-behavior: smooth; }
 

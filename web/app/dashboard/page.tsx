@@ -67,7 +67,7 @@ const MESSAGES: Record<Locale, Msgs> = {
     deleteAccountTitle: 'アカウント削除',
     deleteAccountDesc: 'メールアドレスとスクリーンショット画像が削除されます。有料プランをご利用中の場合はサブスクリプションも解約されます。',
     deleteAccountBtn: 'アカウントを削除する',
-    confirmDeleteMsg: '本当に削除しますか？',
+    confirmDeleteMsg: '本当に削除しますか？この操作は取り消せません。',
     deleteBtn: '削除する',
     wsDisconnected: 'ワークスペースを切断しました。',
     wsDisconnectFailed: 'ワークスペースの切断に失敗しました。',
@@ -85,6 +85,15 @@ const MESSAGES: Record<Locale, Msgs> = {
     checkoutFailed: 'チェックアウトの開始に失敗しました: {error}',
     cancelWithDate: '{date} にサブスクリプションが終了します。それまでは現在のプランをご利用いただけます。',
     cancelNoDate: 'サブスクリプションの解約を受け付けました。',
+    shortcuts: 'ショートカット',
+    captureShortcut: 'スクショ撮影',
+    saveShortcut: 'Notionに保存',
+    support: 'サポート',
+    contactSupport: 'お問い合わせ',
+    billing: '請求管理',
+    send: '送る',
+    connect: '接続',
+    manuals: '件',
   },
   en: {
     loading: 'Loading…',
@@ -137,7 +146,7 @@ const MESSAGES: Record<Locale, Msgs> = {
     deleteAccountTitle: 'Delete account',
     deleteAccountDesc: 'Your email and screenshot images will be deleted. If you have an active subscription, it will also be cancelled.',
     deleteAccountBtn: 'Delete account',
-    confirmDeleteMsg: 'Are you sure you want to delete?',
+    confirmDeleteMsg: 'Are you sure? This cannot be undone.',
     deleteBtn: 'Delete',
     wsDisconnected: 'Workspace disconnected.',
     wsDisconnectFailed: 'Failed to disconnect workspace.',
@@ -155,6 +164,15 @@ const MESSAGES: Record<Locale, Msgs> = {
     checkoutFailed: 'Failed to start checkout: {error}',
     cancelWithDate: 'Your subscription will end on {date}. You can continue using the current plan until then.',
     cancelNoDate: 'Cancellation request received.',
+    shortcuts: 'Shortcuts',
+    captureShortcut: 'Capture screenshot',
+    saveShortcut: 'Save to Notion',
+    support: 'Support',
+    contactSupport: 'Contact support',
+    billing: 'Billing',
+    send: 'Send',
+    connect: 'Connect',
+    manuals: 'manuals',
   },
 };
 
@@ -229,6 +247,7 @@ export default function DashboardPage() {
       else { setProfile(null); setLoading(false); }
     });
     return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchProfile(s: Session) {
@@ -523,20 +542,12 @@ export default function DashboardPage() {
     standard: { label: 'Standard', emoji: '⚡' },
     pro:      { label: 'Pro',      emoji: '🚀' },
   };
-  const screenshotLimit = profile?.plan === 'free' ? 20 : null;
-  const screenshotPct = screenshotLimit
-    ? Math.min(((profile?.monthly_screenshots ?? 0) / screenshotLimit) * 100, 100)
-    : 0;
-  const aiPct = profile?.ai_calls_limit
-    ? Math.min(((profile?.ai_calls_used ?? 0) / profile.ai_calls_limit) * 100, 100)
-    : 0;
-  const planInfo = planLabel[profile?.plan ?? 'free'];
 
   /* ── Loading ── */
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto px-6 py-24 text-center text-n-400 text-sm">
-        {t('loading')}
+      <div className="dash-wrap" style={{ display: 'grid', placeItems: 'center', minHeight: '60vh' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--ink-4)' }}>{t('loading')}</p>
       </div>
     );
   }
@@ -544,426 +555,582 @@ export default function DashboardPage() {
   /* ── Not signed in ── */
   if (!session) {
     return (
-      <div className="max-w-sm mx-auto px-6 py-32 text-center">
-        <div className="text-5xl mb-4">👤</div>
-        <h1 className="text-xl font-bold text-n-900 mb-2">{t('title')}</h1>
-        <p className="text-n-500 text-sm mb-8 leading-relaxed">{t('loginPromptDesc')}</p>
-        <button
-          onClick={signIn}
-          className="inline-flex items-center gap-2.5 bg-white border border-n-200 px-5 py-2.5 rounded-notion font-medium text-sm text-n-900 shadow-notion hover:shadow-notion-md hover:border-n-300 transition-all"
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18">
-            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908C16.658 14.015 17.64 11.707 17.64 9.2z"/>
-            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-            <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
-          </svg>
-          {t('loginWithGoogle')}
-        </button>
+      <div className="dash-wrap" style={{ display: 'grid', placeItems: 'center', minHeight: '60vh' }}>
+        <div style={{ textAlign: 'center', maxWidth: 320, padding: '0 24px' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>👤</div>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.02em', marginBottom: 10 }}>{t('title')}</h1>
+          <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.6, marginBottom: 28 }}>{t('loginPromptDesc')}</p>
+          <button
+            onClick={signIn}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+              background: 'var(--paper)', border: '1px solid var(--line)',
+              borderRadius: 10, padding: '10px 20px',
+              fontSize: 14, fontWeight: 500, color: 'var(--ink)',
+              boxShadow: 'var(--shadow-sm)', cursor: 'pointer',
+              transition: 'box-shadow .15s ease, border-color .15s ease',
+              font: 'inherit',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908C16.658 14.015 17.64 11.707 17.64 9.2z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+            </svg>
+            {t('loginWithGoogle')}
+          </button>
+        </div>
       </div>
     );
   }
 
   /* ── Dashboard ── */
+  const planInfo = planLabel[profile?.plan ?? 'free'];
+  const usedScreenshots = profile?.monthly_screenshots ?? 0;
+  const screenshotLimit = profile?.plan === 'free' ? 20 : null;
+  const screenshotPct = screenshotLimit ? Math.min((usedScreenshots / screenshotLimit) * 100, 100) : 0;
+  const screenshotBarMod = screenshotPct >= 100 ? 'over' : screenshotPct >= 80 ? 'warn' : screenshotPct < 50 ? 'low' : '';
+
+  const usedAI = profile?.ai_calls_used ?? 0;
+  const limitAI = profile?.ai_calls_limit ?? 0;
+  const aiPct = limitAI > 0 ? Math.min((usedAI / limitAI) * 100, 100) : 0;
+  const aiBarMod = aiPct >= 100 ? 'over' : aiPct >= 80 ? 'warn' : aiPct < 50 ? 'low' : '';
+
+  const maxWs = profile?.plan === 'pro' ? 3 : 1;
+
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <div className="dash-wrap">
+      <div className="dash">
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-lg font-bold text-n-900">{t('title')}</h1>
-          <p className="text-sm text-n-500 mt-0.5">{session.user.email}</p>
-        </div>
-        <button
-          onClick={signOut}
-          className="text-xs text-n-500 border border-n-200 px-3 py-1.5 rounded-notion hover:bg-n-50 hover:border-n-300 transition-colors"
-        >
-          {t('logout')}
-        </button>
-      </div>
-
-      {/* Success message */}
-      {msg && (
-        <div className="mb-5 flex items-start gap-2.5 bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-700">
-          <span className="flex-shrink-0">✓</span>
-          {msg}
-        </div>
-      )}
-
-      {/* Plan card */}
-      <div className="bg-white border border-n-200 rounded-xl shadow-notion p-5 sm:p-6 mb-4">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2.5">
-            <span className="text-2xl">{planInfo.emoji}</span>
-            <div>
-              <p className="text-xs text-n-500 mb-0.5">{t('currentPlan')}</p>
-              <p className="text-lg font-bold text-n-900">{planInfo.label}</p>
-            </div>
-          </div>
-          {profile?.plan !== 'free' && cancelAt && (
-            <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-notion">
-              {t('endsAt', { date: cancelAt })}
-            </span>
-          )}
-        </div>
-
-        {/* Screenshot usage (Free only) */}
-        {profile?.plan === 'free' && (
-          <div className="mb-4">
-            <div className="flex justify-between text-xs text-n-500 mb-1.5">
-              <span>{t('screenshotLabel')}</span>
-              <span className="flex items-center gap-2">
-                <span>{t('screenshotCount', { used: String(profile.monthly_screenshots) })}</span>
-                {profile.screenshot_reset_at && (
-                  <span className="text-n-400">· {t('resetsOn', { date: fmtResetDate(profile.screenshot_reset_at) })}</span>
-                )}
-              </span>
-            </div>
-            <div className="h-1.5 bg-n-100 rounded-full overflow-hidden">
-              <div className="h-full bg-brand rounded-full transition-all" style={{ width: `${screenshotPct}%` }} />
-            </div>
-          </div>
-        )}
-
-        {/* AI usage (paid only) */}
-        {profile && profile.ai_calls_limit > 0 && (
+        {/* ── Header ── */}
+        <div className="dash-head">
           <div>
-            <div className="flex justify-between text-xs text-n-500 mb-1.5">
-              <span>{t('aiLabel')}</span>
-              <span className="flex items-center gap-2">
-                <span>{t('aiCount', { used: String(profile.ai_calls_used), limit: String(profile.ai_calls_limit) })}</span>
-                {profile.ai_calls_reset_at && (
-                  <span className="text-n-400">· {t('resetsOn', { date: fmtResetDate(profile.ai_calls_reset_at) })}</span>
-                )}
+            <h1 className="dash-title">{t('title')}</h1>
+            <div className="dash-subtitle">
+              <span className="acc">
+                <span className="acc-avatar">{session.user.email?.[0]?.toUpperCase() ?? '?'}</span>
+                <span>{session.user.email}</span>
               </span>
             </div>
-            <div className="h-1.5 bg-n-100 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${aiPct}%` }} />
-            </div>
+          </div>
+          <div className="head-actions">
+            <button className="btn-outline" onClick={signOut}>{t('logout')}</button>
+          </div>
+        </div>
+
+        {/* ── Status message ── */}
+        {msg && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '12px 16px', marginBottom: 24,
+            background: 'color-mix(in oklab, var(--green) 12%, var(--paper))',
+            border: '1px solid color-mix(in oklab, var(--green) 25%, transparent)',
+            borderRadius: 'var(--radius-lg)', fontSize: 13.5, color: 'oklch(0.42 0.10 155)',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7L5.5 10.5L12 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {msg}
           </div>
         )}
-      </div>
 
-      {/* Free → Upgrade */}
-      {profile?.plan === 'free' && (
-        <div className="bg-n-50 border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-1">{t('upgradePlanTitle')}</p>
-          <p className="text-sm text-n-500 mb-4">{t('upgradePlanDesc')}</p>
-          <div className="flex gap-3 flex-wrap">
-            <button
-              onClick={() => startCheckout(STRIPE_STANDARD_PRICE_ID)}
-              disabled={!!checkoutLoading}
-              className="text-sm font-semibold px-4 py-2 rounded-notion border border-n-200 bg-white text-n-700 hover:bg-n-50 hover:border-n-300 disabled:opacity-50 transition-colors shadow-notion"
-            >
-              {checkoutLoading === STRIPE_STANDARD_PRICE_ID ? t('processing') : '⚡ Standard ¥500/month'}
-            </button>
-            <button
-              onClick={() => startCheckout(STRIPE_PRO_PRICE_ID)}
-              disabled={!!checkoutLoading}
-              className="text-sm font-semibold px-4 py-2 rounded-notion bg-brand text-white hover:bg-red-600 disabled:opacity-50 transition-colors shadow-notion"
-            >
-              {checkoutLoading === STRIPE_PRO_PRICE_ID ? t('processing') : '🚀 Pro ¥1,200/month'}
-            </button>
-          </div>
-        </div>
-      )}
+        {/* ── Two-column grid ── */}
+        <div className="dash-grid">
 
-      {/* Standard → Pro */}
-      {profile?.plan === 'standard' && (
-        <div className="bg-n-50 border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-1">{t('upgradeToProTitle')}</p>
-          <p className="text-sm text-n-500 mb-4">{t('upgradeToProDesc')}</p>
-          {!proUpgradeConfirm ? (
-            <button
-              onClick={() => setProUpgradeConfirm(true)}
-              disabled={!!checkoutLoading}
-              className="text-sm font-semibold px-4 py-2 rounded-notion bg-brand text-white hover:bg-red-600 disabled:opacity-50 transition-colors shadow-notion"
-            >
-              {t('upgradeToProBtn')}
-            </button>
-          ) : (
-            <div className="bg-white border border-n-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-n-900 mb-1">{t('confirmUpgradeTitle')}</p>
-              <p className="text-xs text-n-500 mb-4 leading-relaxed">{t('confirmUpgradeDesc')}</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={upgradeToPro}
-                  disabled={!!checkoutLoading}
-                  className="text-sm font-semibold px-4 py-2 rounded-notion bg-brand text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
-                >
-                  {checkoutLoading === STRIPE_PRO_PRICE_ID ? t('processing') : t('confirm')}
-                </button>
-                <button
-                  onClick={() => setProUpgradeConfirm(false)}
-                  disabled={!!checkoutLoading}
-                  className="text-sm px-4 py-2 rounded-notion border border-n-200 text-n-600 hover:bg-n-100 disabled:opacity-50 transition-colors"
-                >
-                  {t('cancel')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+          {/* ── Left column ── */}
+          <div className="dash-col">
 
-      {/* Pro → Standard downgrade */}
-      {profile?.plan === 'pro' && !cancelAt && (
-        <div className="bg-n-50 border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-1">{t('downgradeTitle')}</p>
-          <p className="text-sm text-n-500 mb-4">{t('downgradeDesc')}</p>
-          {!downgradeConfirm ? (
-            <button
-              onClick={() => setDowngradeConfirm(true)}
-              disabled={!!checkoutLoading}
-              className="text-sm px-4 py-2 rounded-notion border border-n-200 bg-white text-n-700 hover:bg-n-50 disabled:opacity-50 transition-colors"
-            >
-              {t('downgradeBtn')}
-            </button>
-          ) : (
-            <div className="bg-white border border-n-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-n-900 mb-1">{t('confirmDowngradeTitle')}</p>
-              <p className="text-xs text-n-500 mb-4 leading-relaxed">{t('confirmDowngradeDesc')}</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={downgradeToStandard}
-                  disabled={!!checkoutLoading}
-                  className="text-sm font-semibold px-4 py-2 rounded-notion bg-n-800 text-white hover:bg-n-900 disabled:opacity-50 transition-colors"
-                >
-                  {checkoutLoading === STRIPE_STANDARD_PRICE_ID ? t('processing') : t('confirm')}
-                </button>
-                <button
-                  onClick={() => setDowngradeConfirm(false)}
-                  disabled={!!checkoutLoading}
-                  className="text-sm px-4 py-2 rounded-notion border border-n-200 text-n-600 hover:bg-n-100 disabled:opacity-50 transition-colors"
-                >
-                  {t('cancel')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Cancel subscription */}
-      {profile?.plan !== 'free' && !cancelAt && (
-        <div className="bg-n-50 border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-1">{t('cancelSubTitle')}</p>
-          <p className="text-sm text-n-500 mb-4">{t('cancelSubDesc')}</p>
-          {!cancelConfirm ? (
-            <button
-              onClick={() => setCancelConfirm(true)}
-              disabled={!!checkoutLoading}
-              className="text-sm px-4 py-2 rounded-notion border border-brand/30 text-brand hover:bg-brand/5 disabled:opacity-50 transition-colors"
-            >
-              {t('cancelSubBtn')}
-            </button>
-          ) : (
-            <div className="bg-white border border-brand/20 rounded-xl p-4">
-              <p className="text-sm font-medium text-n-900 mb-1">{t('confirmCancelTitle')}</p>
-              <p className="text-xs text-n-500 mb-4 leading-relaxed">{t('confirmCancelDesc')}</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={cancelSubscription}
-                  disabled={!!checkoutLoading}
-                  className="text-sm font-semibold px-4 py-2 rounded-notion bg-brand text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
-                >
-                  {checkoutLoading === 'cancel' ? t('processing') : t('confirmCancelBtn')}
-                </button>
-                <button
-                  onClick={() => setCancelConfirm(false)}
-                  disabled={!!checkoutLoading}
-                  className="text-sm px-4 py-2 rounded-notion border border-n-200 text-n-600 hover:bg-n-100 disabled:opacity-50 transition-colors"
-                >
-                  {t('cancel')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Notion workspaces */}
-      {profile && (
-        <div className="bg-white border border-n-200 rounded-xl shadow-notion p-5 sm:p-6 mb-4">
-          <div className="flex items-center justify-between mb-4">
-            <p className="font-semibold text-n-900">{t('notionWorkspacesTitle')}</p>
-            <span className="text-xs text-n-400">
-              {t('connectedCount', { count: String(profile.workspaces.length), max: String(profile.plan === 'pro' ? 3 : 1) })}
-            </span>
-          </div>
-          {profile.workspaces.length === 0 ? (
-            <p className="text-sm text-n-400 mb-3">{t('noWorkspace')}</p>
-          ) : (
-            <ul className="space-y-1 mb-3">
-              {profile.workspaces.map((ws: NotionWorkspace) => (
-                <li key={ws.workspace_id} className="flex items-center gap-3 py-2 border-b border-n-100 last:border-0">
-                  <span className="text-base">📄</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-n-900 truncate">{ws.workspace_name}</p>
-                    <p className="text-xs text-n-400">
-                      {new Date(ws.connected_at).toLocaleDateString(dateLocale)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => disconnectWorkspace(ws.workspace_id)}
-                    className="text-xs text-n-400 hover:text-brand transition-colors px-1.5 py-1 flex-shrink-0"
-                    title={t('disconnect')}
-                  >
-                    ✕
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {profile.workspaces.length < (profile.plan === 'pro' ? 3 : 1) && (
-            <button
-              onClick={() => connectNotion(session!, profile.plan, profile.workspaces.length)}
-              disabled={notionConnecting}
-              className="text-sm text-n-700 border border-n-200 px-3 py-1.5 rounded-notion hover:bg-n-50 hover:border-n-300 disabled:opacity-50 transition-colors"
-            >
-              {notionConnecting ? t('connecting') : t('addNotion')}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Usage history chart */}
-      {profile && profile.usage_history.length > 0 && (
-        <div className="bg-white border border-n-200 rounded-xl shadow-notion p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-4">{t('usageChartTitle')}</p>
-          {(() => {
-            const history: UsageHistory[] = [...profile.usage_history].reverse();
-            const maxShots = Math.max(...history.map(h => h.screenshots), 1);
-            const maxAi = Math.max(...history.map(h => h.ai_calls), 1);
-            return (
-              <div className="flex items-end gap-2 h-24">
-                {history.map((h) => {
-                  const shotPct = Math.round((h.screenshots / maxShots) * 100);
-                  const aiPct2 = Math.round((h.ai_calls / maxAi) * 100);
-                  const [y, m] = h.month.split('-');
-                  const monthLabel = new Date(parseInt(y), parseInt(m) - 1)
-                    .toLocaleDateString(dateLocale, { month: 'short' });
-                  return (
-                    <div key={h.month} className="flex-1 flex flex-col items-center gap-1">
-                      <div className="w-full flex gap-0.5 items-end" style={{ height: '72px' }}>
-                        <div
-                          title={t('screenshotTooltip', { n: String(h.screenshots) })}
-                          className="flex-1 bg-brand/70 rounded-t-sm transition-all"
-                          style={{ height: `${shotPct}%` }}
-                        />
-                        {h.ai_calls > 0 && (
-                          <div
-                            title={t('aiTooltip', { n: String(h.ai_calls) })}
-                            className="flex-1 bg-emerald-400/70 rounded-t-sm transition-all"
-                            style={{ height: `${aiPct2}%` }}
-                          />
-                        )}
-                      </div>
-                      <p className="text-[10px] text-n-400">{monthLabel}</p>
+            {/* Plan card */}
+            <div className="plan-card">
+              <div className="plan-row">
+                <div className="plan-glyph">
+                  <span className="leaf">{planInfo.emoji}</span>
+                </div>
+                <div className="plan-current">
+                  <div className="lbl">{t('currentPlan')}</div>
+                  <div className="name">{planInfo.label}</div>
+                  {cancelAt && (
+                    <div className="sub" style={{ color: 'oklch(0.58 0.14 50)' }}>
+                      {t('endsAt', { date: cancelAt })}
                     </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
-          <div className="flex gap-4 mt-3">
-            <span className="flex items-center gap-1.5 text-xs text-n-500">
-              <span className="w-2.5 h-2.5 rounded-sm bg-brand/70 inline-block" />{t('screenshotChartLabel')}
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-n-500">
-              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-400/70 inline-block" />{t('aiChartLabel')}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Manuals list */}
-      {profile && profile.manuals.length > 0 && (
-        <div className="border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-4">{t('manualsTitle')}</p>
-          <div className="space-y-1">
-            {profile.manuals.map((m: Manual) => (
-              <div key={m.id} className="flex items-center gap-3 py-2.5 border-b border-n-100 last:border-0">
-                <span className="text-sm">📋</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-n-900 truncate">{m.title}</p>
-                  <p className="text-xs text-n-400 mt-0.5">
-                    {t('steps', { n: String(m.step_count) })} · {new Date(m.created_at).toLocaleDateString(dateLocale)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {m.notion_page_url && (
-                    <a
-                      href={m.notion_page_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-n-500 border border-n-200 px-2.5 py-1 rounded-notion hover:bg-n-50 transition-colors"
-                    >
-                      Notion
-                    </a>
                   )}
-                  <button
-                    onClick={() => deleteManual(m.id)}
-                    className="text-xs text-n-400 hover:text-brand transition-colors px-1.5 py-1"
-                    title={t('deleteBtn')}
-                  >
-                    ✕
-                  </button>
+                </div>
+                <div className="spacer" />
+                {profile?.plan !== 'free' && (
+                  <a href={CUSTOMER_PORTAL_URL} target="_blank" rel="noopener noreferrer" className="btn-outline">
+                    {t('billing')}
+                  </a>
+                )}
+              </div>
+
+              {/* Usage bars */}
+              <div className="usage">
+                {screenshotLimit && (
+                  <>
+                    <div className="usage-row">
+                      <span>{t('screenshotLabel')}</span>
+                      <span className="v"><strong>{usedScreenshots}</strong> / {screenshotLimit}</span>
+                    </div>
+                    <div className={`usage-bar ${screenshotBarMod}`}>
+                      <span style={{ width: `${screenshotPct}%` }} />
+                    </div>
+                    {profile?.screenshot_reset_at && (
+                      <div className="usage-meta">
+                        <span>{t('resetsOn', { date: fmtResetDate(profile.screenshot_reset_at) })}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                {limitAI > 0 && (
+                  <div style={{ marginTop: screenshotLimit ? 16 : 0 }}>
+                    <div className="usage-row">
+                      <span>{t('aiLabel')}</span>
+                      <span className="v"><strong>{usedAI}</strong> / {limitAI}</span>
+                    </div>
+                    <div className={`usage-bar ${aiBarMod}`}>
+                      <span style={{ width: `${aiPct}%` }} />
+                    </div>
+                    {profile?.ai_calls_reset_at && (
+                      <div className="usage-meta">
+                        <span>{t('resetsOn', { date: fmtResetDate(profile.ai_calls_reset_at) })}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Free → upgrade cards */}
+              {profile?.plan === 'free' && (
+                <>
+                  <div className="upgrade">
+                    <button
+                      className="upgrade-card"
+                      onClick={() => startCheckout(STRIPE_STANDARD_PRICE_ID)}
+                      disabled={!!checkoutLoading}
+                    >
+                      <div className="uc-name">Standard</div>
+                      <div className="uc-price">¥500<small>/mo</small></div>
+                      <div className="uc-desc">{locale === 'ja' ? 'AI 100回/月' : '100 AI/mo'}</div>
+                      <span className="uc-arrow">→</span>
+                    </button>
+                    <button
+                      className="upgrade-card featured"
+                      onClick={() => startCheckout(STRIPE_PRO_PRICE_ID)}
+                      disabled={!!checkoutLoading}
+                    >
+                      <div className="uc-name">Pro</div>
+                      <div className="uc-price">¥1,200<small>/mo</small></div>
+                      <div className="uc-desc">{locale === 'ja' ? 'AI 500回・WS 3つ' : '500 AI · 3 WS'}</div>
+                      <span className="uc-arrow">→</span>
+                    </button>
+                  </div>
+                  <div className="upgrade-foot">{t('upgradePlanDesc')}</div>
+                </>
+              )}
+
+              {/* Standard → Pro upgrade */}
+              {profile?.plan === 'standard' && (
+                <div style={{ marginTop: 22, position: 'relative', zIndex: 1 }}>
+                  {!proUpgradeConfirm ? (
+                    <button
+                      className="upgrade-card featured"
+                      style={{ width: '100%', flexDirection: 'row', alignItems: 'center', padding: '14px 16px' }}
+                      onClick={() => setProUpgradeConfirm(true)}
+                      disabled={!!checkoutLoading}
+                    >
+                      <div style={{ flex: 1, textAlign: 'left' }}>
+                        <div className="uc-name">Pro</div>
+                        <div className="uc-desc">{t('upgradeToProDesc')}</div>
+                      </div>
+                      <div className="uc-price">¥1,200<small>/mo</small></div>
+                      <span className="uc-arrow" style={{ position: 'relative', right: 'auto', bottom: 'auto', marginLeft: 12 }}>→</span>
+                    </button>
+                  ) : (
+                    <div className="confirm-box">
+                      <p><strong>{t('confirmUpgradeTitle')}</strong> — {t('confirmUpgradeDesc')}</p>
+                      <div className="actions">
+                        <button
+                          className="btn-outline"
+                          style={{ background: 'var(--ink)', color: 'var(--paper)', borderColor: 'var(--ink)' }}
+                          onClick={upgradeToPro}
+                          disabled={!!checkoutLoading}
+                        >
+                          {checkoutLoading === STRIPE_PRO_PRICE_ID ? t('processing') : t('confirm')}
+                        </button>
+                        <button className="btn-outline" onClick={() => setProUpgradeConfirm(false)} disabled={!!checkoutLoading}>
+                          {t('cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Pro → Standard downgrade */}
+              {profile?.plan === 'pro' && !cancelAt && (
+                <div style={{ marginTop: 16, position: 'relative', zIndex: 1 }}>
+                  {!downgradeConfirm ? (
+                    <button className="btn-outline" style={{ fontSize: 13 }} onClick={() => setDowngradeConfirm(true)} disabled={!!checkoutLoading}>
+                      {t('downgradeBtn')}
+                    </button>
+                  ) : (
+                    <div className="confirm-box">
+                      <p><strong>{t('confirmDowngradeTitle')}</strong> — {t('confirmDowngradeDesc')}</p>
+                      <div className="actions">
+                        <button
+                          className="btn-outline"
+                          style={{ background: 'var(--ink)', color: 'var(--paper)', borderColor: 'var(--ink)' }}
+                          onClick={downgradeToStandard}
+                          disabled={!!checkoutLoading}
+                        >
+                          {checkoutLoading === STRIPE_STANDARD_PRICE_ID ? t('processing') : t('confirm')}
+                        </button>
+                        <button className="btn-outline" onClick={() => setDowngradeConfirm(false)} disabled={!!checkoutLoading}>
+                          {t('cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Cancel subscription */}
+              {profile?.plan !== 'free' && !cancelAt && (
+                <div style={{ marginTop: 12, position: 'relative', zIndex: 1 }}>
+                  {!cancelConfirm ? (
+                    <button
+                      className="btn-outline"
+                      style={{ fontSize: 12, color: 'var(--ink-4)', borderColor: 'var(--line)' }}
+                      onClick={() => setCancelConfirm(true)}
+                      disabled={!!checkoutLoading}
+                    >
+                      {t('cancelSubBtn')}
+                    </button>
+                  ) : (
+                    <div className="confirm-box">
+                      <p><strong>{t('confirmCancelTitle')}</strong> — {t('confirmCancelDesc')}</p>
+                      <div className="actions">
+                        <button className="btn-danger" onClick={cancelSubscription} disabled={!!checkoutLoading}>
+                          {checkoutLoading === 'cancel' ? t('processing') : t('confirmCancelBtn')}
+                        </button>
+                        <button className="btn-outline" onClick={() => setCancelConfirm(false)} disabled={!!checkoutLoading}>
+                          {t('cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Usage chart */}
+            {profile && profile.usage_history.length > 0 && (
+              <div className="card chart-card">
+                <div className="card-h">
+                  <span className="card-title">{t('usageChartTitle')}</span>
+                </div>
+                {(() => {
+                  const history: UsageHistory[] = [...profile.usage_history].reverse();
+                  const maxShots = Math.max(...history.map(h => h.screenshots), 1);
+                  const maxAi   = Math.max(...history.map(h => h.ai_calls), 1);
+                  return (
+                    <>
+                      <div className="chart">
+                        <div className="y-axis">
+                          <span>{maxShots}</span>
+                          <span>{Math.round(maxShots / 2)}</span>
+                          <span>0</span>
+                        </div>
+                        <div className="plot">
+                          <div className="grid-y" />
+                          <div className="bars">
+                            {history.map((h) => {
+                              const shotPct = Math.round((h.screenshots / maxShots) * 100);
+                              const aiPct2  = maxAi > 0 ? Math.round((h.ai_calls / maxAi) * 100) : 0;
+                              const [y, m]  = h.month.split('-');
+                              const monthLabel = new Date(parseInt(y), parseInt(m) - 1)
+                                .toLocaleDateString(dateLocale, { month: 'short' });
+                              return (
+                                <div key={h.month} className="month">
+                                  <div className="pair">
+                                    <div className="bar shot" style={{ height: `${shotPct}%` }}>
+                                      <span className="tip">{t('screenshotTooltip', { n: String(h.screenshots) })}</span>
+                                    </div>
+                                    {h.ai_calls > 0 && (
+                                      <div className="bar ai" style={{ height: `${aiPct2}%` }}>
+                                        <span className="tip">{t('aiTooltip', { n: String(h.ai_calls) })}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="label">{monthLabel}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="chart-legend">
+                        <span className="swatch shot"><span />{t('screenshotChartLabel')}</span>
+                        <span className="swatch ai"><span />{t('aiChartLabel')}</span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Manuals list */}
+            {profile && profile.manuals.length > 0 && (
+              <div className="card manuals-card">
+                <div className="card-h">
+                  <span className="card-title">{t('manualsTitle')}</span>
+                  <span className="card-meta">{profile.manuals.length}</span>
+                </div>
+                <ul className="manuals-list">
+                  {profile.manuals.map((m: Manual) => (
+                    <li key={m.id} className={`manual-row ${m.step_count <= 5 ? 'few' : ''}`}>
+                      <div className="manual-glyph">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <rect x="3" y="2" width="10" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                          <path d="M6 6h4M6 9h4M6 12h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      <div className="manual-body">
+                        <div className="manual-title">{m.title}</div>
+                        <div className="manual-meta">
+                          <span className="step-count">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                              <circle cx="5" cy="5" r="3.5" stroke="currentColor"/>
+                              <path d="M5 3v2l1.5 1.5" stroke="currentColor" strokeLinecap="round"/>
+                            </svg>
+                            {t('steps', { n: String(m.step_count) })}
+                          </span>
+                          <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--ink-4)', display: 'inline-block' }} />
+                          <span>{new Date(m.created_at).toLocaleDateString(dateLocale)}</span>
+                        </div>
+                      </div>
+                      <div className="manual-actions">
+                        {m.notion_page_url && (
+                          <a
+                            href={m.notion_page_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-outline"
+                            style={{ fontSize: 11 }}
+                          >
+                            Notion ↗
+                          </a>
+                        )}
+                        <button
+                          className="btn-icon danger"
+                          onClick={() => deleteManual(m.id)}
+                          title={t('deleteBtn')}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 2l8 8M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className="manuals-foot">
+                  <span>{profile.manuals.length} {t('manuals')}</span>
                 </div>
               </div>
-            ))}
+            )}
           </div>
-        </div>
-      )}
 
-      {/* Billing history */}
-      {invoices.length > 0 && (
-        <div className="border border-n-200 rounded-xl p-5 sm:p-6 mb-4">
-          <p className="font-semibold text-n-900 mb-4">{t('billingTitle')}</p>
-          <div className="space-y-2">
-            {invoices.map((inv) => (
-              <div key={inv.id} className="flex items-center justify-between py-2 border-b border-n-100 last:border-0">
-                <div>
-                  <p className="text-sm text-n-700">{fmtInvoiceDate(inv.period_start)} 〜 {fmtInvoiceDate(inv.period_end)}</p>
-                  <p className="text-xs text-n-400 mt-0.5">{fmtInvoiceDate(inv.created)}</p>
+          {/* ── Right column ── */}
+          <div className="dash-col">
+
+            {/* Notion workspaces */}
+            {profile && (
+              <div className="card">
+                <div className="card-h">
+                  <span className="card-title">{t('notionWorkspacesTitle')}</span>
+                  <span className="card-meta">
+                    {t('connectedCount', { count: String(profile.workspaces.length), max: String(maxWs) })}
+                  </span>
                 </div>
-                <span className={`text-sm font-medium ${inv.status === 'paid' ? 'text-emerald-600' : 'text-n-500'}`}>
-                  {fmtAmount(inv.amount_paid, inv.currency)}
-                </span>
+                <ul className="list">
+                  {profile.workspaces.length === 0 && (
+                    <li style={{ padding: '10px 0', color: 'var(--ink-4)', fontSize: 13, border: 'none' }}>
+                      {t('noWorkspace')}
+                    </li>
+                  )}
+                  {profile.workspaces.map((ws: NotionWorkspace) => (
+                    <li key={ws.workspace_id}>
+                      <div className="row-glyph">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <rect x="2" y="2" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                          <path d="M5 5h4M5 8h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      <div className="row-body">
+                        <div className="row-title">{ws.workspace_name}</div>
+                        <div className="row-sub">
+                          <span className="status ok">
+                            <span className="dot-s" />connected
+                          </span>
+                          <span className="dot" />
+                          <span>{new Date(ws.connected_at).toLocaleDateString(dateLocale)}</span>
+                        </div>
+                      </div>
+                      <div className="row-actions">
+                        <button
+                          className="btn-icon danger"
+                          onClick={() => disconnectWorkspace(ws.workspace_id)}
+                          title={t('disconnect')}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 2l8 8M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {profile.workspaces.length < maxWs && (
+                  <div className="connect-row">
+                    <div className="l">
+                      <span>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="1.3"/>
+                          <path d="M7 5v4M5 7h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      </span>
+                      <span>{t('addNotion')}</span>
+                    </div>
+                    <button
+                      className="btn-outline"
+                      onClick={() => connectNotion(session!, profile.plan, profile.workspaces.length)}
+                      disabled={notionConnecting}
+                    >
+                      {notionConnecting ? t('connecting') : t('connect')}
+                    </button>
+                  </div>
+                )}
               </div>
-            ))}
+            )}
+
+            {/* Billing history */}
+            {invoices.length > 0 && (
+              <div className="card">
+                <div className="card-h">
+                  <span className="card-title">{t('billingTitle')}</span>
+                </div>
+                <ul className="list">
+                  {invoices.map((inv) => (
+                    <li key={inv.id}>
+                      <div className="row-glyph">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <rect x="2" y="2" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                          <path d="M5 5.5h4M5 8h2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      <div className="row-body">
+                        <div className="row-title">
+                          {fmtInvoiceDate(inv.period_start)}
+                        </div>
+                        <div className="row-sub">
+                          <span className={`status ${inv.status === 'paid' ? 'ok' : 'muted'}`}>
+                            <span className="dot-s" />{inv.status}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="row-actions">
+                        <span style={{
+                          fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 500,
+                          color: inv.status === 'paid' ? 'oklch(0.42 0.10 155)' : 'var(--ink-3)',
+                        }}>
+                          {fmtAmount(inv.amount_paid, inv.currency)}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Shortcuts */}
+            <div className="card tight">
+              <div className="card-h">
+                <span className="card-title">{t('shortcuts')}</span>
+              </div>
+              <ul className="list">
+                <li>
+                  <div className="row-body">
+                    <div className="row-title">{t('captureShortcut')}</div>
+                  </div>
+                  <div className="row-actions"><kbd className="kbd">Alt+S</kbd></div>
+                </li>
+                <li>
+                  <div className="row-body">
+                    <div className="row-title">{t('saveShortcut')}</div>
+                  </div>
+                  <div className="row-actions"><kbd className="kbd">Alt+N</kbd></div>
+                </li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div className="card tight flat">
+              <div className="card-h">
+                <span className="card-title">{t('support')}</span>
+              </div>
+              <ul className="list">
+                <li>
+                  <div className="row-glyph">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.3"/>
+                      <path d="M5 5.5c0-1.1.9-2 2-2s2 .9 2 2c0 1-1 1.5-1 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                      <circle cx="7" cy="10.5" r=".6" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <div className="row-body">
+                    <div className="row-title">{t('contactSupport')}</div>
+                    <div className="row-sub"><span>support@s-tasklog.com</span></div>
+                  </div>
+                  <div className="row-actions">
+                    <a href="mailto:support@s-tasklog.com" className="btn-outline">{t('send')}</a>
+                  </div>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Account deletion */}
-      <div className="border border-n-200 rounded-xl p-5 sm:p-6 mt-6">
-        <p className="font-semibold text-n-900 mb-1">{t('deleteAccountTitle')}</p>
-        <p className="text-sm text-n-500 mb-4">{t('deleteAccountDesc')}</p>
-        {!deleteConfirm ? (
-          <button
-            onClick={() => setDeleteConfirm(true)}
-            className="text-sm text-brand border border-brand/25 px-4 py-2 rounded-notion hover:bg-brand/5 transition-colors"
-          >
-            {t('deleteAccountBtn')}
-          </button>
-        ) : (
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm font-medium text-brand">{t('confirmDeleteMsg')}</p>
-            <button
-              onClick={deleteAccount}
-              className="text-sm bg-brand text-white px-4 py-2 rounded-notion hover:bg-red-600 transition-colors"
-            >
-              {t('deleteBtn')}
-            </button>
-            <button
-              onClick={() => setDeleteConfirm(false)}
-              className="text-sm text-n-500 border border-n-200 px-4 py-2 rounded-notion hover:bg-n-50 transition-colors"
-            >
-              {t('cancel')}
-            </button>
+        {/* ── Danger zone ── */}
+        {profile && (
+          <div className="danger-zone">
+            <div className="dz-text">
+              <div className="dz-title">
+                <svg className="dz-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2L1.5 13.5h13L8 2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                  <path d="M8 6.5v3.5M8 11.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                {t('deleteAccountTitle')}
+              </div>
+              <div className="dz-sub">{t('deleteAccountDesc')}</div>
+            </div>
+            {!deleteConfirm ? (
+              <button className="btn-danger" onClick={() => setDeleteConfirm(true)}>
+                {t('deleteAccountBtn')}
+              </button>
+            ) : (
+              <div className="confirm-box" style={{ margin: 0, minWidth: 240 }}>
+                <p>{t('confirmDeleteMsg')}</p>
+                <div className="actions">
+                  <button className="btn-danger" onClick={deleteAccount}>{t('deleteBtn')}</button>
+                  <button className="btn-outline" onClick={() => setDeleteConfirm(false)}>{t('cancel')}</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
+
       </div>
     </div>
   );

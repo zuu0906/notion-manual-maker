@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import type { Metadata } from 'next';
+import './dash.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chrome-manual-maker.s-tasklog.com'),
