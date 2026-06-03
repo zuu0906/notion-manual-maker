@@ -10,8 +10,8 @@ export async function generateMetadata({
   return {
     title: locale === 'ja' ? 'プライバシーポリシー' : 'Privacy Policy',
     description: locale === 'ja'
-      ? 'Chrome Manual Makerのプライバシーポリシー。収集する情報・利用目的・データの取り扱いについて説明します。'
-      : 'Privacy Policy for Chrome Manual Maker. How we collect, use, and protect your information.',
+      ? 'Notion Manual Makerのプライバシーポリシー。収集する情報・利用目的・データの取り扱いについて説明します。'
+      : 'Privacy Policy for Notion Manual Maker. How we collect, use, and protect your information.',
     alternates: { canonical: `/${locale}/privacy` },
   };
 }
@@ -24,7 +24,7 @@ function PrivacyJa() {
       <div className="flex flex-col gap-10 text-sm text-gray-700 leading-relaxed">
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">1. 事業者情報</h2>
-          <p>本プライバシーポリシーは、Chrome Manual Maker（以下「本サービス」）の運営者（お問い合わせ先：support@s-tasklog.com）が、ユーザーの個人情報をどのように取り扱うかを定めたものです。</p>
+          <p>本プライバシーポリシーは、Notion Manual Maker（以下「本サービス」）の運営者（お問い合わせ先：support@s-tasklog.com）が、ユーザーの個人情報をどのように取り扱うかを定めたものです。</p>
         </div>
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">2. 収集する情報</h2>
@@ -106,7 +106,7 @@ function PrivacyEn() {
       <div className="flex flex-col gap-10 text-sm text-gray-700 leading-relaxed">
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">1. About Us</h2>
-          <p>This Privacy Policy describes how the operator of Chrome Manual Maker ("the Service") (contact: support@s-tasklog.com) collects, uses, and protects your personal information.</p>
+          <p>This Privacy Policy describes how the operator of Notion Manual Maker ("the Service") (contact: support@s-tasklog.com) collects, uses, and protects your personal information.</p>
         </div>
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">2. Information We Collect</h2>

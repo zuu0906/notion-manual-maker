@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Manual Maker",
+  "name": "Notion Manual Maker",
   "version": "1.0.0",
   "description": "クリックするだけでスクリーンショット+矢印をNotionへ自動保存",
   "permissions": [

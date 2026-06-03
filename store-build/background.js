@@ -168,7 +168,7 @@ async function drawOnOffscreen(dataUrl, clickX, clickY, viewportWidth, viewportH
   // Freeプランのウォーターマーク（起動直後の race condition を避けるため planReady を待つ）
   await planReadyPromise;
   if (cachedPlan === 'free') {
-    const wmText = '◆ Chrome Manual Maker';
+    const wmText = '◆ Notion Manual Maker';
     const fontSize = Math.round(12 * scale);
     ctx.font = `${fontSize}px sans-serif`;
     const textWidth = ctx.measureText(wmText).width;

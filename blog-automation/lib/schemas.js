@@ -39,6 +39,14 @@ function buildSerpSummary(serpData) {
     avgCharCount,
     paaQuestions: serpData.paaQuestions || [],
     competitorCount: (serpData.competitorAnalysis || []).length,
+    suggestions: serpData.suggestions?.merged || [],
+    googleSuggestions: serpData.suggestions?.google || [],
+    yahooSuggestions: serpData.suggestions?.yahoo || [],
+    relatedSearches: serpData.relatedSearches || [],
+    snippets: (serpData.organicResults || []).map(r => r.snippet).filter(Boolean),
+    competitorBodyTexts: (serpData.competitorAnalysis || [])
+      .map(c => c.bodyText || '')
+      .filter(t => t.length > 100),
   };
 }
 

@@ -4,7 +4,7 @@ const { CTA_HTML } = require('../lib/schemas');
 const SYSTEM = `あなたはSEOコンテンツの修正専門家です。
 指摘された問題点のみを修正し、改善後のHTML本文全体を返します。
 
-## Chrome Manual Maker CTA（CTAが不足している場合はこのHTMLを挿入）
+## Notion Manual Maker CTA（CTAが不足している場合はこのHTMLを挿入）
 ${CTA_HTML}
 
 ## 修正ルール

@@ -3,10 +3,10 @@ import type { Metadata } from 'next';
 import './dash.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chrome-manual-maker.s-tasklog.com'),
+  metadataBase: new URL('https://chrome-manual-maker.vercel.app'),
   title: {
-    default: 'My Page | Chrome Manual Maker',
-    template: '%s | Chrome Manual Maker',
+    default: 'My Page | Notion Manual Maker',
+    template: '%s | Notion Manual Maker',
   },
 };
 
@@ -37,7 +37,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-n-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between gap-4">
           <a href={`/${locale}`} className="flex items-center gap-1.5 text-sm font-semibold text-n-900 flex-shrink-0">
-            <img src="/icon.png" alt="Chrome Manual Maker" className="w-5 h-5 rounded" />
+            <img src="/icon.png" alt="Notion Manual Maker" className="w-5 h-5 rounded" />
             Manual Maker
           </a>
           <div className="hidden sm:flex items-center gap-1 text-sm text-n-700">
@@ -65,8 +65,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <footer className="border-t border-n-200 mt-0 py-8 bg-n-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-n-500">
           <div className="flex items-center gap-1.5">
-            <img src="/icon.png" alt="Chrome Manual Maker" className="w-4 h-4 rounded" />
-            <span className="font-medium text-n-700">Chrome Manual Maker</span>
+            <img src="/icon.png" alt="Notion Manual Maker" className="w-4 h-4 rounded" />
+            <span className="font-medium text-n-700">Notion Manual Maker</span>
             <span>— © 2025</span>
           </div>
           <div className="flex gap-5">

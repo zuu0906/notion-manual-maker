@@ -131,6 +131,7 @@ Deno.serve(async (req) => {
       userId: user.id,
       email: user.email,
       plan,
+      locale: (user.locale as string) ?? 'en',
       ai_calls_used: user.ai_calls_used ?? 0,
       ai_calls_limit: limits[plan] ?? 0,
       monthly_screenshots: user.monthly_screenshots ?? 0,

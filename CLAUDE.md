@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Chrome拡張（MV3）+ Supabase + Stripe + Next.js（Vercel）のSaaS。**拡張機能はリリース済み。**
+Notion Manual Maker — Chrome拡張（MV3）+ Supabase + Stripe + Next.js（Vercel）のSaaS。**拡張機能はリリース済み。**
 
 ## 構成
 - `extension/` — Chrome拡張（リリース済み。変更時は store-build/ ZIP再作成が必要）
@@ -19,6 +19,6 @@ cd web && npx vercel --prod
 ```
 
 ## 主要URL
-- LP: https://chrome-manual-maker.s-tasklog.com
-- Dashboard: https://chrome-manual-maker.s-tasklog.com/dashboard
+- LP: https://chrome-manual-maker.vercel.app
+- Dashboard: https://chrome-manual-maker.vercel.app/dashboard
 - Supabase: ouscjeptmkoszcjkrmtm

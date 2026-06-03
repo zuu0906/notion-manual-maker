@@ -6,7 +6,7 @@ const SUPABASE_URL = 'https://ouscjeptmkoszcjkrmtm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91c2NqZXB0bWtvc3pjamtybXRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODM2ODQsImV4cCI6MjA5MTk1OTY4NH0.hYxWKYO2_H--7WAthX7azRJuier5uI3IA7km1sgwV3g';
 const SUPABASE_PROXY = `${SUPABASE_URL}/functions/v1/notion-proxy`;
 
-const DASHBOARD_URL = 'https://chrome-manual-maker.s-tasklog.com/dashboard';
+const DASHBOARD_URL = 'https://chrome-manual-maker.vercel.app/dashboard';
 
 let state = {
   isRecording: false,
@@ -19,17 +19,60 @@ let state = {
 let sessionInitDone = false;
 let showUpgradeMsg = false;
 
-function applyI18n() {
-  document.documentElement.lang = chrome.i18n.getMessage('htmlLang') || 'ja';
+// ── i18n ────────────────────────────────────────────────────────────────────
+let _extMsgs = null; // null = use chrome.i18n fallback
+
+function t(key, subsOrFirst, ...rest) {
+  // chrome.i18n.getMessage 互換: 第2引数が配列ならそのまま、文字列なら可変長引数
+  const subs = Array.isArray(subsOrFirst)
+    ? subsOrFirst
+    : subsOrFirst !== undefined ? [subsOrFirst, ...rest] : [];
+  const entry = _extMsgs?.[key];
+  if (entry) {
+    let msg = entry.message;
+    if (entry.placeholders) {
+      Object.entries(entry.placeholders).forEach(([name, ph]) => {
+        const idx = parseInt(ph.content.replace('$', '')) - 1;
+        if (idx >= 0 && subs[idx] !== undefined) {
+          msg = msg.replace(new RegExp(`\\$${name}\\$`, 'gi'), subs[idx]);
+        }
+      });
+    }
+    return msg;
+  }
+  // fallback: chrome.i18n (直接呼び出し—再帰防止)
+  return chrome.i18n.getMessage(key, subs) || key;
+}
+
+async function applyI18n(localeOverride) {
+  const systemLang = chrome.i18n.getUILanguage().startsWith('ja') ? 'ja' : 'en';
+  const lang = localeOverride ?? systemLang;
+
+  // ロケール上書きの場合: _locales/{lang}/messages.json を直接ロード
+  if (localeOverride && localeOverride !== systemLang) {
+    try {
+      const url = chrome.runtime.getURL(`_locales/${lang}/messages.json`);
+      _extMsgs = await fetch(url).then(r => r.json());
+    } catch { _extMsgs = null; }
+  } else {
+    _extMsgs = null; // chrome.i18n を使う
+  }
+
+  document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    el.textContent = chrome.i18n.getMessage(el.dataset.i18n);
+    el.textContent = t(el.dataset.i18n);
   });
   document.querySelectorAll('[data-i18n-title]').forEach(el => {
-    el.title = chrome.i18n.getMessage(el.dataset.i18nTitle);
+    el.title = t(el.dataset.i18nTitle);
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    el.placeholder = chrome.i18n.getMessage(el.dataset.i18nPlaceholder);
+    el.placeholder = t(el.dataset.i18nPlaceholder);
   });
+  // data-i18n がボタンテキストを上書きするため、動的UIを再適用
+  if (localeOverride) {
+    updateRecordUI();
+    updateAiUI();
+  }
 }
 applyI18n();
 
@@ -86,8 +129,14 @@ const googleSignInBtn     = document.getElementById('google-sign-in-btn');
 function getGoogleToken(interactive = false) {
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive }, (token) => {
-      if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-      else resolve(token);
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else if (!token) {
+        // token が undefined/null の場合も reject（Chrome がエラーをセットしないケースがある）
+        reject(new Error('no_token'));
+      } else {
+        resolve(token);
+      }
     });
   });
 }
@@ -134,21 +183,29 @@ async function initUserSession() {
       }
 
       state.plan = newPlan;
-      const localCount = state.monthly_screenshots ?? 0;
+
+      // ユーザーの言語設定を適用
+      if (user.locale) await applyI18n(user.locale);
+
+      const { screenshot_reset_at: prevResetAt } = await chrome.storage.sync.get('screenshot_reset_at');
+      const serverResetAt = user.screenshot_reset_at ?? null;
+      const serverResetNewer = serverResetAt && (!prevResetAt || serverResetAt > prevResetAt);
+
+      const localCount = serverResetNewer ? 0 : (state.monthly_screenshots ?? 0);
       const serverCount = user.monthly_screenshots ?? 0;
       const diff = localCount - serverCount;
-      // ローカルのほうが多い場合、未送信分をサーバーに同期
-      if (diff > 0) {
+      if (diff > 0 && !serverResetNewer) {
         fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ google_token: token, count: diff }),
         }).catch(() => {});
       }
-      state.monthly_screenshots = Math.max(localCount, serverCount);
+      state.monthly_screenshots = serverResetNewer ? serverCount : Math.max(localCount, serverCount);
       await chrome.storage.sync.set({
         plan: newPlan,
         monthly_screenshots: state.monthly_screenshots,
+        screenshot_reset_at: serverResetAt ?? prevResetAt,
       });
 
       // ダウングレード時：ワークスペース数が上限を超えていたら自動クリーンアップ
@@ -171,16 +228,21 @@ async function initUserSession() {
 
       updatePlanUI();
 
+      // プラン更新後にWSセレクター表示を再計算（stale plan による誤表示を防ぐ）
+      const { notion_workspaces: latestWs, notion_active_workspace_id: latestActiveId }
+        = await chrome.storage.local.get(['notion_workspaces', 'notion_active_workspace_id']);
+      renderWsSelector(latestWs ?? [], latestActiveId);
+
       // プラン変更メッセージ
       if (showUpgradeMsg || (prevPlan === 'free' && newPlan !== 'free')) {
         const label = newPlan === 'pro' ? 'Pro' : 'Standard';
-        showMsg(chrome.i18n.getMessage('planUpgraded', [label]), 'success');
+        showMsg(t('planUpgraded', [label]), 'success');
         showUpgradeMsg = false;
       } else if (prevPlan !== 'free' && newPlan === 'free') {
         const wsNote = wsDeletedCount > 0
-          ? chrome.i18n.getMessage('wsDeleted', [String(wsDeletedCount)])
-          : chrome.i18n.getMessage('planRestricted');
-        showMsg(chrome.i18n.getMessage('planDowngraded', [wsNote]), 'error');
+          ? t('wsDeleted', [String(wsDeletedCount)])
+          : t('planRestricted');
+        showMsg(t('planDowngraded', [wsNote]), 'error');
         updateAiUI(); // ダウングレード時は即時 AI UI を更新
       }
 
@@ -196,13 +258,13 @@ async function initUserSession() {
           'notion_access_token', 'notion_workspace_name', 'notion_workspace_id',
         ]);
         notionDot.classList.remove('connected');
-        notionStatus.textContent = chrome.i18n.getMessage('notionDisconnected');
-        connectBtn.textContent = chrome.i18n.getMessage('connect');
+        notionStatus.textContent = t('notionDisconnected');
+        connectBtn.textContent = t('connect');
         recordBtn.disabled = true;
         wsSelector.style.display = 'none';
         wsAddBtn.style.display = 'none';
         allNotionPages = [];
-        showMsg(chrome.i18n.getMessage('welcomeMsg'), 'success');
+        showMsg(t('welcomeMsg'), 'success');
       } else if (!localWs?.length && user.workspaces?.some(w => w.access_token)) {
         // ローカルにワークスペースがなく DB に access_token 付きレコードがある場合だけ復元
         const restored = user.workspaces
@@ -219,8 +281,11 @@ async function initUserSession() {
         loadNotionPages(restored[0].token);
       }
     }
-  } catch (_) {
+  } catch (e) {
+    // no_token はサインイン未実施の正常ケース、それ以外はログ出力
+    if (e.message !== 'no_token') console.warn('[initUserSession]', e.message);
     state.user = null;
+    state.googleToken = null; // undefined のまま残らないよう明示的にリセット
   }
   sessionInitDone = true;
   renderSteps();
@@ -229,7 +294,7 @@ async function initUserSession() {
 
 googleSignInBtn.addEventListener('click', async () => {
   googleSignInBtn.disabled = true;
-  document.getElementById('google-sign-in-text').textContent = chrome.i18n.getMessage('signingIn');
+  document.getElementById('google-sign-in-text').textContent = t('signingIn');
   try {
     const token = await getGoogleToken(true);
     const user = await fetchAuthUser(token);
@@ -238,35 +303,44 @@ googleSignInBtn.addEventListener('click', async () => {
     await chrome.storage.session.set({ googleToken: token });
     if (user && !user.error) {
       state.plan = user.plan ?? 'free';
-      const localCount2 = state.monthly_screenshots ?? 0;
+      const { screenshot_reset_at: prevResetAt2 } = await chrome.storage.sync.get('screenshot_reset_at');
+      const serverResetAt2 = user.screenshot_reset_at ?? null;
+      const serverResetNewer2 = serverResetAt2 && (!prevResetAt2 || serverResetAt2 > prevResetAt2);
+
+      const localCount2 = serverResetNewer2 ? 0 : (state.monthly_screenshots ?? 0);
       const serverCount2 = user.monthly_screenshots ?? 0;
       const diff2 = localCount2 - serverCount2;
-      if (diff2 > 0) {
+      if (diff2 > 0 && !serverResetNewer2) {
         fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ google_token: token, count: diff2 }),
         }).catch(() => {});
       }
-      state.monthly_screenshots = Math.max(localCount2, serverCount2);
+      state.monthly_screenshots = serverResetNewer2 ? serverCount2 : Math.max(localCount2, serverCount2);
       await chrome.storage.sync.set({
         plan: user.plan ?? 'free',
         monthly_screenshots: state.monthly_screenshots,
+        screenshot_reset_at: serverResetAt2 ?? prevResetAt2,
       });
       updatePlanUI();
+      // プラン更新後にWSセレクター表示を再計算
+      const { notion_workspaces: latestWs2, notion_active_workspace_id: latestActiveId2 }
+        = await chrome.storage.local.get(['notion_workspaces', 'notion_active_workspace_id']);
+      renderWsSelector(latestWs2 ?? [], latestActiveId2);
       // 初回ログイン（新規ユーザー・再登録）にオンボーディングメッセージ
       const isNewUser2 = user.created_at &&
         (Date.now() - new Date(user.created_at).getTime() < 5 * 60 * 1000);
       const { notion_workspaces: wsCheck } = await chrome.storage.local.get('notion_workspaces');
       if (isNewUser2 && !wsCheck?.length) {
-        showMsg(chrome.i18n.getMessage('welcomeMsg'), 'success');
+        showMsg(t('welcomeMsg'), 'success');
       }
     }
     updateAiUI();
   } catch (e) {
-    showMsg(chrome.i18n.getMessage('googleSignInFailed', [e.message]), 'error');
+    showMsg(t('googleSignInFailed', [e.message]), 'error');
     googleSignInBtn.disabled = false;
-    document.getElementById('google-sign-in-text').textContent = chrome.i18n.getMessage('googleSignIn');
+    document.getElementById('google-sign-in-text').textContent = t('googleSignIn');
   }
 });
 
@@ -305,7 +379,7 @@ function updateAiUI() {
     // Free plan — AI非表示・アップグレード訴求
     aiCallsLabel.style.display = 'none';
     bulkGenBtn.style.display = 'none';
-    upgradeMsg.textContent = chrome.i18n.getMessage('upgradeMsgFree');
+    upgradeMsg.textContent = t('upgradeMsgFree');
     upgradeSection.style.display = 'flex';
     return;
   }
@@ -315,7 +389,7 @@ function updateAiUI() {
   const hasRemaining = remaining > 0;
 
   aiCallsLabel.style.display = '';
-  aiCallsLabel.textContent = chrome.i18n.getMessage('aiCallsRemaining', [String(remaining), String(limit)]);
+  aiCallsLabel.textContent = t('aiCallsRemaining', [String(remaining), String(limit)]);
 
   bulkGenBtn.style.display = '';
   bulkGenBtn.disabled = !hasRemaining || state.steps.length === 0;
@@ -327,7 +401,7 @@ function updateAiUI() {
 
   // Standard: 残り20回以下でProへの案内を表示
   if (user.plan === 'standard' && remaining <= 20) {
-    upgradeMsg.textContent = chrome.i18n.getMessage('upgradeMsgStandard', [String(remaining)]);
+    upgradeMsg.textContent = t('upgradeMsgStandard', [String(remaining)]);
     upgradeSection.style.display = 'flex';
   } else {
     upgradeSection.style.display = 'none';
@@ -376,7 +450,7 @@ async function init() {
   }
 
   const [stored, storedLocal] = await Promise.all([
-    chrome.storage.sync.get(['plan', 'monthly_screenshots', 'privacy_blur']),
+    chrome.storage.sync.get(['plan', 'monthly_screenshots', 'privacy_blur', 'screenshot_reset_at']),
     chrome.storage.local.get(['notion_access_token', 'notion_workspace_name', 'notion_workspaces', 'notion_active_workspace_id']),
   ]);
   Object.assign(stored, storedLocal);
@@ -497,7 +571,7 @@ async function loadNotionPages(token, force = false) {
   pageDestSelect.disabled = true;
   destFilter.disabled = true;
   destRefreshBtn.disabled = true;
-  pageDestSelect.options[0].text = chrome.i18n.getMessage('loading');
+  pageDestSelect.options[0].text = t('loading');
   try {
     const res = await fetch('https://api.notion.com/v1/search', {
       method: 'POST',
@@ -520,19 +594,19 @@ async function loadNotionPages(token, force = false) {
 
     allNotionPages = (data.results ?? []).map(p => {
       const titleProp = Object.values(p.properties ?? {}).find(v => v.type === 'title');
-      const title = titleProp?.title?.[0]?.plain_text || chrome.i18n.getMessage('untitled');
+      const title = titleProp?.title?.[0]?.plain_text || t('untitled');
       return { id: p.id, title };
     });
     chrome.storage.session.set({ notionPagesCache: allNotionPages, notionPagesCacheTs: Date.now(), notionPagesCacheToken: token }).catch(() => {});
 
     pageDestSelect.options[0].text = allNotionPages.length
-      ? chrome.i18n.getMessage('newPageOption')
-      : chrome.i18n.getMessage('newPageOptionEmpty');
+      ? t('newPageOption')
+      : t('newPageOptionEmpty');
     applyDestFilter(destFilter.value);
   } catch (err) {
-    pageDestSelect.options[0].text = chrome.i18n.getMessage('newPageOption');
+    pageDestSelect.options[0].text = t('newPageOption');
     if (err.message && !err.message.startsWith('Failed to fetch')) {
-      showMsg(chrome.i18n.getMessage('destLoadFailed', [err.message]), 'error');
+      showMsg(t('destLoadFailed', [err.message]), 'error');
     }
   }
   pageDestSelect.disabled = false;
@@ -618,7 +692,7 @@ async function connectNotion() {
 
   const originalText = connectBtn.textContent;
   connectBtn.disabled = true;
-  connectBtn.textContent = chrome.i18n.getMessage('connecting');
+  connectBtn.textContent = t('connecting');
 
   try {
     const redirected = await chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true });
@@ -653,7 +727,7 @@ async function connectNotion() {
         i === idx ? { id: workspaceId, name: workspaceName, token: data.access_token } : w
       );
     } else if (existing.length >= maxWs) {
-      showMsg(chrome.i18n.getMessage('wsMaxReached', [String(maxWs)]), 'error');
+      showMsg(t('wsMaxReached', [String(maxWs)]), 'error');
       return;
     } else {
       workspaces = [...existing, { id: workspaceId, name: workspaceName, token: data.access_token }];
@@ -672,7 +746,7 @@ async function connectNotion() {
     loadNotionPages(data.access_token);
     await syncWorkspacesToServer(workspaces);
   } catch (e) {
-    showMsg(chrome.i18n.getMessage('notionConnectFailed', [e.message]), 'error');
+    showMsg(t('notionConnectFailed', [e.message]), 'error');
     connectBtn.textContent = originalText;
   } finally {
     connectBtn.disabled = false;
@@ -681,26 +755,26 @@ async function connectNotion() {
 
 function setNotionConnected(workspaceName) {
   notionDot.classList.add('connected');
-  notionStatus.textContent = chrome.i18n.getMessage('notionConnected', [workspaceName]);
-  connectBtn.textContent = chrome.i18n.getMessage('reconnect');
+  notionStatus.textContent = t('notionConnected', [workspaceName]);
+  connectBtn.textContent = t('reconnect');
   recordBtn.disabled = false;
 }
 
 async function startRecording() {
   if (!state.googleToken) {
-    showMsg(chrome.i18n.getMessage('needGoogleSignIn'), 'error');
+    showMsg(t('needGoogleSignIn'), 'error');
     return;
   }
   const { notion_access_token } = await chrome.storage.local.get('notion_access_token');
   if (!notion_access_token) {
-    showMsg(chrome.i18n.getMessage('needNotionConnect'), 'error');
+    showMsg(t('needNotionConnect'), 'error');
     return;
   }
   const granted = await new Promise(resolve =>
     chrome.permissions.request({ origins: ['<all_urls>'] }, resolve)
   );
   if (!granted) {
-    showMsg(chrome.i18n.getMessage('permissionRequired'), 'error');
+    showMsg(t('permissionRequired'), 'error');
     return;
   }
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -710,18 +784,18 @@ async function startRecording() {
 
 function updateRecordUI() {
   const count = state.steps.length;
-  recordStatus.textContent = chrome.i18n.getMessage('recordStatusN', [String(count)]);
+  recordStatus.textContent = t('recordStatusN', [String(count)]);
   saveBtn.disabled = count === 0;
   clearBtn.disabled = count === 0;
   pdfBtn.disabled = count === 0;
   if (state.isRecording) {
     recBanner.style.display = 'flex';
-    recStepCount.textContent = chrome.i18n.getMessage('recordingSteps', [String(count)]);
-    recordBtn.textContent = chrome.i18n.getMessage('stopRecording');
+    recStepCount.textContent = t('recordingSteps', [String(count)]);
+    recordBtn.textContent = t('stopRecording');
     recordBtn.classList.add('btn-record-stop');
   } else {
     recBanner.style.display = 'none';
-    recordBtn.textContent = chrome.i18n.getMessage('startRecording');
+    recordBtn.textContent = t('startRecording');
     recordBtn.classList.remove('btn-record-stop');
   }
 }
@@ -748,13 +822,13 @@ function renderStepsInto(container) {
     const handle = document.createElement('div');
     handle.className = 'drag-handle';
     handle.textContent = '⠿';
-    handle.title = chrome.i18n.getMessage('dragHandle');
+    handle.title = t('dragHandle');
 
     const num = document.createElement('div');
     num.className = 'step-num';
     num.textContent = step.stepNumber;
     if (step.hasPiiBlur) {
-      num.title = chrome.i18n.getMessage('piiBlurApplied');
+      num.title = t('piiBlurApplied');
       num.style.position = 'relative';
       const badge = document.createElement('span');
       badge.textContent = '🔒';
@@ -766,7 +840,7 @@ function renderStepsInto(container) {
     thumb.className = 'step-thumb';
     thumb.src = step.annotatedDataUrl;
     thumb.alt = `step ${step.stepNumber}`;
-    thumb.title = chrome.i18n.getMessage('zoomHint');
+    thumb.title = t('zoomHint');
     thumb.addEventListener('click', () => openPreview(step.annotatedDataUrl));
 
     const topRow = document.createElement('div');
@@ -775,7 +849,7 @@ function renderStepsInto(container) {
     const delBtn = document.createElement('button');
     delBtn.className = 'step-delete';
     delBtn.textContent = '×';
-    delBtn.title = chrome.i18n.getMessage('deleteStep');
+    delBtn.title = t('deleteStep');
     delBtn.addEventListener('click', () => deleteStep(i));
 
     const fields = document.createElement('div');
@@ -789,17 +863,18 @@ function renderStepsInto(container) {
       descRow.className = 'step-field-row';
       const descLbl = document.createElement('span');
       descLbl.className = 'step-field-label';
-      descLbl.textContent = chrome.i18n.getMessage('stepDescLabel');
+      descLbl.textContent = t('stepDescLabel');
       const input = document.createElement('input');
       input.className = 'step-label-input';
       input.type = 'text';
-      input.placeholder = chrome.i18n.getMessage('stepDescPlaceholder');
+      input.name = `step-desc-${i}`;
+      input.placeholder = t('stepDescPlaceholder');
       input.value = step.label || '';
       input.addEventListener('input', (e) => { step.label = e.target.value; syncSteps(); });
       const genBtn = document.createElement('button');
       genBtn.className = 'step-gen-btn';
-      genBtn.textContent = chrome.i18n.getMessage('aiGenBtn');
-      genBtn.title = chrome.i18n.getMessage('aiGenTitle');
+      genBtn.textContent = t('aiGenBtn');
+      genBtn.title = t('aiGenTitle');
       genBtn.addEventListener('click', () => generateStepDescription(step, genBtn, input));
       descRow.appendChild(descLbl);
       descRow.appendChild(input);
@@ -811,11 +886,12 @@ function renderStepsInto(container) {
       memoRow.className = 'step-field-row';
       const memoLbl = document.createElement('span');
       memoLbl.className = 'step-field-label';
-      memoLbl.textContent = chrome.i18n.getMessage('stepMemoLabel');
+      memoLbl.textContent = t('stepMemoLabel');
       const memoInput = document.createElement('input');
       memoInput.className = 'step-memo-input';
       memoInput.type = 'text';
-      memoInput.placeholder = chrome.i18n.getMessage('stepMemoPlaceholder');
+      memoInput.name = `step-memo-${i}`;
+      memoInput.placeholder = t('stepMemoPlaceholder');
       memoInput.value = step.memo || '';
       memoInput.addEventListener('input', (e) => { step.memo = e.target.value; syncSteps(); });
       memoRow.appendChild(memoLbl);
@@ -827,11 +903,12 @@ function renderStepsInto(container) {
       titleRow.className = 'step-field-row';
       const titleLbl = document.createElement('span');
       titleLbl.className = 'step-field-label';
-      titleLbl.textContent = chrome.i18n.getMessage('stepTitleLabel');
+      titleLbl.textContent = t('stepTitleLabel');
       const input = document.createElement('input');
       input.className = 'step-label-input';
       input.type = 'text';
-      input.placeholder = chrome.i18n.getMessage('stepTitlePlaceholder');
+      input.name = `step-title-${i}`;
+      input.placeholder = t('stepTitlePlaceholder');
       input.value = step.label || '';
       input.addEventListener('input', (e) => { step.label = e.target.value; syncSteps(); });
       titleRow.appendChild(titleLbl);
@@ -842,11 +919,12 @@ function renderStepsInto(container) {
       memoRow.className = 'step-field-row';
       const memoLbl = document.createElement('span');
       memoLbl.className = 'step-field-label';
-      memoLbl.textContent = chrome.i18n.getMessage('stepMemoLabel');
+      memoLbl.textContent = t('stepMemoLabel');
       const memoInput = document.createElement('input');
       memoInput.className = 'step-memo-input';
       memoInput.type = 'text';
-      memoInput.placeholder = chrome.i18n.getMessage('stepMemoPlaceholder');
+      memoInput.name = `step-memo-${i}`;
+      memoInput.placeholder = t('stepMemoPlaceholder');
       memoInput.value = step.memo || '';
       memoInput.addEventListener('input', (e) => { step.memo = e.target.value; syncSteps(); });
       memoRow.appendChild(memoLbl);
@@ -919,9 +997,9 @@ function syncSteps() {
 function cropStep(step) {
   return new Promise((resolve, reject) => {
     const srcUrl = step.rawDataUrl || step.annotatedDataUrl;
-    if (!srcUrl) { reject(new Error(chrome.i18n.getMessage('noImageData'))); return; }
+    if (!srcUrl) { reject(new Error(t('noImageData'))); return; }
     const img = new Image();
-    img.onerror = () => reject(new Error(chrome.i18n.getMessage('imageLoadFailed')));
+    img.onerror = () => reject(new Error(t('imageLoadFailed')));
     img.onload = () => {
       if (step.viewportWidth && step.viewportHeight) {
         const px = step.x * (img.naturalWidth  / step.viewportWidth);
@@ -969,10 +1047,12 @@ function doCrop(img, px, py) {
 }
 
 
-const _uiLang = chrome.i18n.getUILanguage();
-const STEP_PROMPT = _uiLang.startsWith('ja')
-  ? 'This screenshot shows one step in a web operation. Write ONE short sentence in Japanese describing the action shown. Use the dictionary form ending (e.g. 「〜をクリック。」「〜に入力。」「〜を選択。」) — not 丁寧語 (not 〜します/〜しています). Include button/link/field names if visible. If a form note is provided, mention it briefly only when essential. Return ONLY the sentence.'
-  : 'This screenshot shows one step in a web operation. Write ONE short sentence in English describing the action shown. Use imperative form (e.g. "Click the button", "Enter the value", "Select the option"). Include button/link/field names if visible. If a form note is provided, mention it briefly only when essential. Return ONLY the sentence.';
+function getStepPrompt() {
+  const isJa = document.documentElement.lang === 'ja';
+  return isJa
+    ? 'This screenshot shows one step in a web operation. Write ONE short sentence in Japanese describing the action shown. Use the dictionary form ending (e.g. 「〜をクリック。」「〜に入力。」「〜を選択。」) — not 丁寧語 (not 〜します/〜しています). Include button/link/field names if visible. If a form note is provided, mention it briefly only when essential. Return ONLY the sentence.'
+    : 'This screenshot shows one step in a web operation. Write ONE short sentence in English describing the action shown. Use imperative form (e.g. "Click the button", "Enter the value", "Select the option"). Include button/link/field names if visible. If a form note is provided, mention it briefly only when essential. Return ONLY the sentence.';
+}
 
 function buildStepContext(step) {
   const parts = [];
@@ -985,11 +1065,11 @@ function buildStepContext(step) {
 
 async function generateStepDescription(step, btn, input) {
   btn.disabled = true;
-  btn.textContent = chrome.i18n.getMessage('generating');
+  btn.textContent = t('generating');
   try {
     const cropped = await cropStep(step);
     const parts = [
-      { text: STEP_PROMPT + buildStepContext(step) },
+      { text: getStepPrompt() + buildStepContext(step) },
       { inline_data: { mime_type: 'image/jpeg', data: cropped.split(',')[1] } },
     ];
     const text = await callGeminiProxy(parts);
@@ -998,10 +1078,10 @@ async function generateStepDescription(step, btn, input) {
     syncSteps();
     updateAiUI();
   } catch (e) {
-    showMsg(chrome.i18n.getMessage('aiFailed', [e.message]), 'error');
+    showMsg(t('aiFailed', [e.message]), 'error');
   }
   btn.disabled = false;
-  btn.textContent = chrome.i18n.getMessage('aiGenBtn');
+  btn.textContent = t('aiGenBtn');
 }
 
 async function generateManual() {
@@ -1009,7 +1089,7 @@ async function generateManual() {
 
   bulkGenBtn.disabled = true;
   bulkGenBtn.classList.add('loading');
-  bulkGenBtn.textContent = chrome.i18n.getMessage('preparingImages');
+  bulkGenBtn.textContent = t('preparingImages');
   showMsg('', '');
 
   const total = state.steps.length;
@@ -1017,10 +1097,10 @@ async function generateManual() {
   const sendCount = Math.min(total, remaining);
 
   if (sendCount <= 0) {
-    showMsg(chrome.i18n.getMessage('aiLimitReached'), 'error');
+    showMsg(t('aiLimitReached'), 'error');
     bulkGenBtn.disabled = false;
     bulkGenBtn.classList.remove('loading');
-    bulkGenBtn.textContent = chrome.i18n.getMessage('bulkGenBtn');
+    bulkGenBtn.textContent = t('bulkGenBtn');
     return;
   }
 
@@ -1040,8 +1120,8 @@ async function generateManual() {
     });
 
     bulkGenBtn.textContent = sendCount < total
-      ? chrome.i18n.getMessage('generatingPartial', [String(sendCount), String(total), String(remaining)])
-      : chrome.i18n.getMessage('generatingAll', [String(total)]);
+      ? t('generatingPartial', [String(sendCount), String(total), String(remaining)])
+      : t('generatingAll', [String(total)]);
 
     const token = state.googleToken || await getGoogleToken(false);
     const res = await fetch(`${SUPABASE_URL}/functions/v1/gemini-proxy`, {
@@ -1069,20 +1149,20 @@ async function generateManual() {
     syncSteps();
     renderSteps();
     const msg = sendCount < total
-      ? chrome.i18n.getMessage('aiGeneratedPartial', [String(generated), String(total - sendCount)])
-      : chrome.i18n.getMessage('aiGeneratedN', [String(generated), String(total)]);
+      ? t('aiGeneratedPartial', [String(generated), String(total - sendCount)])
+      : t('aiGeneratedN', [String(generated), String(total)]);
     showMsg(msg, 'success');
   } catch (e) {
-    showMsg(chrome.i18n.getMessage('aiFailed', [e.message]), 'error');
+    showMsg(t('aiFailed', [e.message]), 'error');
   }
 
   bulkGenBtn.disabled = false;
   bulkGenBtn.classList.remove('loading');
-  bulkGenBtn.textContent = chrome.i18n.getMessage('bulkGenBtn');
+  bulkGenBtn.textContent = t('bulkGenBtn');
 }
 
 function exportPdf() {
-  const title = pageTitle.value || `${chrome.i18n.getMessage('pdfDefaultTitle')} ${new Date().toLocaleDateString(chrome.i18n.getUILanguage())}`;
+  const title = pageTitle.value || `${t('pdfDefaultTitle')} ${new Date().toLocaleDateString(chrome.i18n.getUILanguage())}`;
   chrome.storage.local.set({ pdf_export: { title, steps: state.steps } }, () => {
     chrome.windows.create({
       url: chrome.runtime.getURL('pdf/index.html'),
@@ -1094,17 +1174,17 @@ function exportPdf() {
 async function saveToNotion() {
   showMsg('', '');
   saveBtn.disabled = true;
-  saveBtn.textContent = chrome.i18n.getMessage('saving');
+  saveBtn.textContent = t('saving');
 
   chrome.runtime.sendMessage(
     { type: 'SAVE_TO_NOTION', notionPageId: pageDestSelect.value || null, title: pageTitle.value, steps: state.steps },
     async (resp) => {
       saveBtn.disabled = false;
-      saveBtn.textContent = chrome.i18n.getMessage('saveBtn');
+      saveBtn.textContent = t('saveBtn');
       if (resp?.error) {
         showMsg(resp.error, 'error');
       } else if (resp?.success) {
-        showMsg(resp.warning ? resp.warning : chrome.i18n.getMessage('savedToNotion'), resp.warning ? 'error' : 'success');
+        showMsg(resp.warning ? resp.warning : t('savedToNotion'), resp.warning ? 'error' : 'success');
         state.steps = [];
         state.isRecording = false;
         pageTitle.value = '';
@@ -1161,7 +1241,7 @@ function updatePlanUI() {
     const pct = Math.min((used / limit) * 100, 100);
     usageSection.style.display = 'block';
     usageFill.style.width = pct + '%';
-    usageText.textContent = chrome.i18n.getMessage('usageText', [String(used), String(limit)]);
+    usageText.textContent = t('usageText', [String(used), String(limit)]);
   }
   // PDFはStandard以上
   if (pdfBtn) pdfBtn.style.display = (plan === 'standard' || plan === 'pro') ? '' : 'none';

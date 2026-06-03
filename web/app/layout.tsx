@@ -3,10 +3,10 @@ import './globals.css';
 import { getLocale } from 'next-intl/server';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chrome-manual-maker.s-tasklog.com'),
+  metadataBase: new URL('https://chrome-manual-maker.vercel.app'),
   title: {
-    default: 'Chrome Manual Maker',
-    template: '%s | Chrome Manual Maker',
+    default: 'Notion Manual Maker',
+    template: '%s | Notion Manual Maker',
   },
 };
 

@@ -83,8 +83,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       pendingClicks = msg.steps ?? [];
       break;
     case 'GET_STATE':
-      sendResponse({ isRecording, steps: pendingClicks });
-      break;
+      // session から最新状態を取得して返す（restoreSession の race condition を回避）
+      chrome.storage.session.get(['pendingClicks', 'isRecording']).then(s => {
+        sendResponse({
+          isRecording: s.isRecording ?? isRecording,
+          steps: s.pendingClicks ?? pendingClicks,
+        });
+      });
+      return true; // 非同期レスポンスのため true を返す
   }
 });
 
@@ -92,7 +98,12 @@ async function startRecording(tabId) {
   isRecording = true;
   recordingTabId = tabId;
   recordingStartTime = Date.now();
-  await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
+  await saveSession();
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
+  } catch (e) {
+    console.warn('[startRecording] executeScript failed:', e.message);
+  }
   notifyPopup({ type: 'STATE_UPDATE', isRecording: true, steps: pendingClicks });
 }
 
@@ -154,23 +165,10 @@ async function drawOnOffscreen(dataUrl, clickX, clickY, viewportWidth, viewportH
   ctx.arc(x, y, 18 * scale, 0, Math.PI * 2);
   ctx.stroke();
 
-  const badgeR = 16 * scale;
-  const badgeX = x + 22 * scale;
-  const badgeY = y - 22 * scale;
-  ctx.fillStyle = '#FF3B30';
-  ctx.beginPath();
-  ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${Math.round(16 * scale)}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(String(stepNumber), badgeX, badgeY + 1);
-
   // Freeプランのウォーターマーク（起動直後の race condition を避けるため planReady を待つ）
   await planReadyPromise;
   if (cachedPlan === 'free') {
-    const wmText = '◆ Chrome Manual Maker';
+    const wmText = '◆ Notion Manual Maker';
     const fontSize = Math.round(12 * scale);
     ctx.font = `${fontSize}px sans-serif`;
     const textWidth = ctx.measureText(wmText).width;
@@ -432,9 +430,11 @@ async function incrementScreenshotCount(count) {
   if (!googleToken) {
     try {
       googleToken = await new Promise((resolve, reject) =>
-        chrome.identity.getAuthToken({ interactive: false }, t =>
-          chrome.runtime.lastError ? reject(chrome.runtime.lastError) : resolve(t)
-        )
+        chrome.identity.getAuthToken({ interactive: false }, t => {
+          if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+          else if (!t) reject(new Error('no_token'));
+          else resolve(t);
+        })
       );
       if (googleToken) await chrome.storage.session.set({ googleToken });
     } catch (_) {}

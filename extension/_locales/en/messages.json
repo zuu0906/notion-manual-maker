@@ -1,5 +1,5 @@
 {
-  "extName": { "message": "Chrome Manual Maker" },
+  "extName": { "message": "Notion Manual Maker" },
   "extDescription": { "message": "Auto-save screenshots + arrows to Notion with a single click" },
   "htmlLang": { "message": "en" },
 
@@ -169,5 +169,27 @@
   "inputDialogPlaceholder": { "message": "Enter the value to record..." },
   "skip": { "message": "Skip" },
   "passwordDialogTitle": { "message": "Recording password field" },
-  "passwordDialogMsg": { "message": "Password will not be saved. The step will be recorded as \"Enter password\" instead." }
+  "passwordDialogMsg": { "message": "Password will not be saved. The step will be recorded as \"Enter password\" instead." },
+
+  "captureBtn": { "message": "Capture" },
+  "upgradeToPro": { "message": "Upgrade to Pro" },
+  "desktopEmptyHint": { "message": "Press Ctrl+Shift+M or click \"Capture\" to add screenshots" },
+  "signInRequired": { "message": "Sign in to use AI and manage your plan" },
+  "desktopBulkGenBtn": { "message": "✦ AI Generate All" },
+  "signedIn": { "message": "Signed in." },
+  "sessionExpired": { "message": "Session expired. Please sign in again." },
+  "accountSwitched": { "message": "Signed in with a different account. Please reconnect Notion." },
+  "screenshotFailed": { "message": "Screenshot capture failed: $ERR$", "placeholders": { "err": { "content": "$1" } } },
+  "notionPageLoadTimeout": { "message": "Notion page load timed out. Click ↺ to retry." },
+  "captureLimitBanner": { "message": "$LIMIT$-shot monthly limit reached — Standard is unlimited", "placeholders": { "limit": { "content": "$1" } } },
+  "captureLimitMsg": { "message": "Monthly screenshot limit ($LIMIT$) reached.", "placeholders": { "limit": { "content": "$1" } } },
+  "upgradeAiLimitReached": { "message": "AI limit reached — go Pro for 500/month" },
+  "upgradeAiLow": { "message": "$REMAINING$ AI uses left — go Pro for 500", "placeholders": { "remaining": { "content": "$1" } } },
+  "upgradeAi80pct": { "message": "80% of AI uses gone — Pro has 5×" },
+  "upgradeAi50pct": { "message": "50% of AI uses gone — Pro gives 500" },
+  "wsMaxReachedFmt": { "message": "Workspace limit ($MAX$) reached.", "placeholders": { "max": { "content": "$1" } } },
+  "stepDescPlaceholderDesktop": { "message": "Describe the action" },
+  "stepMemoPlaceholderDesktop": { "message": "Additional notes (optional)" },
+  "deleteStepTitle": { "message": "Delete this step" },
+  "aiGenBtnTitle": { "message": "Generate description with AI" }
 }

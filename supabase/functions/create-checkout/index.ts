@@ -90,9 +90,9 @@ Deno.serve(async (req) => {
       mode: 'subscription',
       line_items: [{ price: price_id, quantity: 1 }],
       customer_email: user.email,
-      success_url: (success_url ?? 'https://chrome-manual-maker.s-tasklog.com/success') +
+      success_url: (success_url ?? 'https://chrome-manual-maker.vercel.app/success') +
         ((success_url ?? '').includes('?') ? '&' : '?') + 'session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: cancel_url ?? 'https://chrome-manual-maker.s-tasklog.com/pricing',
+      cancel_url: cancel_url ?? 'https://chrome-manual-maker.vercel.app/pricing',
       metadata: { google_id: user.google_id, plan },
       subscription_data: { trial_period_days: 14 },
     });

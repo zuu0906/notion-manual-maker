@@ -15,7 +15,7 @@
     "en": "EN"
   },
   "meta": {
-    "title": "Chrome Manual Maker — クリックだけでNotionにマニュアル自動保存",
+    "title": "Notion Manual Maker — クリックだけでNotionにマニュアル自動保存",
     "description": "クリックするだけでスクリーンショット＋矢印アノテーションをNotionへ自動保存。操作マニュアル・手順書作成を10倍速に。Chrome拡張機能で無料から始められます。",
     "ogLocale": "ja_JP"
   },
@@ -182,7 +182,7 @@
     "mockup": {
       "pageTitle": "操作マニュアル",
       "pageSlug": "notion.so / 操作マニュアル",
-      "generated": "Chrome Manual Maker で自動生成",
+      "generated": "Notion Manual Maker で自動生成",
       "addBlock": "新しいブロックを追加",
       "steps": [
         { "title": "ダッシュボードにアクセス",  "ai": "ブラウザで管理画面を開きます" },
@@ -193,7 +193,7 @@
   },
   "pricing": {
     "metaTitle": "料金プラン",
-    "metaDesc": "Chrome Manual Makerの料金プラン。無料プランから始めて、必要に応じてProにアップグレード。",
+    "metaDesc": "Notion Manual Makerの料金プラン。無料プランから始めて、必要に応じてProにアップグレード。",
     "eyebrow": "Pricing",
     "title": "シンプルな料金プラン",
     "sub": "まず無料で試して、チームの規模に合わせてアップグレード",
@@ -255,7 +255,7 @@
   },
   "howItWorks": {
     "metaTitle": "使い方",
-    "metaDesc": "Chrome Manual Makerの使い方。インストールからNotionへの保存まで3ステップで完了。スクリーンショットと矢印で操作マニュアルを自動作成。",
+    "metaDesc": "Notion Manual Makerの使い方。インストールからNotionへの保存まで3ステップで完了。スクリーンショットと矢印で操作マニュアルを自動作成。",
     "title": "3ステップで操作マニュアルを作成",
     "sub": "インストールからNotion保存まで5分以内に完了します",
     "steps": [
@@ -263,7 +263,7 @@
         "title": "インストールとNotion接続",
         "desc": "Chrome ウェブストアから拡張機能を追加。ポップアップの「接続」ボタンでNotionのワークスペースを連携します。",
         "detail": [
-          "Chromeウェブストアで「Chrome Manual Maker」を検索",
+          "Chromeウェブストアで「Notion Manual Maker」を検索",
           "「Chromeに追加」をクリック",
           "ツールバーのアイコン → 「接続」→ Notionにログイン",
           "ワークスペース連携を許可して完了"

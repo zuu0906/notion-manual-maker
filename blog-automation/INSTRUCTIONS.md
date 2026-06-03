@@ -17,9 +17,11 @@ Claude APIで記事生成 → Pollinations.ai（無料）で挿絵生成 → Wor
 
 ```
 blog-automation/
-├── create-post.js        # メインスクリプト（アウトライン対応）
-├── themes.js             # 記事テーマ一覧（60本）
-├── analyze-serp.js       # [PLAN] Playwright SERP競合分析
+├── pipeline.js           # メインパイプライン（7エージェント構成）
+├── create-post.js        # 旧メインスクリプト（後方互換）
+├── themes.js             # 記事テーマ一覧（91本）
+├── discover-keywords.js  # [PLAN] キーワード自動発掘（Googleサジェスト+Claude評価）
+├── analyze-serp.js       # [PLAN] SERP競合分析 + サジェスト取得
 ├── generate-outline.js   # [PLAN] ClaudeでSEO最適化アウトライン生成
 ├── fetch-gsc-data.js     # [CHECK] Google Search Console APIデータ取得
 ├── rewrite-analyzer.js   # [ACT] 低パフォーマンス記事のリライト提案
@@ -78,6 +80,22 @@ GOOGLE_REFRESH_TOKEN=1//xxx
 ## 使い方
 
 ### PDCA サイクル
+
+#### [PLAN] キーワード自動発掘（月1〜2回）
+
+```bash
+# デフォルトシード（30種）でGoogleサジェストを収集しClaude評価
+node discover-keywords.js
+
+# スコア7以上のみ表示（絞り込み）
+node discover-keywords.js --min-score 7
+
+# シードキーワードを追加
+node discover-keywords.js --seed "ドキュメント管理"
+```
+
+発掘結果はコンソールに `themes.js` 追記用の形式で出力されます。
+良いキーワードを `themes.js` にコピー&ペーストして追加してください。
 
 #### [PLAN] SERP競合分析（週1回程度）
 
@@ -188,9 +206,9 @@ node rewrite-analyzer.js --github-issue
 
 - 文字数: 1800〜2200文字（アウトラインがある場合は指定文字数に従う）
 - 構成: リード文 → H2×4〜5 → 中盤CTA → 末尾CTA → まとめ
-- CTA: 中盤と末尾の2箇所にChrome Manual Makerのリンク
+- CTA: 中盤と末尾の2箇所にNotion Manual Makerのリンク
 - 挿絵: 1200×630px（Pollinations.ai / Fluxモデル・無料）
-- CTA URL: https://chrome-manual-maker.s-tasklog.com
+- CTA URL: https://chrome-manual-maker.vercel.app
 
 ---
 

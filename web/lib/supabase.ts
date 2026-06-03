@@ -11,6 +11,7 @@ export type UserProfile = {
   userId: string;
   email: string;
   plan: 'free' | 'standard' | 'pro';
+  locale?: 'ja' | 'en';
   ai_calls_used: number;
   ai_calls_limit: number;
   monthly_screenshots: number;
@@ -33,6 +34,7 @@ export type Manual = {
   step_count: number;
   notion_page_url: string | null;
   created_at: string;
+  source?: 'extension' | 'desktop' | null;
 };
 
 export type UsageHistory = {

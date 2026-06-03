@@ -86,6 +86,8 @@ function get(url, headers = {}) {
   });
 }
 
+const { fetchAllSuggestions } = require('./lib/suggest');
+
 // DuckDuckGo HTML検索
 async function searchDDG(keyword) {
   const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(keyword)}&kl=jp-jp`;
@@ -139,11 +141,30 @@ function estimateCharCount(html) {
   return html.replace(/<[^>]+>/g, '').replace(/\s+/g, '').length;
 }
 
+// 競合ページから本文テキストを抽出（LSI分析用）
+function extractBodyText(html) {
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+    .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+    .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+    .replace(/<aside[^>]*>[\s\S]*?<\/aside>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 4000); // 1ページあたり4000文字に制限
+}
+
 async function analyzeSERP(keyword) {
   log(`検索中: "${keyword}"`);
 
-  const organicResults = await searchDDG(keyword);
-  log(`検索結果: ${organicResults.length}件`);
+  // SERP検索とサジェスト取得を並列実行
+  const [organicResults, suggestions] = await Promise.all([
+    searchDDG(keyword),
+    fetchAllSuggestions(keyword),
+  ]);
+  log(`検索結果: ${organicResults.length}件 / サジェスト: ${suggestions.merged.length}件（Google:${suggestions.google.length} Yahoo:${suggestions.yahoo.length}）`);
 
   // 上位5件の競合ページを取得
   const competitorAnalysis = [];
@@ -156,9 +177,10 @@ async function analyzeSERP(keyword) {
         ...result,
         headings:  extractHeadings(res.body),
         charCount: estimateCharCount(res.body),
+        bodyText:  extractBodyText(res.body),
       });
     } else {
-      competitorAnalysis.push({ ...result, headings: [], charCount: 0 });
+      competitorAnalysis.push({ ...result, headings: [], charCount: 0, bodyText: '' });
     }
   }
 
@@ -177,8 +199,9 @@ async function analyzeSERP(keyword) {
     keyword,
     scrapedAt:          new Date().toISOString(),
     organicResults,
-    paaQuestions:       [], // DDGではPAA取得困難なためスキップ
-    relatedSearches:    [],
+    suggestions,
+    paaQuestions:       [],
+    relatedSearches:    suggestions.merged,
     competitorAnalysis,
     topH2s,
   };
@@ -221,6 +244,12 @@ async function main() {
       // サマリー表示
       console.log(`\n=== "${keyword}" SERP分析結果 ===`);
       console.log(`上位${data.organicResults.length}件を取得`);
+      if (data.suggestions && data.suggestions.merged.length) {
+        console.log('\nGoogleサジェスト:');
+        data.suggestions.google.forEach(s => console.log(`  [G] ${s}`));
+        console.log('Yahoo!Japanサジェスト:');
+        data.suggestions.yahoo.forEach(s => console.log(`  [Y] ${s}`));
+      }
       if (data.topH2s.length) {
         console.log('\n競合記事の頻出H2:');
         data.topH2s.slice(0, 8).forEach(h => console.log(`  (${h.count}件) ${h.text}`));

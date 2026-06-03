@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
       notion_workspace_id: body.notion_workspace_id ?? null,
       page_domain: body.page_domain ?? null,
       recording_duration_sec: body.recording_duration_sec ?? null,
+      source: body.source ?? 'extension',
     }).select('id').single();
 
     if (error) return json({ error: error.message }, 500);

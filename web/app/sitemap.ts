@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE = 'https://chrome-manual-maker.s-tasklog.com';
+const BASE = 'https://chrome-manual-maker.vercel.app';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

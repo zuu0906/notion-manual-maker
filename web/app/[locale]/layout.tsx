@@ -16,7 +16,7 @@ export async function generateMetadata({
   return {
     title: {
       default: t('title'),
-      template: '%s | Chrome Manual Maker',
+      template: '%s | Notion Manual Maker',
     },
     description: t('description'),
     keywords: locale === 'ja'
@@ -25,7 +25,7 @@ export async function generateMetadata({
     openGraph: {
       type: 'website',
       locale: t('ogLocale'),
-      siteName: 'Chrome Manual Maker',
+      siteName: 'Notion Manual Maker',
       images: [{ url: '/og.svg', width: 1200, height: 630 }],
     },
     twitter: { card: 'summary_large_image' },
@@ -67,7 +67,7 @@ export default async function LocaleLayout({
         <div className="lp-container nav-inner">
           <a href={`/${locale}`} className="brand">
             <img src="/icon.png" alt="" width={26} height={26} style={{ borderRadius: 7 }} />
-            <span>Chrome Manual Maker</span>
+            <span>Notion Manual Maker</span>
           </a>
 
           <div className="nav-links">
@@ -96,7 +96,7 @@ export default async function LocaleLayout({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <img src="/icon.png" alt="" width={32} height={32} style={{ borderRadius: 8 }} />
             <div>
-              <div style={{ color: 'var(--ink)', fontWeight: 600, fontSize: 14 }}>Chrome Manual Maker</div>
+              <div style={{ color: 'var(--ink)', fontWeight: 600, fontSize: 14 }}>Notion Manual Maker</div>
               <div style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 2 }}>
                 {locale === 'ja' ? 'クリックするだけで、操作マニュアルを自動生成。' : 'Click your way to a finished manual.'}
               </div>
@@ -107,7 +107,7 @@ export default async function LocaleLayout({
             <a href={`/${locale}/terms`}>{tFooter('terms')}</a>
             <a href="mailto:support@s-tasklog.com">{tFooter('contact')}</a>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-4)' }}>© 2025 Chrome Manual Maker</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-4)' }}>© 2025 Notion Manual Maker</div>
         </div>
       </footer>
     </>

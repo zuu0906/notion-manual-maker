@@ -10,7 +10,7 @@ const CUSTOMER_PORTAL_URL      = 'https://billing.stripe.com/p/login/28EbIT8sHfD
 
 const NOTION_CLIENT_ID = '345d872b-594c-810c-9c3d-00376d7425b3';
 const NOTION_PROXY_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion-proxy`;
-const WEB_NOTION_REDIRECT_URI = 'https://chrome-manual-maker.s-tasklog.com/auth/notion-callback';
+const WEB_NOTION_REDIRECT_URI = 'https://chrome-manual-maker.vercel.app/auth/notion-callback';
 
 type Locale = 'ja' | 'en';
 type Msgs = Record<string, string>;
@@ -64,6 +64,8 @@ const MESSAGES: Record<Locale, Msgs> = {
     manualsTitle: '作成したマニュアル',
     steps: '{n} ステップ',
     billingTitle: '請求履歴',
+    languageTitle: '言語設定',
+    languageLabel: '表示言語：',
     deleteAccountTitle: 'アカウント削除',
     deleteAccountDesc: 'メールアドレスとスクリーンショット画像が削除されます。有料プランをご利用中の場合はサブスクリプションも解約されます。',
     deleteAccountBtn: 'アカウントを削除する',
@@ -143,6 +145,8 @@ const MESSAGES: Record<Locale, Msgs> = {
     manualsTitle: 'Created manuals',
     steps: '{n} steps',
     billingTitle: 'Billing history',
+    languageTitle: 'Language',
+    languageLabel: 'Display language:',
     deleteAccountTitle: 'Delete account',
     deleteAccountDesc: 'Your email and screenshot images will be deleted. If you have an active subscription, it will also be cancelled.',
     deleteAccountBtn: 'Delete account',
@@ -181,12 +185,7 @@ function interpolate(msg: string, vars: Record<string, string> = {}): string {
 }
 
 export default function DashboardPage() {
-  const [locale, setLocale] = useState<Locale>('ja');
-
-  useEffect(() => {
-    const lang = navigator.language.toLowerCase();
-    setLocale(lang.startsWith('ja') ? 'ja' : 'en');
-  }, []);
+  const [locale, setLocale] = useState<Locale>('en');
 
   const t = (key: string, vars?: Record<string, string>) =>
     interpolate(MESSAGES[locale][key] ?? key, vars);
@@ -262,12 +261,28 @@ export default function DashboardPage() {
         fetch(`${SUPABASE_FUNCTIONS_URL}/get-invoices`, { method: 'POST', headers, body }),
       ]);
       const profileData = await profileRes.json();
-      if (profileRes.ok) setProfile(profileData);
+      if (profileRes.ok) {
+        setProfile(profileData);
+        if (profileData.locale) setLocale(profileData.locale as Locale);
+      }
       const invoicesData = await invoicesRes.json();
       if (invoicesRes.ok && invoicesData.invoices) setInvoices(invoicesData.invoices);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSetLocale(newLocale: 'ja' | 'en') {
+    if (!session) return;
+    try {
+      await fetch(`${SUPABASE_FUNCTIONS_URL}/set-locale`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ supabase_token: session.access_token, locale: newLocale }),
+      });
+      setLocale(newLocale);
+      setProfile(prev => prev ? { ...prev, locale: newLocale } : prev);
+    } catch { /* silently fail */ }
   }
 
   async function signIn() {
@@ -896,6 +911,9 @@ export default function DashboardPage() {
                           <path d="M6 6h4M6 9h4M6 12h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
                         </svg>
                       </div>
+                      {m.source === 'desktop' && (
+                        <span title="デスクトップアプリから保存" style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: '#f0f0f0', color: '#666', marginRight: 6, flexShrink: 0 }}>🖥️ Desktop</span>
+                      )}
                       <div className="manual-body">
                         <div className="manual-title">{m.title}</div>
                         <div className="manual-meta">
@@ -1056,6 +1074,34 @@ export default function DashboardPage() {
 
           </div>
         </div>
+
+        {/* ── Language setting ── */}
+        {profile && (
+          <div className="card" style={{ marginTop: 24 }}>
+            <div className="card-header">
+              <span className="card-title">{t('languageTitle')}</span>
+            </div>
+            <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 13, color: 'var(--ink-3)', marginRight: 8 }}>
+                {t('languageLabel')}
+              </span>
+              {(['ja', 'en'] as const).map(l => (
+                <button
+                  key={l}
+                  onClick={() => handleSetLocale(l)}
+                  className="btn-outline"
+                  style={{
+                    fontWeight: (profile.locale ?? 'en') === l ? 700 : 400,
+                    borderColor: (profile.locale ?? 'en') === l ? 'var(--ink)' : undefined,
+                    color: (profile.locale ?? 'en') === l ? 'var(--ink)' : undefined,
+                  }}
+                >
+                  {l === 'ja' ? '🇯🇵 日本語' : '🇺🇸 English'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Danger zone ── */}
         {profile && (

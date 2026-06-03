@@ -117,7 +117,7 @@ async function generateArticle(theme) {
 見出し構成:
 ${(outline.headings || []).map(h => {
   const indent = h.level === 'h3' ? '  ' : '';
-  const ctaNote = h.ctaHere ? ' ← ここにChrome Manual MakerのCTAを挿入' : '';
+  const ctaNote = h.ctaHere ? ' ← ここにNotion Manual MakerのCTAを挿入' : '';
   return `${indent}<${h.level}>${h.text}</${h.level}>${ctaNote}${h.notes ? `  // ${h.notes}` : ''}`;
 }).join('\n')}
 
@@ -130,8 +130,8 @@ ${(outline.differentiators || []).map(d => `- ${d}`).join('\n')}
 ## 記事構成
 1. リード文（読者の悩みに共感、150字程度）
 2. H2セクションを4〜5個（各300〜400字）
-3. H2の中盤（2〜3番目）にChrome Manual Makerの自然な言及を1段落
-4. 最後のH2は「Chrome Manual Makerでマニュアル作成をもっと効率化」
+3. H2の中盤（2〜3番目）にNotion Manual Makerの自然な言及を1段落
+4. 最後のH2は「Notion Manual Makerでマニュアル作成をもっと効率化」
 5. まとめ（3行以内）
 `;
 
@@ -147,7 +147,7 @@ ${(outline.differentiators || []).map(d => `- ${d}`).join('\n')}
 - SEO: タイトルと最初の100文字以内にフォーカスキーワードを含める
 ${outlineSection}
 
-## Chrome Manual Makerについて（CTA用）
+## Notion Manual Makerについて（CTA用）
 - Chromeでクリックするだけでスクリーンショット＋赤丸アノテーションをNotionへ自動保存するChrome拡張
 - Notionマニュアル作成を劇的に効率化する
 - 無料プランあり
@@ -156,8 +156,8 @@ ${outlineSection}
 ## CTA HTML（コピー必須）
 <div style="background:#fff5f5;border-left:4px solid #e53e3e;padding:16px;margin:24px 0;">
 <p>📸 <strong>スクリーンショットを撮りながらNotionに貼るのが面倒…</strong>と感じたことはありませんか？</p>
-<p><strong>Chrome Manual Maker</strong>を使えば、Chromeでクリックするだけでスクリーンショット＋赤丸注釈がNotionに自動保存されます。</p>
-<a href="https://chrome-manual-maker.s-tasklog.com" style="display:inline-block;background:#e53e3e;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Chrome Manual Makerを無料で試す →</a>
+<p><strong>Notion Manual Maker</strong>を使えば、Chromeでクリックするだけでスクリーンショット＋赤丸注釈がNotionに自動保存されます。</p>
+<a href="https://chrome-manual-maker.vercel.app" style="display:inline-block;background:#e53e3e;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Notion Manual Makerを無料で試す →</a>
 </div>
 
 ## 出力形式（JSONのみ・コードブロック不要）

@@ -7,7 +7,7 @@ const SYSTEM = `あなたはSEOコンテンツレビュアーです。
 - keywordInTitle (15点): タイトルにキーワードが含まれる
 - keywordInLead (10点): リード文の最初100文字にキーワードが含まれる
 - h2Count (10点): H2見出しが4〜6個ある（「H2カウント（事前集計）」の数値を使うこと。本文プレビューから数えてはいけない）
-- ctaCount (15点): Chrome Manual MakerへのCTAが2個以上ある
+- ctaCount (15点): Notion Manual MakerへのCTAが2個以上ある
 - ctaMidAndEnd (10点): CTAが記事中盤と末尾の両方にある
 - minCharCount (15点): 実際の文字数が目標の90%以上
 - noPlaceholders (10点): [TODO]や「ここに〜」等のプレースホルダーがない（<!-- [SCREENSHOT: ...] --> のHTMLコメントは正常なマーカーなので減点しない）

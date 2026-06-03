@@ -41,12 +41,37 @@ async function runStructurer(research) {
     ? `\n## ペルソナ情報\nペルソナ: ${research.persona.name}（${research.persona.role}）\n状況: ${research.persona.situation}\n悩み: ${research.persona.pain}\n解決する問題: ${research.readerProblem}\n解決後の姿: ${research.problemSolution}`
     : '';
 
+  const suggestionsBlock = research.suggestions && research.suggestions.length
+    ? `\n関連キーワード（Googleサジェスト）:\n${research.suggestions.slice(0, 12).map(s => `- ${s}`).join('\n')}`
+    : '';
+
+  const snippetsBlock = research.snippets && research.snippets.length
+    ? `\n競合記事スニペット（検索結果の抜粋）:\n${research.snippets.slice(0, 4).map((s, i) => `${i + 1}. ${s}`).join('\n')}`
+    : '';
+
+  const lsiBlock = research.lsiKeywords && research.lsiKeywords.length
+    ? `\nLSIキーワード（共起語・関連語）:\n${research.lsiKeywords.slice(0, 15).map(k => `- ${k}`).join('\n')}`
+    : '';
+
+  const mustTermsBlock = research.mustIncludeTerms && research.mustIncludeTerms.length
+    ? `\n必ず言及すべき用語:\n${research.mustIncludeTerms.map(t => `- ${t}`).join('\n')}`
+    : '';
+
+  const userQuestionsBlock = research.userQuestions && research.userQuestions.length
+    ? `\n読者が疑問に思いやすい質問:\n${research.userQuestions.map(q => `- ${q}`).join('\n')}`
+    : '';
+
   const userMsg = `## リサーチデータ
 キーワード: ${research.keyword}
 記事の切り口: ${research.angle}
 差別化ポイント: ${research.uniqueValue}
 競合記事数: ${research.competitorCount}件
 競合の平均文字数: ${research.avgCharCount}文字
+${suggestionsBlock}
+${snippetsBlock}
+${lsiBlock}
+${mustTermsBlock}
+${userQuestionsBlock}
 
 競合H2（頻出順）:
 ${topH2Lines}
@@ -55,7 +80,9 @@ ${topH2Lines}
 ${(research.competitorGaps || []).map(g => `- ${g}`).join('\n') || '- なし'}
 ${personaBlock}
 
-上記データをもとに、ペルソナの問題解決ストーリーに沿ったアウトラインJSONを生成してください。`;
+上記データをもとに、ペルソナの問題解決ストーリーに沿ったアウトラインJSONを生成してください。
+※関連キーワード・LSIキーワードはH2・H3の見出しや本文に自然に盛り込み、検索意図を幅広くカバーしてください。
+※「読者が疑問に思いやすい質問」はFAQセクションや見出しとして活用してください。`;
 
   const result = await callClaude({
     model: 'claude-haiku-4-5-20251001',

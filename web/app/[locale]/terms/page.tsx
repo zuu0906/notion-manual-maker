@@ -10,8 +10,8 @@ export async function generateMetadata({
   return {
     title: locale === 'ja' ? '利用規約' : 'Terms of Service',
     description: locale === 'ja'
-      ? 'Chrome Manual Makerの利用規約。サービスの利用条件・課金・免責事項について説明します。'
-      : 'Terms of Service for Chrome Manual Maker. Usage conditions, billing, and disclaimers.',
+      ? 'Notion Manual Makerの利用規約。サービスの利用条件・課金・免責事項について説明します。'
+      : 'Terms of Service for Notion Manual Maker. Usage conditions, billing, and disclaimers.',
     alternates: { canonical: `/${locale}/terms` },
   };
 }
@@ -24,7 +24,7 @@ function TermsJa() {
       <div className="flex flex-col gap-10 text-sm text-gray-700 leading-relaxed">
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">第1条（適用）</h2>
-          <p>本利用規約（以下「本規約」）は、Chrome Manual Maker（以下「本サービス」）の運営者（以下「運営者」）と、本サービスを利用するユーザー（以下「ユーザー」）との間の権利義務関係を定めるものです。本サービスを利用した時点で、本規約に同意したものとみなします。</p>
+          <p>本利用規約（以下「本規約」）は、Notion Manual Maker（以下「本サービス」）の運営者（以下「運営者」）と、本サービスを利用するユーザー（以下「ユーザー」）との間の権利義務関係を定めるものです。本サービスを利用した時点で、本規約に同意したものとみなします。</p>
         </div>
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">第2条（サービスの内容）</h2>
@@ -94,7 +94,7 @@ function TermsEn() {
       <div className="flex flex-col gap-10 text-sm text-gray-700 leading-relaxed">
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">Article 1 (Scope)</h2>
-          <p>These Terms of Service ("Terms") govern the relationship between the operator of Chrome Manual Maker ("the Service") and users of the Service. By using the Service, you agree to these Terms.</p>
+          <p>These Terms of Service ("Terms") govern the relationship between the operator of Notion Manual Maker ("the Service") and users of the Service. By using the Service, you agree to these Terms.</p>
         </div>
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">Article 2 (Service Description)</h2>

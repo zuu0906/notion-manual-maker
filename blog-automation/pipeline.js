@@ -8,6 +8,7 @@
  *   node pipeline.js --keyword "カスタムKW"  # テーマ外のキーワード
  *   node pipeline.js --dry-run               # WordPressに投稿しない
  *   node pipeline.js --run-id 1777413254271  # 失敗したパイプラインを再開
+ *   node pipeline.js --title "タイトル" --gist "趣旨" # タイトルと趣旨を手動指定
  */
 
 const fs   = require('fs');
@@ -63,7 +64,7 @@ function pickTheme(indexArg) {
   return { theme: THEMES[randIdx], index: randIdx };
 }
 
-async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) {
+async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId, gist = null, manualTitle = null }) {
   const { runId } = resumeRunId ? { runId: resumeRunId } : initRun(keyword, themeIndex);
   log(`=== パイプライン開始 runId=${runId} keyword="${keyword}" ===`);
 
@@ -72,7 +73,7 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
   // Stage 1: 企画エージェント
   if (!state.plan) {
     log('[1/6] 企画エージェント...');
-    state.plan = await runPlanner({ keyword, themeTitle: theme.title });
+    state.plan = await runPlanner({ keyword, themeTitle: theme.title, gist });
     saveState(runId, { plan: state.plan });
     log(`      角度: ${state.plan.angle}`);
   } else {
@@ -85,6 +86,12 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
     state.research = await runResearcher({ keyword, plan: state.plan });
     saveState(runId, { research: state.research });
     log(`      競合: ${state.research.competitorCount}件 / 平均文字数: ${state.research.avgCharCount}`);
+    if (state.research.suggestions && state.research.suggestions.length) {
+      log(`      サジェスト: ${state.research.suggestions.length}件`);
+    }
+    if (state.research.lsiKeywords && state.research.lsiKeywords.length) {
+      log(`      LSIキーワード: ${state.research.lsiKeywords.length}件`);
+    }
   } else {
     log('[2/6] リサーチエージェント スキップ（既存ステートあり）');
   }
@@ -93,6 +100,8 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
   if (!state.outline) {
     log('[3/6] 構成エージェント...');
     state.outline = await runStructurer(state.research);
+    // --title 指定時はユーザー指定のタイトルで上書き
+    if (manualTitle) state.outline.suggestedTitle = manualTitle;
     saveState(runId, { outline: state.outline });
     log(`      タイトル案: ${state.outline.suggestedTitle}`);
     log(`      見出し数: ${(state.outline.headings || []).filter(h => h.level === 'h2').length}個のH2`);
@@ -193,11 +202,16 @@ async function runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId }) 
   }
 
   const wpPost = await postToWordPress(state.finalArticle, mediaId);
-  markDone(runId, state.finalArticle);
+  markDone(runId, {
+    ...state.finalArticle,
+    infographicPrompts: state.infographicPrompts?.sections ?? [],
+  });
   savePerformanceRecord(wpPost, theme, themeIndex);
-  saveUsed([...loadUsed(), themeIndex]);
+  // 手動指定モード（--title）の場合は .used-themes.json を更新しない
+  if (!manualTitle) saveUsed([...loadUsed(), themeIndex]);
 
   log(`=== 完了: ${wpPost.link} ===`);
+  log(`    → インフォグラフィック: blog-automation/state/${runId}-infographics.md`);
 }
 
 async function main() {
@@ -206,6 +220,8 @@ async function main() {
   const indexArg    = args.includes('--index')   ? args[args.indexOf('--index') + 1]   : null;
   const kwArg       = args.includes('--keyword') ? args[args.indexOf('--keyword') + 1] : null;
   const resumeRunId = args.includes('--run-id')  ? args[args.indexOf('--run-id') + 1]  : null;
+  const titleArg    = args.includes('--title')   ? args[args.indexOf('--title') + 1]   : null;
+  const gistArg     = args.includes('--gist')    ? args[args.indexOf('--gist') + 1]    : null;
 
   if (!dryRun && (!process.env.WP_URL || !process.env.WP_USERNAME || !process.env.WP_APP_PASSWORD)) {
     throw new Error('WP_URL / WP_USERNAME / WP_APP_PASSWORD が未設定');
@@ -218,6 +234,11 @@ async function main() {
     keyword    = s.keyword;
     themeIndex = s.themeIndex;
     theme      = THEMES[themeIndex] || { title: keyword, keyword };
+  } else if (titleArg) {
+    // 手動タイトル・趣旨指定モード
+    keyword    = kwArg || titleArg;
+    theme      = { title: titleArg, keyword };
+    themeIndex = 999;
   } else if (kwArg) {
     keyword    = kwArg;
     theme      = THEMES.find(t => t.keyword === kwArg) || { title: kwArg, keyword: kwArg };
@@ -232,9 +253,10 @@ async function main() {
 
   log(`テーマ[${themeIndex}]: ${theme.title}`);
   log(`キーワード: ${keyword}`);
+  if (gistArg) log(`趣旨: ${gistArg}`);
 
   try {
-    await runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId });
+    await runPipeline({ keyword, themeIndex, theme, dryRun, resumeRunId, gist: gistArg, manualTitle: titleArg });
   } catch (e) {
     if (resumeRunId) markFailed(resumeRunId, e);
     throw e;

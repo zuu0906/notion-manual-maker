@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/dashboard', '/auth/', '/ja/success', '/en/success'],
     },
-    sitemap: 'https://chrome-manual-maker.s-tasklog.com/sitemap.xml',
+    sitemap: 'https://chrome-manual-maker.vercel.app/sitemap.xml',
   };
 }

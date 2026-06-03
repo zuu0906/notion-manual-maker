@@ -135,17 +135,17 @@ ${summary.relatedSearches.map(r => `- ${r}`).join('\n') || '- (取得なし)'}
 - ターゲット読者: Notionを使い始めた日本のビジネスパーソン
 ${serpSection}
 
-## Chrome Manual Makerについて
+## Notion Manual Makerについて
 - Chromeでクリックするだけでスクリーンショット＋赤丸アノテーションをNotionへ自動保存するツール
 - Notionマニュアル作成を劇的に効率化する
 - 無料プランあり
-- CTA URL: https://chrome-manual-maker.s-tasklog.com
+- CTA URL: https://chrome-manual-maker.vercel.app
 
 ## 生成ルール
 1. 競合記事が多く使っているH2は「必須要素」として含める
 2. 競合が触れていない差別化ポイントを1〜2つ入れる
 3. PAA質問に対する回答を記事の中で自然に答える
-4. Chrome Manual MakerへのCTAを【記事の中盤（H2の2〜3番目付近）と末尾の2箇所】に配置
+4. Notion Manual MakerへのCTAを【記事の中盤（H2の2〜3番目付近）と末尾の2箇所】に配置
 5. H2は4〜5個、必要なH3も含める
 6. 検索意図に合った構成にする
 

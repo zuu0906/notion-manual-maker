@@ -78,6 +78,19 @@ const COPY = {
         { size: 'med', t: 'データはあなたのNotionに', d: '画像は弊社サーバーを経由せず、あなたのワークスペースに直接保存されます。', visual: 'lock' },
       ],
     },
+    desktop: {
+      tag: 'Desktop App',
+      h2: 'Chrome不要。あらゆるアプリのマニュアルを作れる。',
+      lede: 'Webブラウザだけでなく、WindowsアプリやデスクトップツールのマニュアルもNotion Manual Makerで。Windows専用デスクトップアプリが対応します。',
+      items: [
+        { t: 'どんなアプリも対象', d: 'Excel・PowerPoint・社内システムなど、Chromeで開けないアプリもOK。デスクトップ上で動くものすべてに対応。' },
+        { t: 'OCRで個人情報を自動検出', d: 'Windows標準OCRエンジンがスクリーンショット内のメールアドレス・電話番号を自動検出し、ぼかして保護します。' },
+        { t: 'PDF出力に対応', d: 'Notionへの保存に加えて、手順書をPDFとして出力。社内配布や印刷に対応します。（Standard以上）' },
+        { t: '同じアカウントで連携', d: 'Googleアカウントでサインインすれば、拡張機能とデスクトップアプリのデータが自動同期されます。' },
+      ],
+      cta: 'デスクトップ版をダウンロード',
+      note: 'Windows 10/11対応 · 無料',
+    },
     pricing: {
       tag: 'Pricing',
       h2: 'シンプルな料金プラン。',
@@ -177,6 +190,19 @@ const COPY = {
         { size: 'sm', t: 'PII auto-masking', d: 'Detects and blurs personal info.', visual: 'mask' },
         { size: 'med', t: 'Your data, your Notion', d: 'Images live only in your workspace — never on our servers.', visual: 'lock' },
       ],
+    },
+    desktop: {
+      tag: 'Desktop App',
+      h2: 'No Chrome needed. Document any app.',
+      lede: 'Beyond web pages — manual any Windows application with the Notion Manual Maker desktop app.',
+      items: [
+        { t: 'Any app, any screen', d: 'Excel, PowerPoint, internal tools — if it runs on Windows, you can document it.' },
+        { t: 'OCR-powered PII masking', d: "Windows' built-in OCR engine automatically detects emails and phone numbers in screenshots and blurs them." },
+        { t: 'PDF export', d: 'Export your guide as a PDF for distribution or printing. (Standard plan and above.)' },
+        { t: 'Shared account', d: 'Sign in with the same Google account to sync data across the extension and the desktop app.' },
+      ],
+      cta: 'Download Desktop App',
+      note: 'Windows 10/11 · Free',
     },
     pricing: {
       tag: 'Pricing',
@@ -503,6 +529,30 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <FeatVisual kind={it.visual} />
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ DESKTOP APP ═══════════════════════════════════════ */}
+      <section className="section" id="desktop" style={{ borderTop: '1px solid var(--line)' }}>
+        <div className="lp-container">
+          <Eyebrow>{c.desktop.tag}</Eyebrow>
+          <h2 className="h2">{c.desktop.h2}</h2>
+          <p className="section-lede">{c.desktop.lede}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 32 }}>
+            {c.desktop.items.map((it, i) => (
+              <div key={i} style={{ padding: '20px 24px', background: 'var(--bg-2)', border: '1px solid var(--line)', borderRadius: 12 }}>
+                <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--ink)' }}>{it.t}</div>
+                <div style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.6 }}>{it.d}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 32, display: 'flex', alignItems: 'center', gap: 16 }}>
+            <a href="https://github.com/zuu0906/chrome-manual-maker/releases" target="_blank" rel="noopener noreferrer"
+              className="btn-primary" style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 8, background: 'var(--ink)', color: 'var(--paper)', fontWeight: 600, textDecoration: 'none', fontSize: 14 }}>
+              🖥️ {c.desktop.cta}
+            </a>
+            <span style={{ fontSize: 12, color: 'var(--ink-4)', fontFamily: 'var(--font-mono)' }}>{c.desktop.note}</span>
           </div>
         </div>
       </section>

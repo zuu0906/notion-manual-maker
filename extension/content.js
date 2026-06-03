@@ -148,6 +148,9 @@
       elementHint: getElementHint(el),
       formNote: getFormNote(el),
       piiRegions,
+    }).catch(() => {
+      // Extension reloaded while page was open — reactivate on next click
+      deactivate();
     });
   });
 
@@ -170,7 +173,7 @@
     window.removeEventListener('scroll', onScroll);
     window.__cmm_active = false;
     pendingEl = null;
-    chrome.runtime.sendMessage({ type: 'RECORDING_STOPPED' });
+    chrome.runtime.sendMessage({ type: 'RECORDING_STOPPED' }).catch(() => {});
   }
 
   function showRipple(x, y) {
