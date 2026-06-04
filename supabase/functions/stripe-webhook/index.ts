@@ -60,8 +60,8 @@ serve(async (req) => {
       const sub = event.data.object as Stripe.Subscription;
       const customerId = sub.customer as string;
       const priceId = sub.items.data[0]?.price.id;
-      const standardPriceId = Deno.env.get('STRIPE_STANDARD_PRICE_ID') ?? 'price_1TO5CS1zfFhRe5YPzWfAYSpa';
-      const proPriceId      = Deno.env.get('STRIPE_PRO_PRICE_ID')      ?? 'price_1TN4YS1zfFhRe5YP6ZLFX9qq';
+      const standardPriceId = Deno.env.get('STRIPE_STANDARD_PRICE_ID') ?? 'price_1TeTkw1zfFhRe5YP4sbK4wKa';
+      const proPriceId      = Deno.env.get('STRIPE_PRO_PRICE_ID')      ?? 'price_1TeTmC1zfFhRe5YPW4ReYraX';
       const planMap: Record<string, string> = {
         [standardPriceId]: 'standard',
         [proPriceId]: 'pro',

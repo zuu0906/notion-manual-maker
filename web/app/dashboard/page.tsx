@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { supabase, SUPABASE_FUNCTIONS_URL, type UserProfile, type Invoice, type Manual, type UsageHistory, type NotionWorkspace } from '../../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
-const STRIPE_STANDARD_PRICE_ID = 'price_1TO5CS1zfFhRe5YPzWfAYSpa';
-const STRIPE_PRO_PRICE_ID      = 'price_1TN4YS1zfFhRe5YP6ZLFX9qq';
+const STRIPE_STANDARD_PRICE_ID = 'price_1TeTkw1zfFhRe5YP4sbK4wKa';
+const STRIPE_PRO_PRICE_ID      = 'price_1TeTmC1zfFhRe5YPW4ReYraX';
 const CUSTOMER_PORTAL_URL      = 'https://billing.stripe.com/p/login/28EbIT8sHfD0bk70vS5gc00';
 
 const NOTION_CLIENT_ID = '345d872b-594c-810c-9c3d-00376d7425b3';

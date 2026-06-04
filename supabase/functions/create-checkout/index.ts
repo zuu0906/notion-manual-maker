@@ -62,8 +62,8 @@ async function getVerifiedUser(
   return { ...user, email: user.email ?? email };
 }
 
-const STRIPE_STANDARD_PRICE_ID = Deno.env.get('STRIPE_STANDARD_PRICE_ID') ?? 'price_1TO5CS1zfFhRe5YPzWfAYSpa';
-const STRIPE_PRO_PRICE_ID      = Deno.env.get('STRIPE_PRO_PRICE_ID')      ?? 'price_1TN4YS1zfFhRe5YP6ZLFX9qq';
+const STRIPE_STANDARD_PRICE_ID = Deno.env.get('STRIPE_STANDARD_PRICE_ID') ?? 'price_1TeTkw1zfFhRe5YP4sbK4wKa';
+const STRIPE_PRO_PRICE_ID      = Deno.env.get('STRIPE_PRO_PRICE_ID')      ?? 'price_1TeTmC1zfFhRe5YPW4ReYraX';
 const PRICE_PLAN: Record<string, string> = {
   [STRIPE_STANDARD_PRICE_ID]: 'standard',
   [STRIPE_PRO_PRICE_ID]: 'pro',
