@@ -265,20 +265,47 @@ async function initUserSession() {
         wsAddBtn.style.display = 'none';
         allNotionPages = [];
         showMsg(t('welcomeMsg'), 'success');
-      } else if (!localWs?.length && user.workspaces?.some(w => w.access_token)) {
-        // ローカルにワークスペースがなく DB に access_token 付きレコードがある場合だけ復元
-        const restored = user.workspaces
+      } else {
+        // サーバーのWS一覧とローカルを常に照合し、差異があれば更新（他デバイス・ダッシュボードでの変更を反映）
+        const serverWs = (user.workspaces ?? [])
           .filter(w => w.access_token)
           .map(w => ({ id: w.workspace_id, name: w.workspace_name, token: w.access_token }));
-        await chrome.storage.local.set({
-          notion_workspaces: restored,
-          notion_active_workspace_id: restored[0].id,
-          notion_access_token: restored[0].token,
-          notion_workspace_name: restored[0].name,
-        });
-        renderWsSelector(restored, restored[0].id);
-        setNotionConnected(restored[0].name);
-        loadNotionPages(restored[0].token);
+        const localIds  = new Set((localWs ?? []).map(w => w.id));
+        const serverIds = new Set(serverWs.map(w => w.id));
+        const differs   = localIds.size !== serverIds.size ||
+          [...serverIds].some(id => !localIds.has(id)) ||
+          [...localIds].some(id => !serverIds.has(id));
+
+        if (differs) {
+          if (serverWs.length === 0) {
+            // サーバーで全切断 → ローカルもクリア
+            await chrome.storage.local.remove([
+              'notion_workspaces', 'notion_active_workspace_id',
+              'notion_access_token', 'notion_workspace_name',
+            ]);
+            notionDot.classList.remove('connected');
+            notionStatus.textContent = t('notionDisconnected');
+            connectBtn.textContent = t('connect');
+            recordBtn.disabled = true;
+            wsSelector.style.display = 'none';
+            wsAddBtn.style.display = 'none';
+            allNotionPages = [];
+          } else {
+            // アクティブWSがサーバーにない場合は先頭に切り替え
+            const { notion_active_workspace_id: curActiveId }
+              = await chrome.storage.local.get('notion_active_workspace_id');
+            const newActive = serverWs.find(w => w.id === curActiveId) ?? serverWs[0];
+            await chrome.storage.local.set({
+              notion_workspaces: serverWs,
+              notion_active_workspace_id: newActive.id,
+              notion_access_token: newActive.token,
+              notion_workspace_name: newActive.name,
+            });
+            renderWsSelector(serverWs, newActive.id);
+            setNotionConnected(newActive.name);
+            if (!localIds.has(newActive.id)) loadNotionPages(newActive.token);
+          }
+        }
       }
     }
   } catch (e) {
