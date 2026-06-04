@@ -290,7 +290,51 @@
         ]
       }
     ],
-    "cta": "Install for Free"
+    "cta": "Install for Free",
+    "desktopApp": {
+      "tag": "Desktop App",
+      "title": "Document Any Windows App",
+      "sub": "No Chrome needed. Works with Excel, PowerPoint, and any Windows application.",
+      "steps": [
+        {
+          "title": "Download & Install",
+          "desc": "Download the installer from the GitHub Releases page and run it.",
+          "detail": [
+            "Download the latest .exe from GitHub Releases",
+            "Run the installer",
+            "The app icon appears in the system tray when ready"
+          ]
+        },
+        {
+          "title": "Sign in with Google",
+          "desc": "Sign in with the same Google account as the extension to automatically sync your Notion connection.",
+          "detail": [
+            "Click \"Sign in with Google\" in the app",
+            "Log in with the same account as the extension",
+            "Notion connection syncs automatically"
+          ]
+        },
+        {
+          "title": "Click Through Your Screen",
+          "desc": "Press \"Start Recording\", then click each part of any Windows app you want to document.",
+          "detail": [
+            "Press the \"Start Recording\" button",
+            "Click through any Windows application",
+            "Press Esc or \"Stop Recording\" to finish"
+          ]
+        },
+        {
+          "title": "Save to Notion",
+          "desc": "Save to Notion the same way as the extension. You can also generate AI captions.",
+          "detail": [
+            "Optionally generate AI captions",
+            "Click \"Save to Notion\"",
+            "Image + text blocks added to your Notion page"
+          ]
+        }
+      ],
+      "cta": "Download Desktop App"
+    }
   },
   "success": {
     "metaTitle": "Upgrade Complete",

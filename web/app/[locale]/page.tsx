@@ -14,7 +14,7 @@ const COPY = {
       lede: 'クリックするだけでスクリーンショット＋赤丸アノテーションを自動生成。AIで説明文を作成してNotionへ保存。1時間かかっていた手順書が、5分で完成します。',
       ctaPrimary: 'Chromeに無料で追加',
       ctaSecondary: '使い方を見る',
-      desktopLink: 'Windowsアプリにも対応 — デスクトップ版を無料ダウンロード →',
+      ctaDesktop: 'デスクトップ版',
       trust: ['無料プランあり', 'クレジットカード不要', 'Chrome拡張 + Windowsアプリ対応'],
       stage: {
         urlHost: 'app.example.com', urlPath: '/dashboard', ext: 'Manual Maker',
@@ -128,7 +128,7 @@ const COPY = {
       lede: 'One click captures a screenshot with a red-circle annotation. Generate AI captions with one button, then save everything to Notion. A manual that used to take an hour — done in five minutes.',
       ctaPrimary: 'Add to Chrome — Free',
       ctaSecondary: 'See how it works',
-      desktopLink: 'Also available for Windows — Download the Desktop App →',
+      ctaDesktop: 'Desktop App',
       trust: ['Free plan', 'No credit card', 'Chrome extension + Windows app'],
       stage: {
         urlHost: 'app.example.com', urlPath: '/dashboard', ext: 'Manual Maker',
@@ -442,22 +442,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   </svg>
                   {c.hero.ctaPrimary}
                 </a>
-                <a href={`/${locale}/how-it-works`} className="btn btn-ghost btn-lg">
-                  {c.hero.ctaSecondary} →
+                <a href="https://github.com/zuu0906/chrome-manual-maker/releases" className="btn btn-ghost btn-lg" target="_blank" rel="noopener noreferrer">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <rect x="1" y="2" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                    <path d="M4 12h6M7 10v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                  </svg>
+                  {c.hero.ctaDesktop} ↓
                 </a>
               </div>
-              <a
-                href="https://github.com/zuu0906/chrome-manual-maker/releases"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hero-desktop-link"
-              >
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                  <rect x="1" y="2" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-                  <path d="M4 12h6M7 10v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                </svg>
-                {c.hero.desktopLink}
-              </a>
               <div className="trust">
                 {c.hero.trust.map((t, i) => (
                   <span key={i}>
