@@ -208,7 +208,7 @@ node rewrite-analyzer.js --github-issue
 - 構成: リード文 → H2×4〜5 → 中盤CTA → 末尾CTA → まとめ
 - CTA: 中盤と末尾の2箇所にNotion Manual Makerのリンク
 - 挿絵: 1200×630px（Pollinations.ai / Fluxモデル・無料）
-- CTA URL: https://chrome-manual-maker.vercel.app
+- CTA URL: https://notion-manual-maker.vercel.app
 
 ---
 

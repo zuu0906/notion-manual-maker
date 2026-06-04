@@ -7,7 +7,7 @@ Notionブログの記事企画を立案します。
 ## Notion Manual Makerについて
 - Chrome拡張機能（MV3）。クリックするだけでスクリーンショット＋赤丸アノテーションをNotionへ自動保存
 - Notionマニュアル作成を劇的に効率化。無料プランあり
-- URL: https://chrome-manual-maker.vercel.app
+- URL: https://notion-manual-maker.vercel.app
 
 ## ターゲット読者
 Notionを使い始めた日本のビジネスパーソン（中小企業の業務担当者・チームリーダー）

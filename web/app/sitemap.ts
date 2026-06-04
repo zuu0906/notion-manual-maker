@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE = 'https://chrome-manual-maker.vercel.app';
+const BASE = 'https://notion-manual-maker.vercel.app';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

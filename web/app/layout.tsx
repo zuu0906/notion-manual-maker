@@ -3,7 +3,7 @@ import './globals.css';
 import { getLocale } from 'next-intl/server';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chrome-manual-maker.vercel.app'),
+  metadataBase: new URL('https://notion-manual-maker.vercel.app'),
   title: {
     default: 'Notion Manual Maker',
     template: '%s | Notion Manual Maker',

@@ -19,6 +19,6 @@ cd web && npx vercel --prod
 ```
 
 ## 主要URL
-- LP: https://chrome-manual-maker.vercel.app
-- Dashboard: https://chrome-manual-maker.vercel.app/dashboard
+- LP: https://notion-manual-maker.vercel.app
+- Dashboard: https://notion-manual-maker.vercel.app/dashboard
 - Supabase: ouscjeptmkoszcjkrmtm

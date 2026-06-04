@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './dash.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chrome-manual-maker.vercel.app'),
+  metadataBase: new URL('https://notion-manual-maker.vercel.app'),
   title: {
     default: 'My Page | Notion Manual Maker',
     template: '%s | Notion Manual Maker',

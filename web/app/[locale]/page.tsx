@@ -7,13 +7,13 @@ const STORE_URL = 'https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpj
 const COPY = {
   ja: {
     hero: {
-      eyebrow: 'Chrome × Notion × Gemini AI',
-      h1Pre: 'クリックするだけで、',
-      h1Em: '操作マニュアル',
-      h1Post: 'が完成する。',
-      lede: 'スクショ・AI説明文をまとめて自動生成して、Notionへ保存。手順書1本が、5分で仕上がります。',
-      ctaPrimary: 'Chromeに追加する',
-      ctaSecondary: 'デモを見る',
+      eyebrow: 'Notion × Chrome × AI',
+      h1Pre: '手順書を作るなら、',
+      h1Em: 'もう画像編集ツールは',
+      h1Post: 'いらない。',
+      lede: 'クリックするだけでスクリーンショット＋矢印が自動生成され、AIが説明文を書いて、Notionへ一括保存。1時間かかっていた手順書が、5分で完成します。',
+      ctaPrimary: 'Chromeに無料で追加',
+      ctaSecondary: '使い方を見る',
       trust: ['無料プランあり', 'クレジットカード不要', '14日間無料トライアル'],
       stage: {
         urlHost: 'app.example.com', urlPath: '/dashboard', ext: 'Manual Maker',
@@ -112,21 +112,21 @@ const COPY = {
       ],
     },
     final: {
-      h2: '今日から、マニュアルを書く時間を取り戻す。',
-      lede: '月20スクショまで永久無料。クレジットカード不要で、すぐに試せます。',
-      ctaPrimary: 'Chromeに無料で追加',
+      h2: '今すぐ無料で始める',
+      lede: '月20スクショまで永久無料。クレジットカード不要。',
+      ctaPrimary: 'Chromeに追加する（無料）',
       foot: 'STANDARD PLAN — 14 DAYS FREE TRIAL',
     },
   },
   en: {
     hero: {
-      eyebrow: 'Chrome × Notion × Gemini AI',
-      h1Pre: 'Click your way to a ',
-      h1Em: 'finished manual',
-      h1Post: '.',
-      lede: 'Auto-generate screenshots, arrow annotations, and AI captions — saved straight to Notion. A how-to that used to take an hour, done in five minutes.',
-      ctaPrimary: 'Add to Chrome',
-      ctaSecondary: 'Watch the demo',
+      eyebrow: 'Notion × Chrome × AI',
+      h1Pre: 'Building a how-to guide? ',
+      h1Em: 'You don\'t need an image editor',
+      h1Post: ' anymore.',
+      lede: 'One click captures a screenshot with a numbered arrow, AI writes the description, and everything saves straight to Notion. A manual that used to take an hour — done in five minutes.',
+      ctaPrimary: 'Add to Chrome — Free',
+      ctaSecondary: 'See how it works',
       trust: ['Free plan', 'No credit card', '14-day free trial'],
       stage: {
         urlHost: 'app.example.com', urlPath: '/dashboard', ext: 'Manual Maker',
@@ -225,8 +225,8 @@ const COPY = {
       ],
     },
     final: {
-      h2: 'Get your manual-writing time back, today.',
-      lede: 'Free for up to 20 screenshots a month. No credit card required.',
+      h2: 'Start for free today.',
+      lede: 'Up to 20 screenshots a month, forever free. No credit card required.',
       ctaPrimary: 'Add to Chrome — Free',
       foot: 'STANDARD PLAN — 14 DAYS FREE TRIAL',
     },
@@ -240,6 +240,32 @@ type Copy = (typeof COPY)[Lang];
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return <div className="section-tag">{children}</div>;
+}
+
+const TRUST_ITEMS = [
+  { icon: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="currentColor" strokeWidth="1.3" opacity="0.4"/><circle cx="9" cy="9" r="3" fill="currentColor"/></svg>, label: 'Google Chrome' },
+  { icon: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><path d="M6 6V12M6 6L12 12V6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round"/></svg>, label: 'Notion' },
+  { icon: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L10.5 6.5L15 8L10.5 9.5L9 14L7.5 9.5L3 8L7.5 6.5L9 2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>, label: 'Gemini AI' },
+  { icon: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><path d="M6 4V3M12 4V3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M2 8h14" stroke="currentColor" strokeWidth="1.4"/></svg>, label: 'Windows App' },
+];
+
+function TrustBar({ locale }: { locale: string }) {
+  const label = locale === 'en' ? 'Works with' : '対応環境';
+  return (
+    <div className="trust-bar">
+      <div className="lp-container">
+        <div className="trust-bar-inner">
+          <span className="trust-bar-label">{label}</span>
+          {TRUST_ITEMS.map((it, i) => (
+            <span key={i} className="trust-bar-item">
+              {it.icon}
+              {it.label}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function StepVisual({ idx }: { idx: number }) {
@@ -391,6 +417,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <div className="lp-page">
 
       {/* ═══ HERO ═══════════════════════════════════════════════ */}
+
       <section className="hero">
         <div className="lp-container">
           <div className="hero-grid">
@@ -446,6 +473,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
+      {/* ═══ TRUST BAR ══════════════════════════════════════════ */}
+      <TrustBar locale={locale} />
+
       {/* ═══ PROBLEM ════════════════════════════════════════════ */}
       <section className="section" id="problem">
         <div className="lp-container">
@@ -478,6 +508,34 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <StepVisual idx={i} />
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ DESKTOP APP ═══════════════════════════════════════ */}
+      <section className="section" id="desktop" style={{ background: 'var(--bg-2)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div className="lp-container">
+          <Eyebrow>{c.desktop.tag}</Eyebrow>
+          <h2 className="h2">{c.desktop.h2}</h2>
+          <p className="section-lede">{c.desktop.lede}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 32 }}>
+            {c.desktop.items.map((it, i) => (
+              <div key={i} className="desktop-item">
+                <h3>{it.t}</h3>
+                <p>{it.d}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 32, display: 'flex', alignItems: 'center', gap: 16 }}>
+            <a href="https://github.com/zuu0906/chrome-manual-maker/releases" target="_blank" rel="noopener noreferrer"
+              className="btn btn-primary btn-lg">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <rect x="1" y="2" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                <path d="M4 12h6M7 10v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+              {c.desktop.cta}
+            </a>
+            <span style={{ fontSize: 12, color: 'var(--ink-4)', fontFamily: 'var(--font-mono)' }}>{c.desktop.note}</span>
           </div>
         </div>
       </section>
@@ -533,30 +591,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      {/* ═══ DESKTOP APP ═══════════════════════════════════════ */}
-      <section className="section" id="desktop" style={{ borderTop: '1px solid var(--line)' }}>
-        <div className="lp-container">
-          <Eyebrow>{c.desktop.tag}</Eyebrow>
-          <h2 className="h2">{c.desktop.h2}</h2>
-          <p className="section-lede">{c.desktop.lede}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 32 }}>
-            {c.desktop.items.map((it, i) => (
-              <div key={i} style={{ padding: '20px 24px', background: 'var(--bg-2)', border: '1px solid var(--line)', borderRadius: 12 }}>
-                <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--ink)' }}>{it.t}</div>
-                <div style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.6 }}>{it.d}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 32, display: 'flex', alignItems: 'center', gap: 16 }}>
-            <a href="https://github.com/zuu0906/chrome-manual-maker/releases" target="_blank" rel="noopener noreferrer"
-              className="btn-primary" style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 8, background: 'var(--ink)', color: 'var(--paper)', fontWeight: 600, textDecoration: 'none', fontSize: 14 }}>
-              🖥️ {c.desktop.cta}
-            </a>
-            <span style={{ fontSize: 12, color: 'var(--ink-4)', fontFamily: 'var(--font-mono)' }}>{c.desktop.note}</span>
-          </div>
-        </div>
-      </section>
-
       {/* ═══ PRICING ═════════════════════════════════════════ */}
       <section className="section" id="pricing" style={{ background: 'var(--bg-2)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
         <div className="lp-container">
@@ -597,7 +631,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* ═══ FAQ ══════════════════════════════════════════════ */}
       <section className="section" id="faq">
-        <div className="lp-container" style={{ maxWidth: 880 }}>
+        <div className="lp-container faq-container">
           <Eyebrow>{c.faq.tag}</Eyebrow>
           <h2 className="h2">{c.faq.h2}</h2>
           <div className="faq">

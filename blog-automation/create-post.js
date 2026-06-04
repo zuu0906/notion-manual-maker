@@ -157,7 +157,7 @@ ${outlineSection}
 <div style="background:#fff5f5;border-left:4px solid #e53e3e;padding:16px;margin:24px 0;">
 <p>📸 <strong>スクリーンショットを撮りながらNotionに貼るのが面倒…</strong>と感じたことはありませんか？</p>
 <p><strong>Notion Manual Maker</strong>を使えば、Chromeでクリックするだけでスクリーンショット＋赤丸注釈がNotionに自動保存されます。</p>
-<a href="https://chrome-manual-maker.vercel.app" style="display:inline-block;background:#e53e3e;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Notion Manual Makerを無料で試す →</a>
+<a href="https://notion-manual-maker.vercel.app" style="display:inline-block;background:#e53e3e;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Notion Manual Makerを無料で試す →</a>
 </div>
 
 ## 出力形式（JSONのみ・コードブロック不要）

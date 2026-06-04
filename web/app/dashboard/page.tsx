@@ -10,7 +10,7 @@ const CUSTOMER_PORTAL_URL      = 'https://billing.stripe.com/p/login/28EbIT8sHfD
 
 const NOTION_CLIENT_ID = '345d872b-594c-810c-9c3d-00376d7425b3';
 const NOTION_PROXY_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion-proxy`;
-const WEB_NOTION_REDIRECT_URI = 'https://chrome-manual-maker.vercel.app/auth/notion-callback';
+const WEB_NOTION_REDIRECT_URI = 'https://notion-manual-maker.vercel.app/auth/notion-callback';
 
 type Locale = 'ja' | 'en';
 type Msgs = Record<string, string>;

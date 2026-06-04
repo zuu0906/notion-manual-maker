@@ -6,7 +6,7 @@ const SUPABASE_URL = 'https://ouscjeptmkoszcjkrmtm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91c2NqZXB0bWtvc3pjamtybXRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODM2ODQsImV4cCI6MjA5MTk1OTY4NH0.hYxWKYO2_H--7WAthX7azRJuier5uI3IA7km1sgwV3g';
 const SUPABASE_PROXY = `${SUPABASE_URL}/functions/v1/notion-proxy`;
 
-const DASHBOARD_URL = 'https://chrome-manual-maker.vercel.app/dashboard';
+const DASHBOARD_URL = 'https://notion-manual-maker.vercel.app/dashboard';
 
 let state = {
   isRecording: false,

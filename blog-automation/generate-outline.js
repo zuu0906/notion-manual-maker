@@ -139,7 +139,7 @@ ${serpSection}
 - Chromeでクリックするだけでスクリーンショット＋赤丸アノテーションをNotionへ自動保存するツール
 - Notionマニュアル作成を劇的に効率化する
 - 無料プランあり
-- CTA URL: https://chrome-manual-maker.vercel.app
+- CTA URL: https://notion-manual-maker.vercel.app
 
 ## 生成ルール
 1. 競合記事が多く使っているH2は「必須要素」として含める
