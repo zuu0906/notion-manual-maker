@@ -260,12 +260,13 @@
     "sub": "From install to Notion save in under 5 minutes",
     "steps": [
       {
-        "title": "Install & Connect Notion",
-        "desc": "Add the extension from the Chrome Web Store. Click \"Connect\" in the popup to link your Notion workspace.",
+        "title": "Install, Sign In & Connect Notion",
+        "desc": "Add the extension from the Chrome Web Store. Sign in with Google, then link your Notion workspace.",
         "detail": [
           "Search for \"Notion Manual Maker\" on the Chrome Web Store",
           "Click \"Add to Chrome\"",
-          "Click the toolbar icon → \"Connect\" → log in to Notion",
+          "Click the toolbar icon → \"Sign in with Google\"",
+          "Click \"Connect\" → log in to Notion",
           "Authorize workspace access and you're done"
         ]
       },
@@ -306,12 +307,13 @@
           ]
         },
         {
-          "title": "Sign in with Google",
-          "desc": "Sign in with the same Google account as the extension to automatically sync your Notion connection.",
+          "title": "Sign In & Connect Notion",
+          "desc": "Sign in with Google and connect your Notion workspace. Using the same account as the extension will sync your Notion connection automatically.",
           "detail": [
-            "Click \"Sign in with Google\" in the app",
-            "Log in with the same account as the extension",
-            "Notion connection syncs automatically"
+            "Click \"Sign in with Google\"",
+            "Use the same account as the extension (recommended)",
+            "Notion connection syncs automatically — or click \"Connect\" to link manually",
+            "Authorize Notion workspace access"
           ]
         },
         {
