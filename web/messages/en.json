@@ -16,7 +16,7 @@
   },
   "meta": {
     "title": "Notion Manual Maker — Auto-save operation manuals to Notion with one click",
-    "description": "Auto-generate screenshots, arrows, and AI descriptions, then save directly to Notion. Create operation manuals 10x faster. Free to start with the Chrome extension.",
+    "description": "Auto-capture screenshots with red-circle annotations, add AI captions, and save to Notion. Create operation manuals 10x faster. Free to start with the Chrome extension.",
     "ogLocale": "en_US"
   },
   "landing": {
@@ -25,7 +25,7 @@
       "headline1": "Create operation manuals",
       "headline2": "just by clicking",
       "headline3": "",
-      "sub": "Auto-generate screenshots, arrows, and AI descriptions all at once, then save to Notion.",
+      "sub": "Auto-capture screenshots with red-circle annotations, add AI captions, and save to Notion.",
       "subHighlight": "5 minutes",
       "subSuffix": " instead of an hour.",
       "ctaPrimary": "Add to Chrome for Free",
@@ -61,12 +61,12 @@
         {
           "icon": "📸",
           "title": "Click through your workflow",
-          "desc": "Press \"Start Recording\" and click each step you want to document. Screenshots + numbered arrows are auto-generated."
+          "desc": "Press \"Start Recording\" and click each step you want to document. A screenshot with a red-circle annotation is captured automatically."
         },
         {
           "icon": "🚀",
           "title": "Save to Notion with AI labels",
-          "desc": "Press \"Save to Notion\" once. Image blocks with AI descriptions are automatically added to your page."
+          "desc": "Optionally generate AI captions, then press \"Save to Notion\". Image blocks are added to your page instantly."
         }
       ],
       "detailLink": "See detailed instructions →"
@@ -99,7 +99,7 @@
       "eyebrow": "Features",
       "title": "Key Features",
       "items": [
-        { "icon": "📸", "title": "Auto screenshot + arrows",     "desc": "Numbered arrow annotations drawn instantly on click. Zero manual editing." },
+        { "icon": "📸", "title": "Auto screenshot + red circles", "desc": "Red-circle annotations drawn instantly on click. Zero manual editing." },
         { "icon": "🤖", "title": "AI-generated descriptions",    "desc": "Gemini AI auto-generates step descriptions. No more typing." },
         { "icon": "📝", "title": "Save directly to Notion",      "desc": "One-click save via OAuth. Image blocks + text added to your chosen page." },
         { "icon": "📄", "title": "PDF export",                   "desc": "Export finished manuals as PDF too. Great for sharing or printing." },
@@ -153,7 +153,7 @@
       "items": [
         {
           "q": "What can I do on the free plan?",
-          "a": "20 screenshots/month, Notion save, and numbered arrow annotations. AI description generation requires Standard plan or higher."
+          "a": "20 screenshots/month, Notion save, and red-circle annotations. AI caption generation requires Standard plan or higher."
         },
         {
           "q": "Which Notion plan do I need?",
@@ -212,7 +212,7 @@
         "features": [
           "20 screenshots/month",
           "1 Notion workspace",
-          "Step numbers & arrow annotations",
+          "Red-circle annotations",
           "With watermark"
         ],
         "cta": "Start for Free",

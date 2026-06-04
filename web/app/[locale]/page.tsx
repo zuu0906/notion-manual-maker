@@ -11,7 +11,7 @@ const COPY = {
       h1Pre: '手順書を作るなら、',
       h1Em: 'もう画像編集ツールは',
       h1Post: 'いらない。',
-      lede: 'クリックするだけでスクリーンショット＋矢印が自動生成され、AIが説明文を書いて、Notionへ一括保存。1時間かかっていた手順書が、5分で完成します。',
+      lede: 'クリックするだけでスクリーンショット＋赤丸アノテーションを自動生成。AIで説明文を作成してNotionへ保存。1時間かかっていた手順書が、5分で完成します。',
       ctaPrimary: 'Chromeに無料で追加',
       ctaSecondary: '使い方を見る',
       trust: ['無料プランあり', 'クレジットカード不要', '14日間無料トライアル'],
@@ -49,8 +49,8 @@ const COPY = {
       lede: '拡張機能を入れて、クリックして、保存する。それだけ。',
       steps: [
         { n: 'Step 01', t: '拡張機能を起動', d: 'Chromeツールバーのアイコンをクリック。Googleアカウントでサインインすれば、すぐ使えます。' },
-        { n: 'Step 02', t: '手順をクリックするだけ', d: '「記録開始」を押して、説明したい箇所を順番にクリック。スクショと番号付き矢印が自動生成されます。' },
-        { n: 'Step 03', t: 'Notionへワンクリック保存', d: '「Notionへ保存」を押すだけ。AI説明文付きの画像ブロックがページに自動追加されます。' },
+        { n: 'Step 02', t: '手順をクリックするだけ', d: '「記録開始」を押して、説明したい箇所を順番にクリック。スクショと赤丸アノテーションが自動生成されます。' },
+        { n: 'Step 03', t: 'Notionへワンクリック保存', d: '必要に応じてAIで説明文を生成してから「Notionへ保存」を押すだけ。画像ブロックがページに自動追加されます。' },
       ],
     },
     ba: {
@@ -62,7 +62,7 @@ const COPY = {
       },
       after: {
         label: 'AFTER', time: '5分以内',
-        items: ['クリックでスクショ＋矢印を自動生成', 'AIが説明文を自動で書き起こし', 'ワンクリックでNotionへ一括保存', 'レイアウトと番号は自動で整列', '完成まで5分以内'],
+        items: ['クリックでスクショ＋赤丸アノテーションを自動生成', 'AIで説明文をワンクリック生成', 'ワンクリックでNotionへ一括保存', 'レイアウトは自動で整列', '完成まで5分以内'],
       },
     },
     feat: {
@@ -96,7 +96,7 @@ const COPY = {
       h2: 'シンプルな料金プラン。',
       lede: 'まずは無料で試して、必要に応じてアップグレード。日割り計算でいつでも変更できます。',
       plans: [
-        { name: 'Free', price: '¥0', per: '永久無料', desc: '個人で使い始めるのに十分。', features: ['スクショ 20枚 / 月', 'Notion 連携', '番号付き矢印アノテーション', 'ウォーターマーク付き'], cta: 'Chromeに追加する', featured: false },
+        { name: 'Free', price: '¥0', per: '永久無料', desc: '個人で使い始めるのに十分。', features: ['スクショ 20枚 / 月', 'Notion 連携', '赤丸アノテーション', 'ウォーターマーク付き'], cta: 'Chromeに追加する', featured: false },
         { name: 'Standard', price: '$3', per: '/ 月', desc: '本格的に使うチーム向け。', features: ['スクショ 無制限', 'AI 生成 100回 / 月', 'PDF出力', 'ウォーターマークなし'], cta: '14日間無料で始める', featured: true, ribbon: 'おすすめ' },
         { name: 'Pro', price: '$8', per: '/ 月', desc: '複数ワークスペースを横断する組織向け。', features: ['スクショ 無制限', 'AI 生成 500回 / 月', 'Notion ワークスペース 3つ', 'ウォーターマークなし'], cta: 'アップグレード', featured: false },
       ],
@@ -105,7 +105,7 @@ const COPY = {
     faq: {
       tag: 'FAQ', h2: 'よくある質問',
       items: [
-        { q: '無料プランでどこまで使えますか？', a: 'スクショ20枚/月・Notion保存・番号付き矢印アノテーションが使えます。AI説明文の自動生成は、Standard以上のプランに含まれます。' },
+        { q: '無料プランでどこまで使えますか？', a: 'スクショ20枚/月・Notion保存・赤丸アノテーションが使えます。AI説明文の生成はStandard以上のプランに含まれます。' },
         { q: 'Notionのどのプランが必要ですか？', a: 'Notionの無料プランで連携できます。ページへの書き込み権限さえあれば、追加の費用はかかりません。' },
         { q: 'スクショはどこに保存されますか？', a: 'スクショはNotionページに外部リンクとして保存されます。画像URLの発行に一時的にサーバーを経由しますが、サーバーへの永続保存はされません。' },
         { q: 'プランはいつでも変更できますか？', a: 'はい。アップグレード・ダウングレードはいつでも可能で、日割り計算でお支払いいただきます。' },
@@ -124,7 +124,7 @@ const COPY = {
       h1Pre: 'Building a how-to guide? ',
       h1Em: 'You don\'t need an image editor',
       h1Post: ' anymore.',
-      lede: 'One click captures a screenshot with a numbered arrow, AI writes the description, and everything saves straight to Notion. A manual that used to take an hour — done in five minutes.',
+      lede: 'One click captures a screenshot with a red-circle annotation. Generate AI captions with one button, then save everything to Notion. A manual that used to take an hour — done in five minutes.',
       ctaPrimary: 'Add to Chrome — Free',
       ctaSecondary: 'See how it works',
       trust: ['Free plan', 'No credit card', '14-day free trial'],
@@ -162,8 +162,8 @@ const COPY = {
       lede: 'Install, click, save. That\'s the whole workflow.',
       steps: [
         { n: 'Step 01', t: 'Launch the extension', d: "Click the icon in Chrome's toolbar. Sign in with Google and you're set." },
-        { n: 'Step 02', t: 'Click through your steps', d: "Hit 'Record', then click each thing you want to show. Screenshots and numbered arrows are generated automatically." },
-        { n: 'Step 03', t: 'One-click to Notion', d: "Press 'Save to Notion'. Image blocks with AI-written captions land on your page instantly." },
+        { n: 'Step 02', t: 'Click through your steps', d: "Hit 'Record', then click each thing you want to show. A screenshot with a red-circle annotation is captured automatically." },
+        { n: 'Step 03', t: 'One-click to Notion', d: "Optionally generate AI captions, then press 'Save to Notion'. Image blocks are added to your page instantly." },
       ],
     },
     ba: {
@@ -175,7 +175,7 @@ const COPY = {
       },
       after: {
         label: 'AFTER', time: 'Under 5 min',
-        items: ['One click — screenshot and arrow auto-generated', 'AI writes the captions for you', 'One click to push everything to Notion', 'Layout and numbering align themselves', 'Done in under five minutes'],
+        items: ['One click — screenshot and red-circle auto-generated', 'One-click AI caption generation', 'One click to push everything to Notion', 'Layout aligns itself', 'Done in under five minutes'],
       },
     },
     feat: {
@@ -209,7 +209,7 @@ const COPY = {
       h2: 'Honest, simple pricing.',
       lede: 'Try it free, upgrade when you need to. Pro-rated, change anytime.',
       plans: [
-        { name: 'Free', price: '$0', per: 'forever', desc: 'Plenty for solo experimentation.', features: ['20 screenshots / month', 'Notion connector', 'Numbered arrow annotations', 'Includes watermark'], cta: 'Add to Chrome', featured: false },
+        { name: 'Free', price: '$0', per: 'forever', desc: 'Plenty for solo experimentation.', features: ['20 screenshots / month', 'Notion connector', 'Red-circle annotations', 'Includes watermark'], cta: 'Add to Chrome', featured: false },
         { name: 'Standard', price: '$3', per: '/ month', desc: 'For teams that ship docs daily.', features: ['Unlimited screenshots', '100 AI captions / month', 'PDF export', 'No watermark'], cta: 'Start 14-day trial', featured: true, ribbon: 'Most popular' },
         { name: 'Pro', price: '$8', per: '/ month', desc: 'Multi-workspace organisations.', features: ['Unlimited screenshots', '500 AI captions / month', '3 Notion workspaces', 'No watermark'], cta: 'Upgrade', featured: false },
       ],
@@ -218,7 +218,7 @@ const COPY = {
     faq: {
       tag: 'FAQ', h2: 'Frequently asked',
       items: [
-        { q: 'What does the free plan include?', a: '20 screenshots per month, Notion saving, and numbered arrow annotations. AI-generated captions are part of Standard and above.' },
+        { q: 'What does the free plan include?', a: '20 screenshots per month, Notion saving, and red-circle annotations. AI caption generation is part of Standard and above.' },
         { q: 'Which Notion plan do I need?', a: 'Any plan, including the free one. As long as the connected user can write to your page, you\'re good.' },
         { q: 'Where are my screenshots stored?', a: "Screenshots are embedded in your Notion page as external image links. Our server handles the URL briefly — images aren't permanently stored on our end." },
         { q: 'Can I change plans whenever?', a: 'Yes — upgrades and downgrades are pro-rated and take effect immediately.' },
