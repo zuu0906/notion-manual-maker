@@ -853,6 +853,9 @@ img,svg{display:block; max-width:100%}
 @media (max-width: 600px){
   .visual{ height: 110px; }
   .final-cta{ padding: 32px 20px; border-radius: var(--radius-lg); }
+  .step{ padding: 16px; }
+  .step h3{ font-size: 16px; margin: 10px 0 6px; }
+  .step p{ font-size: 13px; }
 }
 
 /* Responsive: trust bar tiny */

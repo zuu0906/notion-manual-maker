@@ -26,9 +26,9 @@ function StepList({ steps }: { steps: Array<{ title: string; desc: string; detai
           <div className="num-lg">STEP {String(i + 1).padStart(2, '0')}</div>
           <h3>{step.title}</h3>
           <p>{step.desc}</p>
-          <div className="visual">
+          <div className="visual" style={{ height: 'auto', overflow: 'visible', minHeight: 80 }}>
             <div className="svgrid" />
-            <div style={{ position: 'absolute', inset: 0, padding: '14px 16px', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ position: 'relative', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 7 }}>
               {step.detail.map((d, j) => (
                 <div key={j} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                   <span style={{
@@ -37,7 +37,7 @@ function StepList({ steps }: { steps: Array<{ title: string; desc: string; detai
                     background: 'var(--accent-soft)', borderRadius: 4,
                     padding: '1px 5px', flexShrink: 0, marginTop: 1,
                   }}>{j + 1}</span>
-                  <span style={{ fontSize: 11.5, color: 'var(--ink-3)', lineHeight: 1.45 }}>{d}</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--ink-3)', lineHeight: 1.5 }}>{d}</span>
                 </div>
               ))}
             </div>
