@@ -14,7 +14,8 @@ const COPY = {
       lede: 'クリックするだけでスクリーンショット＋赤丸アノテーションを自動生成。AIで説明文を作成してNotionへ保存。1時間かかっていた手順書が、5分で完成します。',
       ctaPrimary: 'Chromeに無料で追加',
       ctaSecondary: '使い方を見る',
-      trust: ['無料プランあり', 'クレジットカード不要', '14日間無料トライアル'],
+      desktopLink: 'Windowsアプリにも対応 — デスクトップ版を無料ダウンロード →',
+      trust: ['無料プランあり', 'クレジットカード不要', 'Chrome拡張 + Windowsアプリ対応'],
       stage: {
         urlHost: 'app.example.com', urlPath: '/dashboard', ext: 'Manual Maker',
         side: ['ホーム', 'ダッシュボード', 'メンバー', '請求', '設定'],
@@ -70,7 +71,7 @@ const COPY = {
       h2: '必要なものが、すべて揃っている。',
       lede: '撮る、書く、保存する。マニュアル作成のすべてを、ひとつの拡張機能で。',
       items: [
-        { size: 'large', t: 'スクショ＋赤丸を自動付与', d: 'クリックした位置に番号付きの赤丸が自動で付きます。手で矢印を描く手間が省けます。', visual: 'shot' },
+        { size: 'large', t: 'スクショ＋赤丸を自動付与', d: 'クリックした位置に赤丸が自動で付きます。手で矢印を描く手間が省けます。', visual: 'shot' },
         { size: 'med', t: 'AIが説明文の下書きを生成', d: 'Gemini AI が各ステップの操作内容から、説明文の下書きを作成します。必要に応じて編集できます。', visual: 'ai' },
         { size: 'sm', t: 'Notionへ直接保存', d: 'OAuth連携でワンクリック保存。', visual: 'notion' },
         { size: 'sm', t: 'PDFエクスポート', d: '社内共有・印刷にも対応。', visual: 'pdf' },
@@ -96,9 +97,9 @@ const COPY = {
       h2: 'シンプルな料金プラン。',
       lede: 'まずは無料で試して、必要に応じてアップグレード。日割り計算でいつでも変更できます。',
       plans: [
-        { name: 'Free', price: '¥0', per: '永久無料', desc: '個人で使い始めるのに十分。', features: ['スクショ 20枚 / 月', 'Notion 連携', '赤丸アノテーション', 'ウォーターマーク付き'], cta: 'Chromeに追加する', featured: false },
-        { name: 'Standard', price: '$3', per: '/ 月', desc: '本格的に使うチーム向け。', features: ['スクショ 無制限', 'AI 生成 100回 / 月', 'PDF出力', 'ウォーターマークなし'], cta: '14日間無料で始める', featured: true, ribbon: 'おすすめ' },
-        { name: 'Pro', price: '$8', per: '/ 月', desc: '複数ワークスペースを横断する組織向け。', features: ['スクショ 無制限', 'AI 生成 500回 / 月', 'Notion ワークスペース 3つ', 'ウォーターマークなし'], cta: 'アップグレード', featured: false },
+        { name: 'Free', price: '¥0', per: '永久無料', desc: '無料でお試しライトユーザー。', features: ['スクショ 20枚 / 月', 'Notion 連携', '赤丸アノテーション', 'ウォーターマーク付き'], cta: 'Chromeに追加する', featured: false },
+        { name: 'Standard', price: '$3', per: '/ 月', desc: '本格的に使うヘビーユーザー向け。', features: ['スクショ 無制限', 'AI 生成 100回 / 月', 'PDF出力', 'ウォーターマークなし'], cta: '14日間無料で始める', featured: true, ribbon: 'おすすめ' },
+        { name: 'Pro', price: '$8', per: '/ 月', desc: '複数ワークスペースを横断するチームユーザー向け。', features: ['スクショ 無制限', 'AI 生成 500回 / 月', 'Notion ワークスペース 3つ', 'ウォーターマークなし'], cta: 'アップグレード', featured: false },
       ],
       foot: '14日間無料トライアル · いつでもキャンセル可能',
     },
@@ -127,7 +128,8 @@ const COPY = {
       lede: 'One click captures a screenshot with a red-circle annotation. Generate AI captions with one button, then save everything to Notion. A manual that used to take an hour — done in five minutes.',
       ctaPrimary: 'Add to Chrome — Free',
       ctaSecondary: 'See how it works',
-      trust: ['Free plan', 'No credit card', '14-day free trial'],
+      desktopLink: 'Also available for Windows — Download the Desktop App →',
+      trust: ['Free plan', 'No credit card', 'Chrome extension + Windows app'],
       stage: {
         urlHost: 'app.example.com', urlPath: '/dashboard', ext: 'Manual Maker',
         side: ['Home', 'Dashboard', 'Members', 'Billing', 'Settings'],
@@ -444,6 +446,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   {c.hero.ctaSecondary} →
                 </a>
               </div>
+              <a
+                href="https://github.com/zuu0906/chrome-manual-maker/releases"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hero-desktop-link"
+              >
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <rect x="1" y="2" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                  <path d="M4 12h6M7 10v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                </svg>
+                {c.hero.desktopLink}
+              </a>
               <div className="trust">
                 {c.hero.trust.map((t, i) => (
                   <span key={i}>

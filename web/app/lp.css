@@ -114,6 +114,16 @@ img,svg{display:block; max-width:100%}
   .trust-bar-inner{ gap: 20px; height: auto; padding: 14px 0; }
 }
 
+/* Hero desktop link */
+.hero-desktop-link{
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--ink-3);
+  text-decoration: none; margin-top: 8px;
+  transition: color .15s ease;
+}
+.hero-desktop-link:hover{ color: var(--ink); }
+.hero-desktop-link svg{ flex-shrink: 0; }
+
 /* ============ HERO ============ */
 .hero{ padding: 72px 0 56px; position: relative; }
 .eyebrow{
