@@ -103,7 +103,7 @@
         { "icon": "🤖", "title": "AI-generated descriptions",    "desc": "Gemini AI auto-generates step descriptions. No more typing." },
         { "icon": "📝", "title": "Save directly to Notion",      "desc": "One-click save via OAuth. Image blocks + text added to your chosen page." },
         { "icon": "📄", "title": "PDF export",                   "desc": "Export finished manuals as PDF too. Great for sharing or printing." },
-        { "icon": "🔒", "title": "Your data stays in Notion",    "desc": "Screenshots are saved directly to your Notion. No external server uploads." },
+        { "icon": "🔒", "title": "Your data stays in Notion",    "desc": "Screenshots are saved to your Notion page. Our server handles the image URL briefly, but images are not permanently stored on our servers." },
         { "icon": "🎭", "title": "Auto PII masking",             "desc": "Automatically detects and blurs personal information. Reduce data leak risk." }
       ]
     },
@@ -161,7 +161,7 @@
         },
         {
           "q": "Where are my screenshots stored?",
-          "a": "Images are saved directly to your Notion page. We don't upload to our servers — your data lives only in your Workspace."
+          "a": "Screenshots are embedded in your Notion page as external image links. Our server handles the URL briefly — images aren't permanently stored on our end."
         },
         {
           "q": "Can I change plans anytime?",

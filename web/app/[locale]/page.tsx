@@ -75,7 +75,7 @@ const COPY = {
         { size: 'sm', t: 'Notionへ直接保存', d: 'OAuth連携でワンクリック保存。', visual: 'notion' },
         { size: 'sm', t: 'PDFエクスポート', d: '社内共有・印刷にも対応。', visual: 'pdf' },
         { size: 'sm', t: 'PII自動マスキング', d: '個人情報を検出してぼかします。', visual: 'mask' },
-        { size: 'med', t: 'データはあなたのNotionに', d: '画像は弊社サーバーを経由せず、あなたのワークスペースに直接保存されます。', visual: 'lock' },
+        { size: 'med', t: 'データはあなたのNotionに', d: 'スクショはNotionページに保存されます。画像URLの発行に一時的にサーバーを経由しますが、サーバーへの永続保存はされません。', visual: 'lock' },
       ],
     },
     desktop: {
@@ -107,7 +107,7 @@ const COPY = {
       items: [
         { q: '無料プランでどこまで使えますか？', a: 'スクショ20枚/月・Notion保存・番号付き矢印アノテーションが使えます。AI説明文の自動生成は、Standard以上のプランに含まれます。' },
         { q: 'Notionのどのプランが必要ですか？', a: 'Notionの無料プランで連携できます。ページへの書き込み権限さえあれば、追加の費用はかかりません。' },
-        { q: 'スクショはどこに保存されますか？', a: '画像は直接あなたのNotionページへ保存されます。弊社サーバーへのアップロードはなく、データはあなたのWorkspaceにのみ存在します。' },
+        { q: 'スクショはどこに保存されますか？', a: 'スクショはNotionページに外部リンクとして保存されます。画像URLの発行に一時的にサーバーを経由しますが、サーバーへの永続保存はされません。' },
         { q: 'プランはいつでも変更できますか？', a: 'はい。アップグレード・ダウングレードはいつでも可能で、日割り計算でお支払いいただきます。' },
       ],
     },
@@ -188,7 +188,7 @@ const COPY = {
         { size: 'sm', t: 'Direct to Notion', d: 'OAuth-connected, one-click save.', visual: 'notion' },
         { size: 'sm', t: 'PDF export', d: 'Share or print without re-formatting.', visual: 'pdf' },
         { size: 'sm', t: 'PII auto-masking', d: 'Detects and blurs personal info.', visual: 'mask' },
-        { size: 'med', t: 'Your data, your Notion', d: 'Images live only in your workspace — never on our servers.', visual: 'lock' },
+        { size: 'med', t: 'Your data, your Notion', d: 'Screenshots are saved to your Notion page. Our server handles the image URL briefly, but images are not permanently stored on our servers.', visual: 'lock' },
       ],
     },
     desktop: {
@@ -220,7 +220,7 @@ const COPY = {
       items: [
         { q: 'What does the free plan include?', a: '20 screenshots per month, Notion saving, and numbered arrow annotations. AI-generated captions are part of Standard and above.' },
         { q: 'Which Notion plan do I need?', a: 'Any plan, including the free one. As long as the connected user can write to your page, you\'re good.' },
-        { q: 'Where are my screenshots stored?', a: "Directly in your Notion page. We don't upload them to our servers — your data stays in your workspace." },
+        { q: 'Where are my screenshots stored?', a: "Screenshots are embedded in your Notion page as external image links. Our server handles the URL briefly — images aren't permanently stored on our end." },
         { q: 'Can I change plans whenever?', a: 'Yes — upgrades and downgrades are pro-rated and take effect immediately.' },
       ],
     },
