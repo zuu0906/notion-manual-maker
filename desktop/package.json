@@ -33,7 +33,7 @@
     "publish": {
       "provider": "github",
       "owner": "zuu0906",
-      "repo": "chrome-manual-maker"
+      "repo": "notion-manual-api"
     },
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
