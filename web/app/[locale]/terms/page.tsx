@@ -44,7 +44,7 @@ function TermsJa() {
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">第4条（プランと課金）</h2>
           <ul className="flex flex-col gap-2 list-disc list-inside text-gray-600">
-            <li>有料プラン（Standard ¥500/月・Pro ¥1,200/月）はStripeを通じて月次請求されます。</li>
+            <li>有料プラン（Standard $3/月・Pro $8/月）はStripeを通じて月次請求されます。</li>
             <li>いつでもキャンセル可能です。キャンセル後は当月末まで有料プランをご利用いただけます。翌月以降はFreeプランに移行します。</li>
             <li>購入後7日以内であれば返金対応いたします。support@s-tasklog.com までご連絡ください。</li>
             <li>プランの変更（アップグレード・ダウングレード）は即時反映され、差額は日割りで精算されます。</li>
@@ -114,7 +114,7 @@ function TermsEn() {
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-3">Article 4 (Plans and Billing)</h2>
           <ul className="flex flex-col gap-2 list-disc list-inside text-gray-600">
-            <li>Paid plans (Standard ¥500/month · Pro ¥1,200/month) are billed monthly via Stripe.</li>
+            <li>Paid plans (Standard $3/month · Pro $8/month) are billed monthly via Stripe.</li>
             <li>You may cancel at any time. After cancellation, you retain access until end of the current billing month, then move to Free.</li>
             <li>Refunds are available within 7 days of purchase. Contact support@s-tasklog.com.</li>
             <li>Plan changes (upgrade/downgrade) take effect immediately and are prorated daily.</li>

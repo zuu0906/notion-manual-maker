@@ -128,7 +128,7 @@
         {
           "name": "Standard",
           "emoji": "⚡",
-          "price": "¥500",
+          "price": "$3",
           "period": "/月",
           "features": ["スクショ 無制限", "AI生成 100回/月", "PDF出力", "ウォーターマークなし"],
           "cta": "マイページからアップグレード",
@@ -138,7 +138,7 @@
         {
           "name": "Pro",
           "emoji": "🚀",
-          "price": "¥1,200",
+          "price": "$8",
           "period": "/月",
           "features": ["スクショ 無制限", "AI生成 500回/月", "Notion 3WS", "ウォーターマークなし"],
           "cta": "マイページからアップグレード",
@@ -222,7 +222,7 @@
       {
         "name": "Standard",
         "emoji": "⚡",
-        "price": "¥500",
+        "price": "$3",
         "period": "/月",
         "features": [
           "スクショ 無制限",
@@ -238,7 +238,7 @@
       {
         "name": "Pro",
         "emoji": "🚀",
-        "price": "¥1,200",
+        "price": "$8",
         "period": "/月",
         "features": [
           "スクショ 無制限",
@@ -321,16 +321,16 @@
     "processing": "処理中…",
     "upgradeToProTitle": "🚀 Pro にアップグレード",
     "upgradeToProDesc": "AI生成 500回/月・ワークスペース3つ。",
-    "upgradeToProBtn": "Pro ¥1,200/月 にアップグレード",
+    "upgradeToProBtn": "Pro $8/月 にアップグレード",
     "confirmUpgradeTitle": "Pro プランへの変更を確認",
-    "confirmUpgradeDesc": "月額 ¥1,200 に変更されます。差額は本日分から日割りで請求されます。",
+    "confirmUpgradeDesc": "月額 $8 に変更されます。差額は本日分から日割りで請求されます。",
     "confirm": "確定する",
     "cancel": "キャンセル",
     "downgradeTitle": "Standard にダウングレード",
     "downgradeDesc": "AI生成 100回/月・ワークスペース1つ。差額は日割りで返金されます。",
-    "downgradeBtn": "Standard ¥500/月 にダウングレード",
+    "downgradeBtn": "Standard $3/月 にダウングレード",
     "confirmDowngradeTitle": "ダウングレードを確認",
-    "confirmDowngradeDesc": "月額 ¥500 に変更されます。ワークスペースが1つに制限され、AI生成は100回/月になります。",
+    "confirmDowngradeDesc": "月額 $3 に変更されます。ワークスペースが1つに制限され、AI生成は100回/月になります。",
     "cancelSubTitle": "サブスクリプションを解約",
     "cancelSubDesc": "解約後も当月末まではご利用いただけます。翌月からFreeプランに移行します。",
     "cancelSubBtn": "解約する",

@@ -97,8 +97,8 @@ const COPY = {
       lede: 'まずは無料で試して、必要に応じてアップグレード。日割り計算でいつでも変更できます。',
       plans: [
         { name: 'Free', price: '¥0', per: '永久無料', desc: '個人で使い始めるのに十分。', features: ['スクショ 20枚 / 月', 'Notion 連携', '番号付き矢印アノテーション', 'ウォーターマーク付き'], cta: 'Chromeに追加する', featured: false },
-        { name: 'Standard', price: '¥500', per: '/ 月', desc: '本格的に使うチーム向け。', features: ['スクショ 無制限', 'AI 生成 100回 / 月', 'PDF出力', 'ウォーターマークなし'], cta: '14日間無料で始める', featured: true, ribbon: 'おすすめ' },
-        { name: 'Pro', price: '¥1,200', per: '/ 月', desc: '複数ワークスペースを横断する組織向け。', features: ['スクショ 無制限', 'AI 生成 500回 / 月', 'Notion ワークスペース 3つ', 'ウォーターマークなし'], cta: 'アップグレード', featured: false },
+        { name: 'Standard', price: '$3', per: '/ 月', desc: '本格的に使うチーム向け。', features: ['スクショ 無制限', 'AI 生成 100回 / 月', 'PDF出力', 'ウォーターマークなし'], cta: '14日間無料で始める', featured: true, ribbon: 'おすすめ' },
+        { name: 'Pro', price: '$8', per: '/ 月', desc: '複数ワークスペースを横断する組織向け。', features: ['スクショ 無制限', 'AI 生成 500回 / 月', 'Notion ワークスペース 3つ', 'ウォーターマークなし'], cta: 'アップグレード', featured: false },
       ],
       foot: '14日間無料トライアル · いつでもキャンセル可能',
     },
@@ -210,8 +210,8 @@ const COPY = {
       lede: 'Try it free, upgrade when you need to. Pro-rated, change anytime.',
       plans: [
         { name: 'Free', price: '$0', per: 'forever', desc: 'Plenty for solo experimentation.', features: ['20 screenshots / month', 'Notion connector', 'Numbered arrow annotations', 'Includes watermark'], cta: 'Add to Chrome', featured: false },
-        { name: 'Standard', price: '$5', per: '/ month', desc: 'For teams that ship docs daily.', features: ['Unlimited screenshots', '100 AI captions / month', 'PDF export', 'No watermark'], cta: 'Start 14-day trial', featured: true, ribbon: 'Most popular' },
-        { name: 'Pro', price: '$12', per: '/ month', desc: 'Multi-workspace organisations.', features: ['Unlimited screenshots', '500 AI captions / month', '3 Notion workspaces', 'No watermark'], cta: 'Upgrade', featured: false },
+        { name: 'Standard', price: '$3', per: '/ month', desc: 'For teams that ship docs daily.', features: ['Unlimited screenshots', '100 AI captions / month', 'PDF export', 'No watermark'], cta: 'Start 14-day trial', featured: true, ribbon: 'Most popular' },
+        { name: 'Pro', price: '$8', per: '/ month', desc: 'Multi-workspace organisations.', features: ['Unlimited screenshots', '500 AI captions / month', '3 Notion workspaces', 'No watermark'], cta: 'Upgrade', featured: false },
       ],
       foot: '14-day free trial · cancel anytime',
     },

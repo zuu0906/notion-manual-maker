@@ -34,16 +34,16 @@ const MESSAGES: Record<Locale, Msgs> = {
     processing: '処理中…',
     upgradeToProTitle: '🚀 Pro にアップグレード',
     upgradeToProDesc: 'AI生成 500回/月・ワークスペース3つ。',
-    upgradeToProBtn: 'Pro ¥1,200/月 にアップグレード',
+    upgradeToProBtn: 'Pro $8/月 にアップグレード',
     confirmUpgradeTitle: 'Pro プランへの変更を確認',
-    confirmUpgradeDesc: '月額 ¥1,200 に変更されます。差額は本日分から日割りで請求されます。',
+    confirmUpgradeDesc: '月額 $8 に変更されます。差額は本日分から日割りで請求されます。',
     confirm: '確定する',
     cancel: 'キャンセル',
     downgradeTitle: 'Standard にダウングレード',
     downgradeDesc: 'AI生成 100回/月・ワークスペース1つ。差額は日割りで返金されます。',
-    downgradeBtn: 'Standard ¥500/月 にダウングレード',
+    downgradeBtn: 'Standard $3/月 にダウングレード',
     confirmDowngradeTitle: 'ダウングレードを確認',
-    confirmDowngradeDesc: '月額 ¥500 に変更されます。ワークスペースが1つに制限され、AI生成は100回/月になります。',
+    confirmDowngradeDesc: '月額 $3 に変更されます。ワークスペースが1つに制限され、AI生成は100回/月になります。',
     cancelSubTitle: 'サブスクリプションを解約',
     cancelSubDesc: '解約後も当月末まではご利用いただけます。翌月からFreeプランに移行します。',
     cancelSubBtn: '解約する',
@@ -115,16 +115,16 @@ const MESSAGES: Record<Locale, Msgs> = {
     processing: 'Processing…',
     upgradeToProTitle: '🚀 Upgrade to Pro',
     upgradeToProDesc: '500 AI generations/month · 3 Notion workspaces.',
-    upgradeToProBtn: 'Upgrade to Pro ¥1,200/month',
+    upgradeToProBtn: 'Upgrade to Pro $8/month',
     confirmUpgradeTitle: 'Confirm upgrade to Pro',
-    confirmUpgradeDesc: 'Your plan will change to ¥1,200/month. The difference will be charged on a prorated basis.',
+    confirmUpgradeDesc: 'Your plan will change to $8/month. The difference will be charged on a prorated basis.',
     confirm: 'Confirm',
     cancel: 'Cancel',
     downgradeTitle: 'Downgrade to Standard',
     downgradeDesc: '100 AI generations/month · 1 Notion workspace. Difference refunded daily.',
-    downgradeBtn: 'Downgrade to Standard ¥500/month',
+    downgradeBtn: 'Downgrade to Standard $3/month',
     confirmDowngradeTitle: 'Confirm downgrade',
-    confirmDowngradeDesc: 'Your plan will change to ¥500/month. Workspaces limited to 1, AI generations to 100/month.',
+    confirmDowngradeDesc: 'Your plan will change to $3/month. Workspaces limited to 1, AI generations to 100/month.',
     cancelSubTitle: 'Cancel subscription',
     cancelSubDesc: 'You can continue using the current plan until the end of the month. It will switch to Free after that.',
     cancelSubBtn: 'Cancel subscription',
@@ -725,7 +725,7 @@ export default function DashboardPage() {
                       disabled={!!checkoutLoading}
                     >
                       <div className="uc-name">Standard</div>
-                      <div className="uc-price">¥500<small>/mo</small></div>
+                      <div className="uc-price">$3<small>/mo</small></div>
                       <div className="uc-desc">{locale === 'ja' ? 'AI 100回/月' : '100 AI/mo'}</div>
                       <span className="uc-arrow">→</span>
                     </button>
@@ -735,7 +735,7 @@ export default function DashboardPage() {
                       disabled={!!checkoutLoading}
                     >
                       <div className="uc-name">Pro</div>
-                      <div className="uc-price">¥1,200<small>/mo</small></div>
+                      <div className="uc-price">$8<small>/mo</small></div>
                       <div className="uc-desc">{locale === 'ja' ? 'AI 500回・WS 3つ' : '500 AI · 3 WS'}</div>
                       <span className="uc-arrow">→</span>
                     </button>
@@ -758,7 +758,7 @@ export default function DashboardPage() {
                         <div className="uc-name">Pro</div>
                         <div className="uc-desc">{t('upgradeToProDesc')}</div>
                       </div>
-                      <div className="uc-price">¥1,200<small>/mo</small></div>
+                      <div className="uc-price">$8<small>/mo</small></div>
                       <span className="uc-arrow" style={{ position: 'relative', right: 'auto', bottom: 'auto', marginLeft: 12 }}>→</span>
                     </button>
                   ) : (
