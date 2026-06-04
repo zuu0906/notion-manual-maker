@@ -107,7 +107,7 @@ export default async function LocaleLayout({
             <a href={`/${locale}/terms`}>{tFooter('terms')}</a>
             <a href="mailto:support@s-tasklog.com">{tFooter('contact')}</a>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-4)' }}>© 2025 Notion Manual Maker</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-4)' }}>© 2026 Notion Manual Maker</div>
         </div>
       </footer>
     </>

@@ -67,7 +67,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <div className="flex items-center gap-1.5">
             <img src="/icon.png" alt="Notion Manual Maker" className="w-4 h-4 rounded" />
             <span className="font-medium text-n-700">Notion Manual Maker</span>
-            <span>— © 2025</span>
+            <span>— © 2026</span>
           </div>
           <div className="flex gap-5">
             <a href={`/${locale}/privacy`} className="hover:text-n-900 transition-colors">{footer.privacy}</a>
