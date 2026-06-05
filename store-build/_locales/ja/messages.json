@@ -1,6 +1,6 @@
 {
   "extName": { "message": "Notion Manual Maker" },
-  "extDescription": { "message": "クリックするだけでスクリーンショット+矢印をNotionへ自動保存" },
+  "extDescription": { "message": "クリックするだけでスクリーンショット＋赤丸アノテーションを自動生成。AIで説明文を作成してNotionへ保存。手順書作成を10倍速に。" },
   "htmlLang": { "message": "ja" },
 
   "myPage": { "message": "マイページ" },

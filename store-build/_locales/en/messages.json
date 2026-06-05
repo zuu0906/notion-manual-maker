@@ -1,6 +1,6 @@
 {
   "extName": { "message": "Notion Manual Maker" },
-  "extDescription": { "message": "Auto-save screenshots + arrows to Notion with a single click" },
+  "extDescription": { "message": "Record clicks, auto-generate red-circle annotations, add AI captions, and save directly to Notion. Build operation manuals 10x faster." },
   "htmlLang": { "message": "en" },
 
   "myPage": { "message": "My Page" },
