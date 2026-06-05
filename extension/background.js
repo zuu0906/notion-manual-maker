@@ -69,7 +69,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       saveSession().catch(() => {});
       break;
     case 'SAVE_TO_NOTION':
-      saveToNotion(msg.notionPageId, msg.title, msg.steps).then(sendResponse);
+      saveToNotion(msg.notionPageId, msg.title, msg.steps)
+        .then(sendResponse)
+        .catch(e => sendResponse({ error: String(e?.message ?? e) }));
       return true;
     case 'CLEAR_STEPS':
       pendingClicks = [];
