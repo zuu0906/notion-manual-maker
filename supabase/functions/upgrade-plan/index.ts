@@ -63,7 +63,18 @@ Deno.serve(async (req) => {
       limit: 5,
     });
     const sub = subs.find((s) => ['active', 'trialing'].includes(s.status));
-    if (!sub) return json({ error: 'no_active_subscription' }, 400);
+
+    const PRICE_PLAN: Record<string, string> = {
+      [Deno.env.get('STRIPE_STANDARD_PRICE_ID') ?? '']: 'standard',
+      [Deno.env.get('STRIPE_PRO_PRICE_ID') ?? '']: 'pro',
+    };
+    const newPlan = PRICE_PLAN[new_price_id] ?? 'standard';
+
+    if (!sub) {
+      // Stripeサブスクリプションがない場合（DB直接変更など）はDBのみ更新
+      await supabase.from('users').update({ plan: newPlan }).eq('google_id', google_id);
+      return json({ success: true, plan: newPlan });
+    }
 
     const subItem = sub.items.data[0];
 
@@ -74,11 +85,6 @@ Deno.serve(async (req) => {
     });
 
     // DB のプランも即時反映
-    const PRICE_PLAN: Record<string, string> = {
-      [Deno.env.get('STRIPE_STANDARD_PRICE_ID') ?? '']: 'standard',
-      [Deno.env.get('STRIPE_PRO_PRICE_ID') ?? '']: 'pro',
-    };
-    const newPlan = PRICE_PLAN[new_price_id] ?? 'pro';
     await supabase.from('users').update({ plan: newPlan }).eq('google_id', google_id);
 
     return json({ success: true, plan: newPlan });
