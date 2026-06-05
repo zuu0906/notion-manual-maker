@@ -280,7 +280,7 @@ googleSignInBtn.addEventListener('click', async () => {
     state.user = user;
     if (user && !user.error) {
       state.plan = user.plan ?? 'free';
-      state.monthly_screenshots = Math.max(state.monthly_screenshots, user.monthly_screenshots ?? 0);
+      state.monthly_screenshots = user.monthly_screenshots ?? 0;
       api.storeSetMulti({ plan: state.plan, monthly_screenshots: state.monthly_screenshots });
       updatePlanUI();
     }
