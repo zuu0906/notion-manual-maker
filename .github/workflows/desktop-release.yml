@@ -20,6 +20,10 @@ jobs:
         working-directory: desktop
         run: npm ci
 
+      - name: Create 256x256 icon for Windows installer
+        working-directory: desktop
+        run: magick icon128.png -resize 256x256 icon256.png
+
       - name: Build & publish Windows installer
         working-directory: desktop
         env:
