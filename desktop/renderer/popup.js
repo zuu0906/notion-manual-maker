@@ -1039,12 +1039,13 @@ function updatePlanUI() {
 
   // プランバッジをクリックで強制リフレッシュ
   planBadge.style.cursor = 'pointer';
-  planBadge.title = 'Click to refresh plan';
-  planBadge.onclick = () => {
+  planBadge.title = `plan: ${state.plan} | shots: ${state.monthly_screenshots} (click to refresh)`;
+  planBadge.onclick = async () => {
     authUserCache.ts = 0;
     if (state.googleToken) {
       planBadge.textContent = '…';
-      initUserSession();
+      await initUserSession();
+      planBadge.title = `plan: ${state.plan} | shots: ${state.monthly_screenshots} (click to refresh)`;
     }
   };
 
