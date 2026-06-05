@@ -55,13 +55,24 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   }
 });
 
+// タブ切り替え時に新しいタブへコンテンツスクリプトを注入して記録を継続
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  if (!isRecording) return;
+  recordingTabId = tabId;
+  saveSession().catch(() => {});
+  chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] }).catch(() => {});
+});
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   switch (msg.type) {
     case 'START_RECORDING':
       startRecording(sender.tab?.id ?? msg.tabId);
       break;
     case 'CLICK_CAPTURED':
-      clickQueue = clickQueue.then(() => handleClick(msg, sender.tab?.id)).catch(e => console.error('[click]', e));
+      // アクティブな記録タブからのクリックのみ処理（タブ切り替え後の遅延クリックを除外）
+      if (sender.tab?.id === recordingTabId) {
+        clickQueue = clickQueue.then(() => handleClick(msg, sender.tab?.id)).catch(e => console.error('[click]', e));
+      }
       break;
     case 'RECORDING_STOPPED':
       isRecording = false;
