@@ -200,17 +200,10 @@ async function initUserSession() {
       const serverResetAt = user.screenshot_reset_at ?? null;
       const serverResetNewer = serverResetAt && (!prevResetAt || serverResetAt > prevResetAt);
 
-      const localCount = serverResetNewer ? 0 : (state.monthly_screenshots ?? 0);
       const serverCount = user.monthly_screenshots ?? 0;
-      const diff = localCount - serverCount;
-      if (diff > 0 && !serverResetNewer) {
-        fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ google_token: token, count: diff }),
-        }).catch(() => {});
-      }
-      state.monthly_screenshots = serverResetNewer ? serverCount : Math.max(localCount, serverCount);
+      // サーバーを Source of Truth として常に採用（Supabase直接変更にも対応）
+      state.monthly_screenshots = serverCount;
+      console.log('[screenshots] server count:', serverCount);
       api.storeSetMulti({
         plan: state.plan,
         monthly_screenshots: state.monthly_screenshots,
