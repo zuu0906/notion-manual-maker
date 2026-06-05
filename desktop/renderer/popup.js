@@ -987,24 +987,29 @@ saveBtn.addEventListener('click', async () => {
   saveBtn.disabled = true;
   saveBtn.textContent = t('saving');
 
-  const compressedSteps = await Promise.all(
-    state.steps.map(async s => ({
-      ...s,
-      annotatedDataUrl: await compressForUpload(s.annotatedDataUrl),
-    }))
-  );
+  let result;
+  try {
+    const compressedSteps = await Promise.all(
+      state.steps.map(async s => ({
+        ...s,
+        annotatedDataUrl: await compressForUpload(s.annotatedDataUrl),
+      }))
+    );
 
-  const result = await api.saveToNotion({
-    notionPageId: pageDestSelect.value || null,
-    title: pageTitle.value,
-    stepsToSave: compressedSteps,
-    googleToken: state.googleToken,
-    plan: state.plan,
-    monthlyScreenshots: state.monthly_screenshots,
-  });
-
-  saveBtn.disabled = false;
-  saveBtn.textContent = t('saveBtn');
+    result = await api.saveToNotion({
+      notionPageId: pageDestSelect.value || null,
+      title: pageTitle.value,
+      stepsToSave: compressedSteps,
+      googleToken: state.googleToken,
+      plan: state.plan,
+      monthlyScreenshots: state.monthly_screenshots,
+    });
+  } catch (e) {
+    result = { error: String(e?.message ?? e) };
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = t('saveBtn');
+  }
 
   if (result?.error) {
     showMsg(result.error, 'error');
