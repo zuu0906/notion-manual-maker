@@ -1099,6 +1099,20 @@ async function init() {
 
   // Google token は1時間で期限切れ → 50分ごとに自動リフレッシュ
   setInterval(() => { if (state.googleToken) initUserSession(); }, 50 * 60 * 1000);
+
+  // プラン変更を即時反映 → フォーカス時にキャッシュクリアして再チェック
+  window.addEventListener('focus', () => {
+    authUserCache.ts = 0;
+    if (state.googleToken) initUserSession();
+  });
+
+  // 5分ごとにプランをチェック（Supabase直接変更などに対応）
+  setInterval(() => {
+    if (state.googleToken) {
+      authUserCache.ts = 0;
+      initUserSession();
+    }
+  }, 5 * 60 * 1000);
 }
 
 init();
