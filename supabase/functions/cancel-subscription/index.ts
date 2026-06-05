@@ -58,7 +58,12 @@ Deno.serve(async (req) => {
       limit: 5,
     });
     const sub = subs.find((s) => ['active', 'trialing'].includes(s.status));
-    if (!sub) return json({ error: 'no_active_subscription' }, 400);
+
+    if (!sub) {
+      // Stripeサブスクリプションがない場合（DB直接変更など）はDBのみfreeに更新
+      await supabase.from('users').update({ plan: 'free' }).eq('google_id', google_id);
+      return json({ success: true, cancel_at: null });
+    }
 
     // 期間終了時にキャンセル（即時解約ではなく当月末まで利用可能）
     const updated = await stripe.subscriptions.update(sub.id, {
