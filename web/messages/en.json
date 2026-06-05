@@ -347,7 +347,9 @@
     "step2": "Log in with your Google account",
     "step3": "Your new plan will be reflected automatically",
     "goToDashboard": "Go to My Page",
-    "manageSubscription": "Manage / Cancel Subscription"
+    "manageSubscription": "Manage / Cancel Subscription",
+    "verifying": "Verifying…",
+    "planActivated": "{plan} plan is now active. Redirecting to dashboard…"
   },
   "dashboard": {
     "loading": "Loading…",

@@ -343,7 +343,9 @@
     "step2": "Google アカウントでログイン",
     "step3": "プランが自動で反映されます",
     "goToDashboard": "マイページで確認する",
-    "manageSubscription": "プラン管理・解約"
+    "manageSubscription": "プラン管理・解約",
+    "verifying": "確認中…",
+    "planActivated": "{plan} プランが有効になりました。ダッシュボードに移動します…"
   },
   "dashboard": {
     "loading": "読み込み中…",
