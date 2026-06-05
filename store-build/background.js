@@ -33,7 +33,8 @@ async function restoreSession() {
 }
 
 async function saveSession() {
-  await chrome.storage.session.set({ pendingClicks, isRecording, recordingTabId });
+  const steps = pendingClicks.map(({ annotatedDataUrl: _a, rawDataUrl: _r, ...rest }) => rest);
+  await chrome.storage.session.set({ pendingClicks: steps, isRecording, recordingTabId });
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -124,7 +125,7 @@ async function handleClick({ x, y, viewportWidth, viewportHeight, inputText, isP
   });
 
   chrome.action.setBadgeText({ text: String(pendingClicks.length) });
-  notifyPopup({ type: 'STEP_ADDED', steps: pendingClicks });
+  notifyPopup({ type: 'STEP_ADDED', step: pendingClicks[pendingClicks.length - 1] });
   await saveSession();
 }
 

@@ -507,7 +507,12 @@ chrome.runtime.onMessage.addListener((msg) => {
     updateRecordUI();
     updateAiUI();
   } else if (msg.type === 'STEP_ADDED') {
-    state.steps = msg.steps ?? [];
+    if (msg.step) {
+      // 差分更新: 新しいステップを末尾に追加（画像サイズ問題を回避）
+      state.steps = [...(state.steps ?? []), msg.step];
+    } else if (msg.steps) {
+      state.steps = msg.steps; // 旧形式との後方互換
+    }
     renderSteps();
     updateRecordUI();
     updateAiUI();
