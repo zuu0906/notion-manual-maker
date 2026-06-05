@@ -1,4 +1,3 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@12?target=deno';
 
@@ -9,15 +8,16 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
 
-
-serve(async (req) => {
+Deno.serve(async (req) => {
   const body = await req.text();
-  const sig = req.headers.get('stripe-signature')!;
+  const sig = req.headers.get('stripe-signature') ?? '';
 
   let event: Stripe.Event;
   try {
     event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
   } catch (err) {
+    console.error('[stripe-webhook] signature verification failed:', String(err));
+    console.error('[stripe-webhook] sig header present:', !!sig, '| secret length:', webhookSecret?.length ?? 0);
     return new Response(`webhook error: ${String(err)}`, { status: 400 });
   }
 
