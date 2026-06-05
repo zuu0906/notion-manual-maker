@@ -163,6 +163,7 @@ async function saveToNotion({ notionPageId, title, stepsToSave, googleToken, pla
   }
 
   const fallbackTitle = `Manual ${new Date().toLocaleDateString('en-US')}`;
+  const usedTitle = title || fallbackTitle;
   let notionPage;
   if (notionPageId && title) {
     notionPage = await createNotionPageUnder(notionToken, notionPageId, title);
@@ -237,7 +238,7 @@ async function saveToNotion({ notionPageId, title, stepsToSave, googleToken, pla
       headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         google_token: googleToken,
-        title: pageTitle,
+        title: usedTitle,
         step_count: stepsToSave.length,
         notion_page_url: notionPageUrl,
         notion_workspace_id: wsId,
