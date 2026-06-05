@@ -191,17 +191,8 @@ async function initUserSession() {
       const serverResetAt = user.screenshot_reset_at ?? null;
       const serverResetNewer = serverResetAt && (!prevResetAt || serverResetAt > prevResetAt);
 
-      const localCount = serverResetNewer ? 0 : (state.monthly_screenshots ?? 0);
       const serverCount = user.monthly_screenshots ?? 0;
-      const diff = localCount - serverCount;
-      if (diff > 0 && !serverResetNewer) {
-        fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ google_token: token, count: diff }),
-        }).catch(() => {});
-      }
-      state.monthly_screenshots = serverResetNewer ? serverCount : Math.max(localCount, serverCount);
+      state.monthly_screenshots = serverCount;
       await chrome.storage.sync.set({
         plan: newPlan,
         monthly_screenshots: state.monthly_screenshots,
@@ -334,17 +325,8 @@ googleSignInBtn.addEventListener('click', async () => {
       const serverResetAt2 = user.screenshot_reset_at ?? null;
       const serverResetNewer2 = serverResetAt2 && (!prevResetAt2 || serverResetAt2 > prevResetAt2);
 
-      const localCount2 = serverResetNewer2 ? 0 : (state.monthly_screenshots ?? 0);
       const serverCount2 = user.monthly_screenshots ?? 0;
-      const diff2 = localCount2 - serverCount2;
-      if (diff2 > 0 && !serverResetNewer2) {
-        fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ google_token: token, count: diff2 }),
-        }).catch(() => {});
-      }
-      state.monthly_screenshots = serverResetNewer2 ? serverCount2 : Math.max(localCount2, serverCount2);
+      state.monthly_screenshots = serverCount2;
       await chrome.storage.sync.set({
         plan: user.plan ?? 'free',
         monthly_screenshots: state.monthly_screenshots,

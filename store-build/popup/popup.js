@@ -120,9 +120,7 @@ async function initUserSession() {
       }
 
       state.plan = newPlan;
-      const localCount = state.monthly_screenshots ?? 0;
-      const serverCount = user.monthly_screenshots ?? 0;
-      state.monthly_screenshots = Math.max(localCount, serverCount);
+      state.monthly_screenshots = user.monthly_screenshots ?? 0;
       await chrome.storage.sync.set({
         plan: newPlan,
         monthly_screenshots: state.monthly_screenshots,
@@ -215,9 +213,7 @@ googleSignInBtn.addEventListener('click', async () => {
     await chrome.storage.session.set({ googleToken: token });
     if (user && !user.error) {
       state.plan = user.plan ?? 'free';
-      const localCount2 = state.monthly_screenshots ?? 0;
-      const serverCount2 = user.monthly_screenshots ?? 0;
-      state.monthly_screenshots = Math.max(localCount2, serverCount2);
+      state.monthly_screenshots = user.monthly_screenshots ?? 0;
       await chrome.storage.sync.set({
         plan: user.plan ?? 'free',
         monthly_screenshots: state.monthly_screenshots,
