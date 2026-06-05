@@ -1151,10 +1151,11 @@ async function generateManual() {
       : t('generatingAll', [String(total)]);
 
     const token = state.googleToken || await getGoogleToken(false);
+    const locale = document.documentElement.lang || 'ja';
     const res = await fetch(`${SUPABASE_URL}/functions/v1/gemini-proxy`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ google_token: token, images, hints, pageTitle: pageTitle.value || '' }),
+      body: JSON.stringify({ google_token: token, images, hints, pageTitle: pageTitle.value || '', locale }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);

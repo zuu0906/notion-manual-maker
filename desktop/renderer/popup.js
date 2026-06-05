@@ -910,10 +910,11 @@ bulkGenBtn.addEventListener('click', async () => {
       ? t('generatingPartial', String(sendCount), String(total), String(remaining))
       : t('generatingAll', String(total));
 
+    const locale = document.documentElement.lang || 'ja';
     const res = await fetch(`${SUPABASE_URL}/functions/v1/gemini-proxy`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ google_token: state.googleToken, images, hints, pageTitle: pageTitle.value || '' }),
+      body: JSON.stringify({ google_token: state.googleToken, images, hints, pageTitle: pageTitle.value || '', locale }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);

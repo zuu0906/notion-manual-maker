@@ -109,16 +109,24 @@ Deno.serve(async (req) => {
       }
 
       const pageTitle = body.pageTitle ? `Page: "${body.pageTitle}". ` : '';
-      const BATCH_PROMPT =
-        `${pageTitle}You will be shown ${count} screenshot(s) of a web operation flow. ` +
-        'For each image, write ONE short sentence in Japanese using dictionary form ' +
-        '(e.g. 「〜をクリック。」「〜に入力。」「〜を選択。」) — NOT 丁寧語. ' +
-        'Include button/link/field names if visible. ' +
-        `Return ONLY a JSON array of ${count} strings in order. Example: ["説明1","説明2"]`;
+      const locale: string = body.locale ?? 'ja';
+      const BATCH_PROMPT = locale === 'ja'
+        ? `${pageTitle}You will be shown ${count} screenshot(s) of a web operation flow. ` +
+          'For each image, write ONE short sentence in Japanese using dictionary form ' +
+          '(e.g. 「〜をクリック。」「〜に入力。」「〜を選択。」) — NOT 丁寧語. ' +
+          'Include button/link/field names if visible. ' +
+          `Return ONLY a JSON array of ${count} strings in order. Example: ["説明1","説明2"]`
+        : `${pageTitle}You will be shown ${count} screenshot(s) of a web operation flow. ` +
+          'For each image, write ONE short sentence in English using imperative form ' +
+          '(e.g. "Click the button", "Enter the value", "Select the option"). ' +
+          'Include button/link/field names if visible. ' +
+          `Return ONLY a JSON array of ${count} strings in order. Example: ["Description 1","Description 2"]`;
 
       const parts: unknown[] = [{ text: BATCH_PROMPT }];
       for (let i = 0; i < count; i++) {
-        const hint = hints[i] ? ` ヒント:「${hints[i]}」` : '';
+        const hint = hints[i]
+          ? locale === 'ja' ? ` ヒント:「${hints[i]}」` : ` Hint: "${hints[i]}"`
+          : '';
         parts.push({ text: `Step ${i + 1} of ${count}:${hint}` });
         parts.push({ inline_data: { mime_type: 'image/jpeg', data: images[i] } });
       }
