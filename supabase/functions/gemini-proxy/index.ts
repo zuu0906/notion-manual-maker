@@ -25,6 +25,12 @@ function nextMonthStart() {
   return new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
 }
 
+function monthKey(isoDate: string): string {
+  const d = new Date(isoDate);
+  d.setMonth(d.getMonth() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
 async function getVerifiedUser(google_token: string) {
   const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${google_token}` },
@@ -36,7 +42,7 @@ async function getVerifiedUser(google_token: string) {
 
   const { data: user } = await supabase
     .from('users')
-    .select('id, plan, ai_calls_used, ai_calls_reset_at')
+    .select('id, google_id, plan, ai_calls_used, ai_calls_reset_at')
     .eq('google_id', google_id)
     .single();
 
@@ -44,6 +50,12 @@ async function getVerifiedUser(google_token: string) {
 
   // 月次リセット（auth-userを経由しない場合もここでリセット）
   if (user.ai_calls_reset_at && new Date() > new Date(user.ai_calls_reset_at)) {
+    // usage_history に前月分を保存してからリセット
+    const mk = monthKey(user.ai_calls_reset_at);
+    await supabase.from('usage_history').upsert(
+      { google_id: user.google_id, month: mk, ai_calls: user.ai_calls_used ?? 0 },
+      { onConflict: 'google_id,month', ignoreDuplicates: false }
+    );
     await supabase.from('users')
       .update({ ai_calls_used: 0, ai_calls_reset_at: nextMonthStart() })
       .eq('id', user.id);
