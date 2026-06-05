@@ -238,6 +238,7 @@ async function saveToNotion(notionPageId, title, steps) {
   }
 
   const fallbackTitle = `Manual ${new Date().toLocaleDateString('en-US')}`;
+  const usedTitle = title || fallbackTitle;
   let notionPage;
   if (notionPageId && title) {
     // 既存ページ選択 + title あり → 子ページとして作成
@@ -308,7 +309,7 @@ async function saveToNotion(notionPageId, title, steps) {
       headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         google_token: googleToken,
-        title: pageTitle,
+        title: usedTitle,
         step_count: stepsToSave.length,
         notion_page_url: notionPageUrl,
         notion_workspace_id: notion_active_workspace_id ?? null,
