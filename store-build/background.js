@@ -262,7 +262,7 @@ async function saveToNotion(notionPageId, title, steps) {
     // 見出し: ラベルがあればそれを、なければステップ番号（既存ページは番号なし）
     const headingText = step.label
       ? step.label
-      : isExistingPage ? null : `ステップ ${step.stepNumber}`;
+      : isExistingPage ? null : `Step ${step.stepNumber}`;
 
     if (headingText) {
       blocks.push({

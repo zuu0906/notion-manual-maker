@@ -193,7 +193,7 @@ async function saveToNotion({ notionPageId, title, stepsToSave, googleToken, pla
     if (!imageUrl) { failedCount++; return; }
 
     const displayNumber = stepOffset + step.stepNumber;
-    const headingText = step.label || `ステップ ${displayNumber}`;
+    const headingText = step.label || `Step ${displayNumber}`;
 
     if (headingText) {
       allBlocks.push({
