@@ -29,3 +29,28 @@ supabase/.temp/
 # Blog automation temporary files
 blog-automation/seo-report.md
 blog-automation/node_modules/
+blog-automation/state/
+blog-automation/serp-cache/
+blog-automation/discovered-*.json
+
+# Claude Code internal files
+.claude/
+
+# Store build artifacts (ZIPs)
+store-build/*.zip
+
+# Old dev/prototype files at root
+app.jsx
+dash-app.jsx
+dash-copy.js
+copy.js
+sections.jsx
+hero-stage.jsx
+styles.css
+dashboard.css
+tweaks-panel.jsx
+"Chrome Manual Maker.html"
+"My Page.html"
+
+# TypeScript build cache
+web/tsconfig.tsbuildinfo
