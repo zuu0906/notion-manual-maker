@@ -22,7 +22,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build & publish Windows installer
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win --publish=always
+      - name: Build Windows installer
+        run: npx electron-builder --win --publish=never
+
+      - name: Create GitHub Release and upload installer
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe
+          token: ${{ secrets.GITHUB_TOKEN }}
