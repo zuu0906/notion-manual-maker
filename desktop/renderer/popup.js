@@ -142,6 +142,7 @@ async function initUserSession() {
     if (user && !user.error) {
       const prevPlan = state.plan; // ローカルストアから読み込み済みの前回プラン
       const newPlan = user.plan ?? 'free';
+      console.log('[plan] prev:', prevPlan, '→ new:', newPlan, '(from Supabase)');
 
       // ① アカウント切り替え検出 → ゴーストデータ削除
       const lastUserId = await api.storeGet('last_user_id', null);
@@ -1041,6 +1042,17 @@ function updatePlanUI() {
     usageText.textContent = t('usageText', String(used), String(limit));
   }
   destRow.style.display = plan === 'free' ? 'none' : '';
+
+  // プランバッジをクリックで強制リフレッシュ
+  planBadge.style.cursor = 'pointer';
+  planBadge.title = 'Click to refresh plan';
+  planBadge.onclick = () => {
+    authUserCache.ts = 0;
+    if (state.googleToken) {
+      planBadge.textContent = '…';
+      initUserSession();
+    }
+  };
 
   // Portal リンク: サインイン済みなら表示
   portalLink.style.display = state.googleToken ? 'inline' : 'none';
