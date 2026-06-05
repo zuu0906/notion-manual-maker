@@ -106,6 +106,7 @@ async function fetchAuthUser(token, isRetry = false) {
     body: JSON.stringify({ google_token: token }),
   });
   const data = await res.json();
+  console.log('[auth-user response] plan:', data.plan, 'monthly_screenshots:', data.monthly_screenshots, 'error:', data.error);
   if (!data.error) {
     authUserCache.data = data; authUserCache.token = token; authUserCache.ts = now;
   } else if (!isRetry) {
