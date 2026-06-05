@@ -1,0 +1,4 @@
+{
+  "error": "Claude CLI error (code 3): ============================================================\nBun v1.3.14 (0a466a11) Windows x64 (baseline)\nWindows v.win11_dt\nCPU: sse42 avx avx2 avx512\nArgs: \"claude\" \"--print\" \"--model\" \"claude-haiku-4-5-20251001\" \"--output-format\" \"text\" \"--no-session-persistence\" \"--system-prompt\" \"あなたはNotebookL",
+  "failedAt": "2026-05-07T22:24:33.505Z"
+}

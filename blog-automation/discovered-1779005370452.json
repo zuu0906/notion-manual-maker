@@ -1,0 +1,758 @@
+[
+  {
+    "keyword": "業務 引継ぎマニュアル テンプレート",
+    "score": 10,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "マニュアル自動作成ツール",
+    "suggestedTitle": "業務マニュアル作成テンプレート集",
+    "finalScore": 11.5
+  },
+  {
+    "keyword": "スクリーンショット 活用法",
+    "score": 10,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "注釈付きで操作説明が明確",
+    "suggestedTitle": "スクリーンショットを仕事で活用するコツ",
+    "finalScore": 11
+  },
+  {
+    "keyword": "notion マニュアル作成",
+    "score": 10,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "「スクリーンショットで効率化」",
+    "suggestedTitle": "NotionでマニュアルをAIで作る",
+    "finalScore": 11
+  },
+  {
+    "keyword": "業務 引き継ぎ書",
+    "score": 9,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット付き資料作成",
+    "suggestedTitle": "効果的な業務引き継ぎ書の書き方",
+    "finalScore": 10.5
+  },
+  {
+    "keyword": "退職 引継ぎ 資料 作り方",
+    "score": 9,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "資料作成効率化ツール",
+    "suggestedTitle": "退職時の引き継ぎ資料作成手順",
+    "finalScore": 10.5
+  },
+  {
+    "keyword": "システム 説明資料 作り方",
+    "score": 9,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作画面付き手順書作成",
+    "suggestedTitle": "システム説明資料作成",
+    "finalScore": 10.5
+  },
+  {
+    "keyword": "仕事 教える の が 難しい",
+    "score": 9,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "ビジュアルマニュアルで教育効果",
+    "suggestedTitle": "仕事を教えるのが難しい理由と対策",
+    "finalScore": 10.5
+  },
+  {
+    "keyword": "人 に 仕事 教える 難しい",
+    "score": 9,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショットで伝わりやすく",
+    "suggestedTitle": "人に仕事を教える上手なコツ",
+    "finalScore": 10.5
+  },
+  {
+    "keyword": "手順書 キャプチャ",
+    "score": 9,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "スクショ注釈の自動化ツール",
+    "suggestedTitle": "手順書をスクショで作成・管理する効率化",
+    "finalScore": 10.5
+  },
+  {
+    "keyword": "ミストレ スキル継承 方法",
+    "score": 9,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット付き継承ガイド",
+    "suggestedTitle": "ミストレのスキル継承 効果的な方法",
+    "finalScore": 10
+  },
+  {
+    "keyword": "マニュアル ビジュアル 化",
+    "score": 9,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット活用による実装",
+    "suggestedTitle": "マニュアルをビジュアル化する方法・効果",
+    "finalScore": 10
+  },
+  {
+    "keyword": "notion マニュアル",
+    "score": 9,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "「マニュアル作成の効率化」",
+    "suggestedTitle": "Notionマニュアル管理術",
+    "finalScore": 10
+  },
+  {
+    "keyword": "新入社員 教育資料",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット付きマニュアル",
+    "suggestedTitle": "新入社員向け教育資料の作り方",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "新入社員 教育 疲れる",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "マニュアル作成の手間削減",
+    "suggestedTitle": "新入社員教育が疲れる理由と解決",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "ojt やり方",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作説明資料の活用",
+    "suggestedTitle": "OJTのやり方完全ガイド",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "業務 引継ぎ テンプレート",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット付き手順書",
+    "suggestedTitle": "業務引継ぎ資料テンプレート",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "業務 引継ぎ",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作手順記録ツール",
+    "suggestedTitle": "業務引き継ぎを成功させるコツ",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "業務 説明資料 作り方",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作手順を簡単に共有",
+    "suggestedTitle": "業務説明資料の作り方",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "オンライン研修 やり方 zoom",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作手順をビジュアル共有",
+    "suggestedTitle": "オンライン研修を成功させるコツ",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "新任 マネージャー 悩み",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "効率的な引き継ぎマニュアル",
+    "suggestedTitle": "新任マネージャーの悩み 完全ガイド",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "プレイング マネージャー 悩み",
+    "score": 8,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "限られた時間での教育効率化",
+    "suggestedTitle": "プレイングマネージャー 悩み対策",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "notion マニュアル作成 テンプレート",
+    "score": 9,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "「テンプレートで手順書」",
+    "suggestedTitle": "マニュアル作成テンプレート集",
+    "finalScore": 9.5
+  },
+  {
+    "keyword": "業務 引継書",
+    "score": 8,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット付き資料",
+    "suggestedTitle": "実効的な業務引継書の作成方法",
+    "finalScore": 9
+  },
+  {
+    "keyword": "退職 引継ぎ 資料 テンプレート",
+    "score": 8,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "マニュアル作成ツール",
+    "suggestedTitle": "退職時の引き継ぎ資料テンプレート",
+    "finalScore": 9
+  },
+  {
+    "keyword": "teams オンライン研修 やり方",
+    "score": 8,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "Teamsと連携したマニュアル",
+    "suggestedTitle": "Teamsでのオンライン研修 実践法",
+    "finalScore": 9
+  },
+  {
+    "keyword": "ビジュアル マニュアル と は",
+    "score": 8,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "定義説明からツール紹介へ",
+    "suggestedTitle": "ビジュアルマニュアルとは・作成メリット",
+    "finalScore": 9
+  },
+  {
+    "keyword": "システム 導入 マニュアル 作成",
+    "score": 8,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "システム画面記録から資料作成へ",
+    "suggestedTitle": "システム導入マニュアル作成・運用のコツ",
+    "finalScore": 9
+  },
+  {
+    "keyword": "新入社員 教育係",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作手順説明資料の作成",
+    "suggestedTitle": "新入社員教育係になったときやること",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "新入社員 教育 カリキュラム",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作説明資料の効果的な作成",
+    "suggestedTitle": "新入社員教育カリキュラム設計法",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "新入社員 教育方法",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作説明資料を活用した教育",
+    "suggestedTitle": "効果的な新入社員教育の方法",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "ojt 研修 やり方",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作説明資料の効果的な活用",
+    "suggestedTitle": "OJT研修の効果的なやり方",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "ojt 教育 やり方",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作説明資料の活用",
+    "suggestedTitle": "OJTによる社員教育の方法",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "説明資料 作り方 コツ",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作説明に画面を挿入",
+    "suggestedTitle": "説明資料作成のコツ10選",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "動画マニュアル 作り方 無料",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット式の作成効率化",
+    "suggestedTitle": "動画とスクショ、マニュアルに最適な形式は",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "notion 使い方",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "Notionでのスクショ整理・活用",
+    "suggestedTitle": "Notion基本操作・ワークスペース設定ガイド",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "notion 使い方 初心者",
+    "score": 7,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "Notionとスクショ管理の組み合わせ",
+    "suggestedTitle": "Notion初心者向けスタートガイド・設定方法",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "notion マニュアル 見やすい",
+    "score": 8,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "「スクリーンショットで見やすく」",
+    "suggestedTitle": "見やすいNotionマニュアル",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "notion マニュアル テンプレート",
+    "score": 8,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "「テンプレートで効率作成」",
+    "suggestedTitle": "Notionマニュアルテンプレート",
+    "finalScore": 8.5
+  },
+  {
+    "keyword": "エリア マネージャー 悩み",
+    "score": 7,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "複数拠点の統一マニュアル",
+    "suggestedTitle": "エリアマネージャーの悩み 成功事例",
+    "finalScore": 8
+  },
+  {
+    "keyword": "新入社員 教育計画",
+    "score": 6,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "教育資料の効率的な準備",
+    "suggestedTitle": "新入社員教育計画の立て方と実行",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "新入社員 教育担当",
+    "score": 6,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作手順説明資料の作成",
+    "suggestedTitle": "新入社員教育担当者ガイド",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "説明資料 作り方 パワポ",
+    "score": 6,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "画面キャプチャを効率化",
+    "suggestedTitle": "PowerPointで説明資料",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "説明資料 作り方 word",
+    "score": 6,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作手順を画像で表現",
+    "suggestedTitle": "Word文書で説明資料",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "リモートワーク 課題 コミュニケーション",
+    "score": 6,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "遠隔教育・手順共有の最適化",
+    "suggestedTitle": "リモートワークコミュニケーション",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "中小企業 リモートワーク 課題",
+    "score": 6,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "遠隔OJT・教育支援ツール",
+    "suggestedTitle": "中小企業リモートワーク課題",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "マネージャー 悩み ランキング",
+    "score": 6,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "新人教育マニュアル整備",
+    "suggestedTitle": "マネージャーの悩み ランキング対策",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "プロジェクト マネージャー 悩み",
+    "score": 6,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "プロジェクト業務マニュアル化",
+    "suggestedTitle": "プロジェクトマネージャーの課題対策",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "notion マニュアル管理",
+    "score": 7,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "「作成から管理まで効率化」",
+    "suggestedTitle": "Notionでマニュアル一元管理",
+    "finalScore": 7.5
+  },
+  {
+    "keyword": "新入社員 教育 チェックリスト",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "資料作成の効率化",
+    "suggestedTitle": "新入社員教育チェックリスト",
+    "finalScore": 7
+  },
+  {
+    "keyword": "研修資料 作り方 エクセル",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット資料の活用",
+    "suggestedTitle": "Excelで作る研修資料のコツ",
+    "finalScore": 7
+  },
+  {
+    "keyword": "研修資料 作り方 パワーポイント",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット資料の活用",
+    "suggestedTitle": "パワーポイント研修資料作成法",
+    "finalScore": 7
+  },
+  {
+    "keyword": "研修資料 作り方 ワード",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット資料の活用",
+    "suggestedTitle": "Wordで作る研修資料のポイント",
+    "finalScore": 7
+  },
+  {
+    "keyword": "研修資料 作り方 ai",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "AIでは作れない部分を補完",
+    "suggestedTitle": "AIで作る研修資料のコツ",
+    "finalScore": 7
+  },
+  {
+    "keyword": "退職 引継ぎ 資料 フォーマット",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "効率的な資料作成",
+    "suggestedTitle": "引き継ぎ資料の効果的なフォーマット",
+    "finalScore": 7
+  },
+  {
+    "keyword": "業務フロー 整理の仕方",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "フロー整理後のマニュアル化",
+    "suggestedTitle": "業務フロー整理の正しい方法",
+    "finalScore": 7
+  },
+  {
+    "keyword": "チェックリスト 作り方 エクセル",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "チェックリスト運用マニュアル",
+    "suggestedTitle": "エクセルチェックリスト作成ガイド",
+    "finalScore": 7
+  },
+  {
+    "keyword": "チェックリスト 作り方 word",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "Word操作の視覚的マニュアル",
+    "suggestedTitle": "Wordチェックリスト作成ガイド",
+    "finalScore": 7
+  },
+  {
+    "keyword": "チェックリスト 作り方 スプレッドシート",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "スプレッドシート操作教育",
+    "suggestedTitle": "スプレッドシートチェックリスト",
+    "finalScore": 7
+  },
+  {
+    "keyword": "動画マニュアル 作り方 teams",
+    "score": 6,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "Teams環境でのマニュアル共有",
+    "suggestedTitle": "TeamsでのマニュアルNotionリンク活用法",
+    "finalScore": 7
+  },
+  {
+    "keyword": "新入社員 教育スケジュール",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "資料作成スケジュール管理",
+    "suggestedTitle": "新入社員教育スケジュール立案法",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "業務 引継ぎ 英語",
+    "score": 6,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "多言語マニュアルの作成",
+    "suggestedTitle": "英語での業務引継ぎマニュアル",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "分かりやすい資料 作り方",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "スクリーンショット活用",
+    "suggestedTitle": "わかりやすい資料の作り方",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "説明資料 作り方 エクセル",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "操作手順の可視化",
+    "suggestedTitle": "Excelで説明資料作成",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "エクセル 繰り返し作業 自動化",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "複雑操作の教育マニュアル",
+    "suggestedTitle": "エクセル繰り返し作業の自動化",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "pc 繰り返し作業 自動化",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "PC操作手順の可視化",
+    "suggestedTitle": "PC繰り返し作業の自動化方法",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "チェックリスト 作り方 コツ",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "効果的な手順書の重要性",
+    "suggestedTitle": "チェックリスト作成のコツ集",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "リモートワーク 課題テスト",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "遠隔での手順説明の効率化",
+    "suggestedTitle": "リモートワークの課題と対策",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "リモートワーク 勤怠管理 課題",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "複雑システムの操作教育",
+    "suggestedTitle": "リモートワーク勤怠管理課題",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "在宅勤務 生産性向上",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "マニュアル整備で生産性向上",
+    "suggestedTitle": "在宅勤務の生産性向上 実践ガイド",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "notion 使い方 勉強",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "学習資料の可視化・保存方法",
+    "suggestedTitle": "Notionを学習管理ツールとして活用する法",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "notion マニュアル 事例",
+    "score": 6,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "「効率的な作成事例」",
+    "suggestedTitle": "Notionマニュアル作成事例",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "notion マニュアル 公開",
+    "score": 6,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "「作成・共有をワンステップ」",
+    "suggestedTitle": "Notionマニュアルの公開方法",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "notion 業務効率化",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "「手順書作成の効率化」",
+    "suggestedTitle": "Notionで業務効率化",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "notion 業務効率",
+    "score": 5,
+    "broadness": "high",
+    "intent": "Informational",
+    "ctaAngle": "「マニュアル作成を効率化」",
+    "suggestedTitle": "Notionで業務効率アップ",
+    "finalScore": 6.5
+  },
+  {
+    "keyword": "業務 引継ぎ メール",
+    "score": 5,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "添付資料作成支援",
+    "suggestedTitle": "業務引き継ぎメールの書き方",
+    "finalScore": 6
+  },
+  {
+    "keyword": "業務フロー 整理 ツール",
+    "score": 5,
+    "broadness": "medium",
+    "intent": "Commercial",
+    "ctaAngle": "ツール実装後の手順書化",
+    "suggestedTitle": "業務フロー整理ツール比較",
+    "finalScore": 6
+  },
+  {
+    "keyword": "説明 会 画面 録画",
+    "score": 5,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "説明会の内容をマニュアル化",
+    "suggestedTitle": "オンライン説明会、画面記録後の活用法",
+    "finalScore": 6
+  },
+  {
+    "keyword": "notion 使い方 タスク管理",
+    "score": 5,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "タスク関連の手順書をNotionで管理",
+    "suggestedTitle": "NotionでのタスクDB構築・テンプレート",
+    "finalScore": 6
+  },
+  {
+    "keyword": "notion ai 業務効率化",
+    "score": 5,
+    "broadness": "medium",
+    "intent": "Informational",
+    "ctaAngle": "「AI で手順書作成」",
+    "suggestedTitle": "NotionのAI機能で業務改善",
+    "finalScore": 6
+  },
+  {
+    "keyword": "研修資料 作り方 本",
+    "score": 5,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "資料作成ツールの紹介",
+    "suggestedTitle": "研修資料作り方の学習法",
+    "finalScore": 5.5
+  },
+  {
+    "keyword": "介護 新人 指導 コツ",
+    "score": 5,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "操作説明資料の活用",
+    "suggestedTitle": "介護職の新人指導のコツ",
+    "finalScore": 5.5
+  },
+  {
+    "keyword": "退職 代行 引き継ぎ 資料",
+    "score": 5,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "引き継ぎ資料作成支援",
+    "suggestedTitle": "退職代行時の引き継ぎ資料作成",
+    "finalScore": 5.5
+  },
+  {
+    "keyword": "電子 請求 システム 導入 マニュアル",
+    "score": 5,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "複雑操作の可視化による教育効果",
+    "suggestedTitle": "電子請求システム導入時の教育マニュアル",
+    "finalScore": 5.5
+  },
+  {
+    "keyword": "notion マニュアル サイト",
+    "score": 5,
+    "broadness": "low",
+    "intent": "Informational",
+    "ctaAngle": "「マニュアル作成から公開」",
+    "suggestedTitle": "NotionでマニュアルWebサイト",
+    "finalScore": 5.5
+  }
+]

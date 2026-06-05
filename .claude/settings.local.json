@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(mkdir:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(supabase functions deploy:*)",
+      "Bash(supabase secrets list:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Read(**)",
+      "Grep(**)",
+      "Glob(**)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(./参考資料/**)",
+      "Read(./スクリーンショット*.png)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)"
+    ]
+  }
+}
