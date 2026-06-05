@@ -271,6 +271,32 @@ upgradeBtn.addEventListener('click', () => {
   api.openExternal(DASHBOARD_URL);
 });
 
+// 更新ボタン
+document.getElementById('refresh-btn').addEventListener('click', async () => {
+  authUserCache.ts = 0;
+  if (state.googleToken) {
+    const btn = document.getElementById('refresh-btn');
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+    await initUserSession();
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+  }
+});
+
+// ログアウトボタン
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await api.googleSignOut();
+  state.googleToken = null;
+  state.user = null;
+  authUserCache.data = null;
+  authUserCache.ts = 0;
+  document.getElementById('logout-btn').style.display = 'none';
+  googleSignInSection.style.display = 'flex';
+  updatePlanUI();
+  updateAiUI();
+});
+
 googleSignInBtn.addEventListener('click', async () => {
   googleSignInBtn.disabled = true;
   googleSignInText.textContent = t('signingIn');
@@ -1036,6 +1062,10 @@ function updatePlanUI() {
     usageText.textContent = t('usageText', String(used), String(limit));
   }
   destRow.style.display = plan === 'free' ? 'none' : '';
+
+  // ログアウトボタン表示制御
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.style.display = state.googleToken ? '' : 'none';
 
   // プランバッジをクリックで強制リフレッシュ
   planBadge.style.cursor = 'pointer';

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+      cursor: crosshair;
+      user-select: none;
+    }
+    #canvas {
+      position: absolute;
+      top: 0; left: 0;
+      display: block;
+    }
+    #hint {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      pointer-events: none;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    #btn-row {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      gap: 8px;
+    }
+    #blur-btn, #cancel-btn {
+      background: rgba(0, 0, 0, 0.55);
+      color: rgba(255,255,255,0.9);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 5px;
+      padding: 6px 13px;
+      font-size: 13px;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    #blur-btn:hover, #cancel-btn:hover { background: rgba(0, 0, 0, 0.75); }
+    #blur-btn.active {
+      background: rgba(180, 40, 30, 0.75);
+      border-color: rgba(255,80,60,0.6);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="hint">クリックして撮影ポイントを選択 — Esc でキャンセル</div>
+  <div id="btn-row">
+    <button id="blur-btn">🔒 ぼかし [B]</button>
+    <button id="cancel-btn">✕ キャンセル</button>
+  </div>
+  <script src="overlay.js"></script>
+</body>
+</html>

@@ -333,6 +333,10 @@ ipcMain.handle('auth:get-google-token', async () => {
   return authGoogle.getToken();
 });
 
+ipcMain.handle('auth:google-sign-out', () => {
+  authGoogle.signOut();
+});
+
 ipcMain.handle('window:hide-for-capture', () => { if (mainWindow) mainWindow.hide(); });
 ipcMain.handle('window:show', () => { if (mainWindow) { mainWindow.show(); mainWindow.focus(); } });
 
