@@ -111,15 +111,15 @@ Deno.serve(async (req) => {
       const pageTitle = body.pageTitle ? `Page: "${body.pageTitle}". ` : '';
       const locale: string = body.locale ?? 'ja';
       const BATCH_PROMPT = locale === 'ja'
-        ? `${pageTitle}You will be shown ${count} screenshot(s) of a web operation flow. ` +
-          'For each image, write ONE short sentence in Japanese using dictionary form ' +
+        ? `${pageTitle}You will be shown ${count} screenshot(s) of an operation flow. Each screenshot has a red circle marking the exact point of interaction. ` +
+          'For each image, write ONE short sentence in Japanese describing the action at the red circle, using dictionary form ' +
           '(e.g. 「〜をクリック。」「〜に入力。」「〜を選択。」) — NOT 丁寧語. ' +
-          'Include button/link/field names if visible. ' +
+          'Include button/link/field names near the red circle if visible. ' +
           `Return ONLY a JSON array of ${count} strings in order. Example: ["説明1","説明2"]`
-        : `${pageTitle}You will be shown ${count} screenshot(s) of a web operation flow. ` +
-          'For each image, write ONE short sentence in English using imperative form ' +
+        : `${pageTitle}You will be shown ${count} screenshot(s) of an operation flow. Each screenshot has a red circle marking the exact point of interaction. ` +
+          'For each image, write ONE short sentence in English in imperative form describing the action at the red circle ' +
           '(e.g. "Click the button", "Enter the value", "Select the option"). ' +
-          'Include button/link/field names if visible. ' +
+          'Include button/link/field names near the red circle if visible. ' +
           `Return ONLY a JSON array of ${count} strings in order. Example: ["Description 1","Description 2"]`;
 
       const parts: unknown[] = [{ text: BATCH_PROMPT }];

@@ -842,7 +842,7 @@ async function callGeminiProxy(parts) {
 
 function cropStep(step) {
   return new Promise((resolve, reject) => {
-    const srcUrl = step.rawDataUrl || step.annotatedDataUrl;
+    const srcUrl = step.annotatedDataUrl || step.rawDataUrl;
     if (!srcUrl) { reject(new Error('no image data')); return; }
     const img = new Image();
     img.onerror = () => reject(new Error('image load failed'));
@@ -873,8 +873,8 @@ function cropStep(step) {
 function getStepPrompt() {
   const isJa = document.documentElement.lang === 'ja';
   return isJa
-    ? 'This screenshot shows one step in a desktop app operation. Write ONE short sentence in Japanese describing the action shown. Use dictionary form (e.g. 「〜をクリック。」「〜に入力。」「〜を選択。」) — not 丁寧語. Include button/field names if visible. Return ONLY the sentence.'
-    : 'This screenshot shows one step in a desktop app operation. Write ONE short sentence in English in imperative form (e.g. "Click the button", "Enter the value"). Include button/field names if visible. Return ONLY the sentence.';
+    ? 'This screenshot shows one step in a desktop app operation. A red circle marks the exact point of interaction. Write ONE short sentence in Japanese describing the action at the red circle. Use dictionary form (e.g. 「〜をクリック。」「〜に入力。」「〜を選択。」) — not 丁寧語. Include button/field names near the red circle if visible. Return ONLY the sentence.'
+    : 'This screenshot shows one step in a desktop app operation. A red circle marks the exact point of interaction. Write ONE short sentence in English in imperative form (e.g. "Click the button", "Enter the value"). Include button/field names near the red circle if visible. Return ONLY the sentence.';
 }
 
 async function generateStepDescription(step, btn, input) {
