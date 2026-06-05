@@ -207,6 +207,10 @@ export default function DashboardPage() {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const notionCode = params.get('notion_code');
+    const refetch = params.get('refetch');
+
+    // 決済後リダイレクト時はURLをクリーンアップ
+    if (refetch) window.history.replaceState({}, '', window.location.pathname);
 
     if (code) {
       window.history.replaceState({}, '', window.location.pathname);
