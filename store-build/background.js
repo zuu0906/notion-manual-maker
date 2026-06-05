@@ -235,13 +235,18 @@ async function saveToNotion(notionPageId, title, steps) {
     }
   }
 
-  const pageTitle = title || `マニュアル ${new Date().toLocaleDateString('ja-JP')}`;
-  const notionPage = notionPageId
-    ? { id: notionPageId }
-    : await createNotionPage(notion_access_token, pageTitle);
+  const fallbackTitle = `Manual ${new Date().toLocaleDateString('en-US')}`;
+  let notionPage;
+  if (notionPageId && title) {
+    notionPage = await createNotionPageUnder(notion_access_token, notionPageId, title);
+  } else if (notionPageId) {
+    notionPage = { id: notionPageId };
+  } else {
+    notionPage = await createNotionPage(notion_access_token, title || fallbackTitle);
+  }
 
   if (notionPage.error) return notionPage;
-  const isExistingPage = !!notionPageId;
+  const isExistingPage = !!notionPageId && !title;
 
   let savedCount = 0;
   let failedCount = 0;
@@ -341,6 +346,26 @@ async function createNotionPage(token, title) {
       headers: notionHeaders(token),
       body: JSON.stringify({
         parent: { type: 'workspace', workspace: true },
+        properties: { title: { title: [{ type: 'text', text: { content: title } }] } },
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { error: notionErrorMsg(err, res.status) };
+    }
+    return res.json();
+  } catch (e) {
+    return { error: `ネットワークエラー: ${e.message}` };
+  }
+}
+
+async function createNotionPageUnder(token, parentPageId, title) {
+  try {
+    const res = await fetch('https://api.notion.com/v1/pages', {
+      method: 'POST',
+      headers: notionHeaders(token),
+      body: JSON.stringify({
+        parent: { type: 'page_id', page_id: parentPageId },
         properties: { title: { title: [{ type: 'text', text: { content: title } }] } },
       }),
     });
