@@ -87,11 +87,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       pendingClicks = msg.steps ?? [];
       break;
     case 'GET_STATE':
-      // session から最新状態を取得して返す（restoreSession の race condition を回避）
+      // メモリのデータを優先（画像データあり）、サービスワーカー再起動後のみsessionを使用
       chrome.storage.session.get(['pendingClicks', 'isRecording']).then(s => {
         sendResponse({
           isRecording: s.isRecording ?? isRecording,
-          steps: s.pendingClicks ?? pendingClicks,
+          steps: pendingClicks.length > 0 ? pendingClicks : (s.pendingClicks ?? []),
         });
       });
       return true; // 非同期レスポンスのため true を返す
