@@ -1,0 +1,46 @@
+{
+  "name": "chrome-manual-maker-desktop",
+  "version": "1.0.1",
+  "description": "Notion Manual Maker Desktop — あらゆるアプリのマニュアルを作成",
+  "main": "main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^30.4.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.s-tasklog.chrome-manual-maker",
+    "productName": "Notion Manual Maker",
+    "files": [
+      "main/**",
+      "renderer/**",
+      "shared/**",
+      "preload.js",
+      "overlay-preload.js"
+    ],
+    "extraResources": [
+      { "from": "../extension/_locales", "to": "_locales" }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "zuu0906",
+      "repo": "notion-manual-maker"
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "icon256.png"
+    },
+    "protocols": [
+      { "name": "Notion Manual Maker", "schemes": ["cmm"] }
+    ]
+  }
+}
