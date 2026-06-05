@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 const STORE_URL = 'https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpjjkiojneipicd';
-const DESKTOP_URL = 'https://github.com/zuu0906/chrome-manual-maker/releases';
+const DESKTOP_URL = 'https://github.com/zuu0906/notion-manual-api/releases';
 
 export async function generateMetadata({
   params,

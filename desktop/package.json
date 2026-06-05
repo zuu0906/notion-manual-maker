@@ -1,6 +1,6 @@
 {
   "name": "chrome-manual-maker-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Notion Manual Maker Desktop — あらゆるアプリのマニュアルを作成",
   "main": "main/main.js",
   "scripts": {
