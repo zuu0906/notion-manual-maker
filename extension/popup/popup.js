@@ -156,6 +156,7 @@ async function fetchAuthUser(token) {
   });
   const data = await res.json();
   if (!data.error) { authUserCache.data = data; authUserCache.token = token; authUserCache.ts = now; }
+  console.log('[auth-user] plan:', data.plan, 'monthly_screenshots:', data.monthly_screenshots);
   return data;
 }
 
