@@ -72,6 +72,11 @@ async function applyI18n(localeOverride) {
   if (localeOverride) {
     updateRecordUI();
     updateAiUI();
+    // 接続済み表示を復元（[data-i18n]の一括上書きで「未接続」に戻るのを防ぐ）
+    if (notionDot.classList.contains('connected')) {
+      const { notion_workspace_name: wsName } = await chrome.storage.local.get('notion_workspace_name');
+      setNotionConnected(wsName ?? 'Notion');
+    }
   }
 }
 applyI18n();

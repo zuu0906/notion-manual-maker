@@ -40,6 +40,11 @@ async function applyI18n(localeOverride) {
     updateStepsUI();
     updateAiUI();
     if (state.steps.length > 0) renderSteps();
+    // 接続済み表示を復元（[data-i18n]の一括上書きで「未接続」に戻るのを防ぐ）
+    if (notionDot.classList.contains('connected')) {
+      const wsName = await api.storeGet('notion_workspace_name', 'Notion');
+      setNotionConnected(wsName);
+    }
   }
 }
 
