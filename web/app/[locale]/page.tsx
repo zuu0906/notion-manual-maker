@@ -442,7 +442,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   </svg>
                   {c.hero.ctaPrimary}
                 </a>
-                <a href="https://github.com/zuu0906/notion-manual-maker/releases/latest/download/Notion-Manual-Maker-Setup-1.0.1.exe" className="btn btn-ghost btn-lg" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/zuu0906/notion-manual-maker/releases/latest/download/Notion-Manual-Maker-Setup.exe" className="btn btn-ghost btn-lg" target="_blank" rel="noopener noreferrer">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <rect x="1" y="2" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/>
                     <path d="M4 12h6M7 10v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
@@ -533,7 +533,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             ))}
           </div>
           <div style={{ marginTop: 32, display: 'flex', alignItems: 'center', gap: 16 }}>
-            <a href="https://github.com/zuu0906/notion-manual-maker/releases/latest/download/Notion-Manual-Maker-Setup-1.0.1.exe" target="_blank" rel="noopener noreferrer"
+            <a href="https://github.com/zuu0906/notion-manual-maker/releases/latest/download/Notion-Manual-Maker-Setup.exe" target="_blank" rel="noopener noreferrer"
               className="btn btn-primary btn-lg">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <rect x="1" y="2" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/>
