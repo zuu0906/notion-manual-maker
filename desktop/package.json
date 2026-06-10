@@ -37,7 +37,8 @@
     },
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
-      "icon": "icon256.png"
+      "icon": "icon256.png",
+      "artifactName": "Notion-Manual-Maker-Setup.exe"
     },
     "protocols": [
       { "name": "Notion Manual Maker", "schemes": ["cmm"] }

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 const STORE_URL = 'https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpjjkiojneipicd';
-const DESKTOP_URL = 'https://github.com/zuu0906/notion-manual-maker/releases/latest';
+const DESKTOP_URL = 'https://github.com/zuu0906/notion-manual-api/releases/latest/download/Notion-Manual-Maker-Setup.exe';
 
 export async function generateMetadata({
   params,
