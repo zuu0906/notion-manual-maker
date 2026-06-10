@@ -219,17 +219,22 @@ async function initUserSession() {
 
       // ④ サーバーのWS一覧とローカルを常に照合し、差異があれば更新（他デバイス・ダッシュボードでの変更を反映）
       const freshWs = await api.storeGet('notion_workspaces', []);
-      const serverWs = (user.workspaces ?? [])
-        .filter(w => w.access_token)
-        .map(w => ({ id: w.workspace_id, name: w.workspace_name, token: w.access_token }));
+      // 存在比較はトークン有無を問わない（旧バージョン同期のtoken無し行を「未接続」と誤認しないため）
+      // トークンが無い行はローカルの同一IDから補完する
+      const serverAll = (user.workspaces ?? []).map(w => ({
+        id: w.workspace_id,
+        name: w.workspace_name,
+        token: w.access_token ?? freshWs.find(l => l.id === w.workspace_id)?.token ?? null,
+      }));
+      const serverWs = serverAll.filter(w => w.token);
       const localIds  = new Set(freshWs.map(w => w.id));
-      const serverIds = new Set(serverWs.map(w => w.id));
+      const serverIds = new Set(serverAll.map(w => w.id));
       const wsDiffers = localIds.size !== serverIds.size ||
         [...serverIds].some(id => !localIds.has(id)) ||
         [...localIds].some(id => !serverIds.has(id));
 
       if (wsDiffers) {
-        if (serverWs.length === 0) {
+        if (serverAll.length === 0) {
           const lastConnectAt = await api.storeGet('notion_last_connect_at', 0);
           const syncedAt = await api.storeGet('notion_ws_synced_at', 0);
           // 「同期が一度も成功していない」(Google未サインインで接続した等) か接続直後なら
@@ -251,6 +256,10 @@ async function initUserSession() {
           allNotionPages = [];
           pagesCacheTs = 0;
           }
+        } else if (serverWs.length === 0) {
+          // サーバーにWS行はあるがトークンを解決できない（旧バージョンの同期データ等）
+          // → ローカルを維持し、トークン付きデータをサーバーへ再push（修復）
+          if (freshWs.length > 0) syncWorkspacesToServer(freshWs);
         } else {
           // アクティブWSがサーバーにない場合は先頭に切り替え
           const curActiveId = await api.storeGet('notion_active_workspace_id', null);

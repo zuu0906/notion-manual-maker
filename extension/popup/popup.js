@@ -259,17 +259,22 @@ async function initUserSession() {
         showMsg(t('welcomeMsg'), 'success');
       } else {
         // サーバーのWS一覧とローカルを常に照合し、差異があれば更新（他デバイス・ダッシュボードでの変更を反映）
-        const serverWs = (user.workspaces ?? [])
-          .filter(w => w.access_token)
-          .map(w => ({ id: w.workspace_id, name: w.workspace_name, token: w.access_token }));
+        // 存在比較はトークン有無を問わない（旧バージョン同期のtoken無し行を「未接続」と誤認しないため）
+        // トークンが無い行はローカルの同一IDから補完する
+        const serverAll = (user.workspaces ?? []).map(w => ({
+          id: w.workspace_id,
+          name: w.workspace_name,
+          token: w.access_token ?? (localWs ?? []).find(l => l.id === w.workspace_id)?.token ?? null,
+        }));
+        const serverWs = serverAll.filter(w => w.token);
         const localIds  = new Set((localWs ?? []).map(w => w.id));
-        const serverIds = new Set(serverWs.map(w => w.id));
+        const serverIds = new Set(serverAll.map(w => w.id));
         const differs   = localIds.size !== serverIds.size ||
           [...serverIds].some(id => !localIds.has(id)) ||
           [...localIds].some(id => !serverIds.has(id));
 
         if (differs) {
-          if (serverWs.length === 0) {
+          if (serverAll.length === 0) {
             const { notion_ws_synced_at: syncedAt = 0, notion_last_connect_at: lastConnectAt = 0 }
               = await chrome.storage.local.get(['notion_ws_synced_at', 'notion_last_connect_at']);
             if (!syncedAt || Date.now() - lastConnectAt < 120_000) {
@@ -289,6 +294,12 @@ async function initUserSession() {
             wsSelector.style.display = 'none';
             wsAddBtn.style.display = 'none';
             allNotionPages = [];
+            }
+          } else if (serverWs.length === 0) {
+            // サーバーにWS行はあるがトークンを解決できない（旧バージョンの同期データ等）
+            // → ローカルを維持し、トークン付きデータをサーバーへ再push（修復）
+            if ((localWs ?? []).length > 0) {
+              syncWorkspacesToServer(localWs).catch(e => console.warn('[syncWorkspaces]', e.message));
             }
           } else {
             // アクティブWSがサーバーにない場合は先頭に切り替え
