@@ -148,6 +148,7 @@
 
   "dragHandle": { "message": "ドラッグして並び替え" },
   "zoomHint": { "message": "クリックで拡大" },
+  "imageLostStep": { "message": "画像データが失われています（ブラウザの休止のため）。このステップは保存されません。" },
   "deleteStep": { "message": "削除" },
   "stepDescLabel": { "message": "説明" },
   "stepDescPlaceholder": { "message": "AI生成または手入力…" },

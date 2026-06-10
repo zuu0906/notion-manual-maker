@@ -284,7 +284,13 @@ async function saveToNotion(notionPageId, title, steps) {
   const { notion_access_token, plan, monthly_screenshots } = await getStoredAuth();
   if (!notion_access_token) return { error: 'Notion未接続' };
 
-  const stepsToSave = steps?.length ? steps : pendingClicks;
+  const requestedSteps = steps?.length ? steps : pendingClicks;
+  // SW再起動でセッション復元されたステップは画像データを持たない — 保存対象から除外して明示
+  const lostCount = requestedSteps.filter(s => !s.annotatedDataUrl).length;
+  const stepsToSave = requestedSteps.filter(s => s.annotatedDataUrl);
+  if (stepsToSave.length === 0 && requestedSteps.length > 0) {
+    return { error: '画像データが失われているため保存できません（ブラウザの休止のため）。再記録してください。' };
+  }
   const limit = PLAN_LIMITS[plan]?.screenshots_per_month ?? 20;
 
   if (limit !== Infinity && monthly_screenshots + stepsToSave.length > limit) {
@@ -415,8 +421,11 @@ async function saveToNotion(notionPageId, title, steps) {
   if (failedCount > 0 && savedCount === 0) {
     return { error: `Notionへの保存に失敗しました（${failedCount}件）` };
   }
-  if (failedCount > 0) {
-    return { success: true, url: notionPageUrl, notionPageUrl, warning: `${savedCount}件保存しました（${failedCount}件失敗）` };
+  const warnings = [];
+  if (failedCount > 0) warnings.push(`${savedCount}件保存しました（${failedCount}件失敗）`);
+  if (lostCount > 0) warnings.push(`画像が失われた${lostCount}件をスキップしました`);
+  if (warnings.length > 0) {
+    return { success: true, url: notionPageUrl, notionPageUrl, warning: warnings.join('。') };
   }
   return { success: true, url: notionPageUrl, notionPageUrl };
 }

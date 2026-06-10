@@ -895,12 +895,22 @@ function renderStepsInto(container) {
       num.appendChild(badge);
     }
 
-    const thumb = document.createElement('img');
-    thumb.className = 'step-thumb';
-    thumb.src = step.annotatedDataUrl;
-    thumb.alt = `step ${step.stepNumber}`;
-    thumb.title = t('zoomHint');
-    thumb.addEventListener('click', () => openPreview(step.annotatedDataUrl));
+    let thumb;
+    if (step.annotatedDataUrl) {
+      thumb = document.createElement('img');
+      thumb.className = 'step-thumb';
+      thumb.src = step.annotatedDataUrl;
+      thumb.alt = `step ${step.stepNumber}`;
+      thumb.title = t('zoomHint');
+      thumb.addEventListener('click', () => openPreview(step.annotatedDataUrl));
+    } else {
+      // SW再起動で画像データが失われたステップ — プレースホルダ表示（保存対象外）
+      thumb = document.createElement('div');
+      thumb.className = 'step-thumb';
+      thumb.style.cssText = 'display:flex;align-items:center;justify-content:center;background:#f0f0f0;color:#999;font-size:18px;cursor:default;';
+      thumb.textContent = '📷✕';
+      thumb.title = t('imageLostStep');
+    }
 
     const topRow = document.createElement('div');
     topRow.className = 'step-item-top';

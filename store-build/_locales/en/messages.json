@@ -148,6 +148,7 @@
 
   "dragHandle": { "message": "Drag to reorder" },
   "zoomHint": { "message": "Click to zoom" },
+  "imageLostStep": { "message": "Image data was lost (browser suspended). This step will not be saved." },
   "deleteStep": { "message": "Delete" },
   "stepDescLabel": { "message": "Desc" },
   "stepDescPlaceholder": { "message": "AI generate or type manually…" },
