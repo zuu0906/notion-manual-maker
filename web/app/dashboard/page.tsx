@@ -55,6 +55,7 @@ const MESSAGES: Record<Locale, Msgs> = {
     noWorkspace: 'まだ Notion ワークスペースが接続されていません。',
     disconnect: '切断',
     addNotion: '＋ Notion を接続する',
+    switchNotion: '⇄ 別のワークスペースに切り替え',
     connecting: '接続中…',
     usageChartTitle: '使用量グラフ（月別）',
     screenshotChartLabel: 'スクショ',
@@ -136,6 +137,7 @@ const MESSAGES: Record<Locale, Msgs> = {
     noWorkspace: 'No Notion workspace connected yet.',
     disconnect: 'Disconnect',
     addNotion: '+ Connect Notion',
+    switchNotion: '⇄ Switch to another workspace',
     connecting: 'Connecting…',
     usageChartTitle: 'Usage history (monthly)',
     screenshotChartLabel: 'Screenshots',
@@ -230,7 +232,9 @@ export default function DashboardPage() {
       supabase.auth.getSession().then(async ({ data }) => {
         if (data.session) {
           setSession(data.session);
-          await handleNotionCode(notionCode, data.session);
+          // プランを先に取得してから接続処理（Free/Standardは置き換えモードのため）
+          const prof = await fetchProfile(data.session);
+          await handleNotionCode(notionCode, data.session, prof?.plan ?? 'free');
           await fetchProfile(data.session);
         } else {
           setLoading(false);
@@ -253,7 +257,7 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function fetchProfile(s: Session) {
+  async function fetchProfile(s: Session): Promise<UserProfile | null> {
     try {
       const headers = {
         'Content-Type': 'application/json',
@@ -271,6 +275,7 @@ export default function DashboardPage() {
       }
       const invoicesData = await invoicesRes.json();
       if (invoicesRes.ok && invoicesData.invoices) setInvoices(invoicesData.invoices);
+      return profileRes.ok ? (profileData as UserProfile) : null;
     } finally {
       setLoading(false);
     }
@@ -414,7 +419,7 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleNotionCode(code: string, s: Session) {
+  async function handleNotionCode(code: string, s: Session, plan: string) {
     setNotionConnecting(true);
     try {
       const proxyRes = await fetch(NOTION_PROXY_URL, {
@@ -433,6 +438,8 @@ export default function DashboardPage() {
 
       const workspaceName = data.workspace_name || 'Notion';
       const workspaceId = data.workspace_id || crypto.randomUUID();
+      // Free/Standard(上限1)は既存WSを置き換え、Pro/Teamは追加
+      const maxWs = (plan === 'pro' || plan === 'team') ? 3 : 1;
 
       await fetch(`${SUPABASE_FUNCTIONS_URL}/sync-workspaces`, {
         method: 'POST',
@@ -442,7 +449,7 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           supabase_token: s.access_token,
-          mode: 'add',
+          mode: maxWs === 1 ? 'replace' : 'add',
           workspaces: [{ id: workspaceId, name: workspaceName, token: data.access_token }],
         }),
       });
@@ -456,8 +463,9 @@ export default function DashboardPage() {
   }
 
   function connectNotion(s: Session, plan: string, currentWsCount: number) {
-    const maxWs = plan === 'pro' ? 3 : 1;
-    if (currentWsCount >= maxWs) {
+    const maxWs = (plan === 'pro' || plan === 'team') ? 3 : 1;
+    // 上限1のプランは置き換え接続を許可。複数WSプランのみ上限でブロック
+    if (maxWs > 1 && currentWsCount >= maxWs) {
       setMsg(t('wsMaxReached', { max: String(maxWs) }));
       return;
     }
@@ -560,6 +568,7 @@ export default function DashboardPage() {
     free:     { label: 'Free',     emoji: '🌱' },
     standard: { label: 'Standard', emoji: '⚡' },
     pro:      { label: 'Pro',      emoji: '🚀' },
+    team:     { label: 'Team',     emoji: '👥' },
   };
 
   /* ── Loading ── */
@@ -616,7 +625,7 @@ export default function DashboardPage() {
   const aiPct = limitAI > 0 ? Math.min((usedAI / limitAI) * 100, 100) : 0;
   const aiBarMod = aiPct >= 100 ? 'over' : aiPct >= 80 ? 'warn' : aiPct < 50 ? 'low' : '';
 
-  const maxWs = profile?.plan === 'pro' ? 3 : 1;
+  const maxWs = (profile?.plan === 'pro' || profile?.plan === 'team') ? 3 : 1;
 
   return (
     <div className="dash-wrap">
@@ -1014,7 +1023,7 @@ export default function DashboardPage() {
                     </li>
                   ))}
                 </ul>
-                {profile.workspaces.length < maxWs && (
+                {(profile.workspaces.length < maxWs || maxWs === 1) && (
                   <div className="connect-row">
                     <div className="l">
                       <span>
@@ -1023,7 +1032,7 @@ export default function DashboardPage() {
                           <path d="M7 5v4M5 7h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                         </svg>
                       </span>
-                      <span>{t('addNotion')}</span>
+                      <span>{profile.workspaces.length >= maxWs ? t('switchNotion') : t('addNotion')}</span>
                     </div>
                     <button
                       className="btn-outline"

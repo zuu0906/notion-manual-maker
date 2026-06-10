@@ -231,14 +231,17 @@ async function initUserSession() {
       if (wsDiffers) {
         if (serverWs.length === 0) {
           const lastConnectAt = await api.storeGet('notion_last_connect_at', 0);
-          if (Date.now() - lastConnectAt < 120_000) {
-            // 接続直後(2分以内)はサーバー未反映の可能性 → ローカルをサーバーに再push
+          const syncedAt = await api.storeGet('notion_ws_synced_at', 0);
+          // 「同期が一度も成功していない」(Google未サインインで接続した等) か接続直後なら
+          // ローカルが正 → サーバーへ再push。同期実績がある場合のみダッシュボードでの全切断とみなす
+          if (!syncedAt || Date.now() - lastConnectAt < 120_000) {
             syncWorkspacesToServer(freshWs);
           } else {
           // サーバーで全切断 → ローカルもクリア
           api.storeDeleteMulti([
             'notion_workspaces', 'notion_active_workspace_id',
             'notion_access_token', 'notion_workspace_name',
+            'notion_ws_synced_at', 'notion_last_connect_at',
           ]);
           notionDot.classList.remove('connected');
           notionStatus.textContent = t('notionDisconnected');
@@ -428,6 +431,7 @@ async function connectNotion() {
       notion_access_token: access_token,
       notion_workspace_name: workspace_name,
       notion_last_connect_at: Date.now(),
+      notion_ws_synced_at: 0, // 新しいWS構成はまだ未同期 — sync成功時に更新される
     });
 
     setNotionConnected(workspace_name);
@@ -493,11 +497,17 @@ wsAddBtn.addEventListener('click', connectNotion);
 async function syncWorkspacesToServer(workspaces) {
   if (!state.googleToken) return;
   const wsForSync = workspaces.map(w => ({ id: w.id, name: w.name, token: w.token ?? null }));
-  fetch(`${SUPABASE_URL}/functions/v1/sync-workspaces`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ google_token: state.googleToken, workspaces: wsForSync }),
-  }).catch(() => {});
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/sync-workspaces`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ google_token: state.googleToken, workspaces: wsForSync }),
+    });
+    // 同期成功を記録 — initUserSessionの「サーバー空→ローカル消去」判定に使用
+    if (res.ok) api.storeSetMulti({ notion_ws_synced_at: Date.now() });
+  } catch (e) {
+    console.warn('[syncWorkspaces]', e.message);
+  }
 }
 
 connectBtn.addEventListener('click', connectNotion);

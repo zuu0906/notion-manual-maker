@@ -270,10 +270,17 @@ async function initUserSession() {
 
         if (differs) {
           if (serverWs.length === 0) {
+            const { notion_ws_synced_at: syncedAt = 0, notion_last_connect_at: lastConnectAt = 0 }
+              = await chrome.storage.local.get(['notion_ws_synced_at', 'notion_last_connect_at']);
+            if (!syncedAt || Date.now() - lastConnectAt < 120_000) {
+              // 同期が一度も成功していない/接続直後 → ローカルが正 → サーバーへ再push
+              syncWorkspacesToServer(localWs ?? []).catch(e => console.warn('[syncWorkspaces]', e.message));
+            } else {
             // サーバーで全切断 → ローカルもクリア
             await chrome.storage.local.remove([
               'notion_workspaces', 'notion_active_workspace_id',
               'notion_access_token', 'notion_workspace_name',
+              'notion_ws_synced_at', 'notion_last_connect_at',
             ]);
             notionDot.classList.remove('connected');
             notionStatus.textContent = t('notionDisconnected');
@@ -282,6 +289,7 @@ async function initUserSession() {
             wsSelector.style.display = 'none';
             wsAddBtn.style.display = 'none';
             allNotionPages = [];
+            }
           } else {
             // アクティブWSがサーバーにない場合は先頭に切り替え
             const { notion_active_workspace_id: curActiveId }
@@ -707,6 +715,8 @@ async function syncWorkspacesToServer(workspaces) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error ?? `sync failed (${res.status})`);
   }
+  // 同期成功を記録 — 「サーバー空→ローカル消去」判定に使用
+  await chrome.storage.local.set({ notion_ws_synced_at: Date.now() });
 }
 
 async function connectNotion() {
@@ -769,12 +779,15 @@ async function connectNotion() {
       notion_access_token: data.access_token,
       notion_workspace_name: workspaceName,
       notion_workspace_id: workspaceId,
+      notion_last_connect_at: Date.now(),
+      notion_ws_synced_at: 0, // 新しいWS構成はまだ未同期 — sync成功時に更新される
     });
 
     renderWsSelector(workspaces, workspaceId);
     setNotionConnected(workspaceName);
     loadNotionPages(data.access_token);
-    await syncWorkspacesToServer(workspaces);
+    // 同期失敗でもNotion接続自体は成功 — エラー扱いにしない（後でinitUserSessionが再push）
+    await syncWorkspacesToServer(workspaces).catch(e => console.warn('[syncWorkspaces]', e.message));
   } catch (e) {
     showMsg(t('notionConnectFailed', [e.message]), 'error');
   } finally {

@@ -10,7 +10,7 @@ export const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 export type UserProfile = {
   userId: string;
   email: string;
-  plan: 'free' | 'standard' | 'pro';
+  plan: 'free' | 'standard' | 'pro' | 'team';
   locale?: 'ja' | 'en';
   ai_calls_used: number;
   ai_calls_limit: number;
