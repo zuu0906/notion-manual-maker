@@ -3,7 +3,7 @@ name: Desktop App Release
 on:
   push:
     tags:
-      - 'desktop-v*'
+      - 'v*'
 
 permissions:
   contents: write
