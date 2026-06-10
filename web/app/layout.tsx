@@ -8,6 +8,9 @@ export const metadata: Metadata = {
     default: 'Notion Manual Maker',
     template: '%s | Notion Manual Maker',
   },
+  verification: {
+    google: 'UQ7sjWq-9NYCZ0vriT2xwiD5ZFvfIW9ZkcbjRmZR9Yo',
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
