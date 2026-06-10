@@ -36,10 +36,37 @@ app.whenReady().then(() => {
   createMainWindow();
   createTray();
   registerHotkeys();
-  // アップデートチェック（起動から5秒後、エラーは無視）
+  // アップデートチェック（起動から5秒後）
   setTimeout(() => {
-    autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+    autoUpdater.checkForUpdatesAndNotify().catch(err => {
+      console.warn('[autoUpdater] check failed:', err.message);
+    });
   }, 5000);
+});
+
+// ── Auto-updater events ────────────────────────────────────────────────────
+autoUpdater.on('update-available', (info) => {
+  console.log('[autoUpdater] update available:', info.version);
+  sendToRenderer('app:update-available', { version: info.version });
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('[autoUpdater] update downloaded:', info.version);
+  sendToRenderer('app:update-downloaded', { version: info.version });
+  if (tray && process.platform === 'win32') {
+    const isJa = app.getLocale().startsWith('ja');
+    tray.displayBalloon({
+      title: 'Notion Manual Maker',
+      content: isJa
+        ? `アップデート v${info.version} の準備ができました。次回起動時に適用されます。`
+        : `Update v${info.version} is ready and will be applied on next launch.`,
+      iconType: 'info',
+    });
+  }
+});
+
+autoUpdater.on('error', (err) => {
+  console.warn('[autoUpdater] error:', err.message);
 });
 
 app.on('window-all-closed', (e) => {
@@ -83,6 +110,18 @@ function createMainWindow() {
   mainWindow.on('close', (e) => {
     e.preventDefault();
     mainWindow.hide();
+    // 初回のみ「トレイで動作中」を通知（終了したと誤解されるのを防ぐ）
+    if (!store.get('tray_hint_shown', false) && tray && process.platform === 'win32') {
+      store.set('tray_hint_shown', true);
+      const isJa = app.getLocale().startsWith('ja');
+      tray.displayBalloon({
+        title: 'Notion Manual Maker',
+        content: isJa
+          ? 'システムトレイで動作中です。トレイアイコンをクリックすると再表示できます。'
+          : 'Still running in the system tray. Click the tray icon to reopen.',
+        iconType: 'info',
+      });
+    }
   });
 }
 
@@ -145,8 +184,23 @@ function registerHotkeys() {
 // ── Screenshot capture ─────────────────────────────────────────────────────
 // desktopCapturer is renderer-only (Electron 17+), so we ask the popup
 // renderer to take the screenshot via preload, then receive the result here.
+// 連続キャプチャ（ホットキー連打）で _pendingScreenshot が競合しないようガード
+let _captureInProgress = false;
+let _captureGuardTimer = null;
+
+function setCaptureInProgress(value) {
+  _captureInProgress = value;
+  clearTimeout(_captureGuardTimer);
+  if (value) {
+    // 保険: レンダラーが応答しない場合でも10秒でロック解除
+    _captureGuardTimer = setTimeout(() => { _captureInProgress = false; }, 10000);
+  }
+}
+
 function takeScreenshot() {
+  if (_captureInProgress) return;
   if (mainWindow && !mainWindow.isDestroyed()) {
+    setCaptureInProgress(true);
     mainWindow.webContents.send('capture:trigger', {});
   }
 }
@@ -161,10 +215,20 @@ ipcMain.on('capture:screenshot-ready', async () => {
   pendingOcrWords = [];
   if (store.get('privacy_blur', true)) {
     const { scaleFactor } = screen.getPrimaryDisplay();
-    const result = await detectPiiAndWords(dataUrl, scaleFactor).catch(() => ({ piiRegions: [], words: [] }));
-    piiRegions = result.piiRegions;
-    pendingOcrWords = result.words;
+    // OCR中はレンダラーに処理中ステータスを表示（最大15秒かかる）
+    sendToRenderer('app:ocr-status', { status: 'processing' });
+    const result = await detectPiiAndWords(dataUrl, scaleFactor).catch(() => null);
+    sendToRenderer('app:ocr-status', { status: 'done' });
+    if (result) {
+      piiRegions = result.piiRegions;
+      pendingOcrWords = result.words;
+    } else {
+      // OCR失敗 — ぼかしが効かない可能性をユーザーに通知
+      console.warn('[ocr] PII detection failed');
+      sendToRenderer('app:ocr-failed', {});
+    }
   }
+  setCaptureInProgress(false);
   showOverlay(dataUrl, width, height, steps.length + 1, piiRegions);
 });
 
@@ -270,6 +334,7 @@ ipcMain.on('overlay:cancel', () => {
 let _pendingScreenshot = null;
 
 ipcMain.handle('capture:screenshot', async () => {
+  setCaptureInProgress(true); // レンダラー側ボタン経由でもガードを有効化
   const display = screen.getPrimaryDisplay();
   const { bounds, scaleFactor } = display;
   const physW = Math.round(bounds.width * scaleFactor);
@@ -288,6 +353,7 @@ ipcMain.handle('capture:screenshot', async () => {
     _pendingScreenshot = { dataUrl, width: bounds.width, height: bounds.height };
     return { width: bounds.width, height: bounds.height }; // dataUrlは送らない
   }
+  setCaptureInProgress(false); // 取得失敗 — ロック解除
   return null;
 });
 
@@ -348,7 +414,8 @@ ipcMain.handle('auth:notion-connect', async () => {
 ipcMain.handle('notion:save', async (_, args) => {
   const durationSec = recordingStartAt ? Math.round((Date.now() - recordingStartAt) / 1000) : null;
   const result = await notion.saveToNotion({ ...args, recordingDurationSec: durationSec });
-  if (result.success) {
+  // 部分失敗（warning付き）の場合はステップを保持し、再保存できるようにする
+  if (result.success && !result.warning) {
     steps = [];
     recordingStartAt = null;
     notifyRenderer({ steps });
@@ -407,5 +474,12 @@ ipcMain.on('preview:open', (_, src) => {
 function notifyRenderer(data) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('state:updated', data);
+  }
+}
+
+// 任意のチャンネルでレンダラーへイベント送信（autoUpdater/OCRステータス等）
+function sendToRenderer(channel, data) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, data);
   }
 }

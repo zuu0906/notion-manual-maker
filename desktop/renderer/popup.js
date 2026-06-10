@@ -1016,11 +1016,14 @@ saveBtn.addEventListener('click', async () => {
   } else if (result?.success) {
     showMsg(result.warning || t('savedToNotion'), result.warning ? 'error' : 'success');
     if (result.notionPageUrl) api.openExternal(result.notionPageUrl);
-    state.steps = [];
-    pageTitle.value = '';
-    renderSteps();
-    updateStepsUI();
-    updateAiUI();
+    // 部分失敗（warning付き）時はステップを保持して再保存できるようにする
+    if (!result.warning) {
+      state.steps = [];
+      pageTitle.value = '';
+      renderSteps();
+      updateStepsUI();
+      updateAiUI();
+    }
     // Refresh screenshot count
     const saved = await api.storeGet('monthly_screenshots', 0);
     state.monthly_screenshots = saved;
@@ -1105,6 +1108,32 @@ function showMsg(text, type) {
 
 async function init() {
   await applyI18n();
+
+  // ── Main プロセスからのアプリイベント購読 ──
+  if (api.onAppEvent) {
+    // autoUpdater: 新バージョン検知・ダウンロード完了
+    api.onAppEvent('app:update-available', ({ version }) => {
+      showMsg(t('updateAvailable', String(version)), 'success');
+    });
+    api.onAppEvent('app:update-downloaded', ({ version }) => {
+      showMsg(t('updateDownloaded', String(version)), 'success');
+    });
+    // OCR処理中はキャプチャボタンを「解析中…」表示に
+    api.onAppEvent('app:ocr-status', ({ status }) => {
+      if (status === 'processing') {
+        captureBtn.disabled = true;
+        captureBtn.textContent = t('ocrProcessing');
+      } else {
+        captureBtn.disabled = false;
+        captureBtn.textContent = t('captureBtn');
+      }
+    });
+    // OCR失敗 — ぼかし未適用の可能性を通知
+    api.onAppEvent('app:ocr-failed', () => {
+      showMsg(t('ocrFailed'), 'error');
+      setTimeout(() => { if (msgEl.textContent === t('ocrFailed')) showMsg('', ''); }, 6000);
+    });
+  }
 
   // Load stored state
   const stored = await api.storeGetMulti([

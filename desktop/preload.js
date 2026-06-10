@@ -74,6 +74,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onStateUpdated: (cb) => {
     ipcRenderer.on('state:updated', (_, data) => cb(data));
   },
+  // 汎用イベント購読（ホワイトリスト方式）— autoUpdater / OCRステータス通知用
+  onAppEvent: (channel, cb) => {
+    const allowed = ['app:update-available', 'app:update-downloaded', 'app:ocr-status', 'app:ocr-failed'];
+    if (allowed.includes(channel)) {
+      ipcRenderer.on(channel, (_, data) => cb(data));
+    }
+  },
   removeStateUpdatedListeners: () => {
     ipcRenderer.removeAllListeners('state:updated');
   },
