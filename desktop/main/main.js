@@ -127,25 +127,19 @@ function createMainWindow() {
 }
 
 // ── System tray ────────────────────────────────────────────────────────────
-// Minimal 16×16 red-circle PNG (base64) — used as fallback tray icon
-const FALLBACK_TRAY_B64 = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAa0lEQVQ4T2NkIAIwEqGGgXoG/v//z8DAQI+hAWqAIVQ9VgPwGoChAWqAJVQ9VgPwGoChAWqAJVQ9VgPwGoChAWqAJVQ9Vh' +
-  'PwGoChAWqAJVQ9VgPwGoChAWqAJVQ9VgPwGoChAWqAJQAAAABJRU5ErkJggg==';
-
 function createTray() {
-  const iconPath = path.join(__dirname, '..', 'icon16.png');
-  let icon;
-  try {
-    icon = nativeImage.createFromPath(iconPath);
-    if (icon.isEmpty()) throw new Error('empty');
-    icon = icon.resize({ width: 16, height: 16 });
-  } catch {
-    try {
-      // Embed a minimal icon so the tray works without an asset file
-      icon = nativeImage.createFromDataURL(`data:image/png;base64,${FALLBACK_TRAY_B64}`);
-    } catch {
-      icon = nativeImage.createEmpty();
-    }
+  // アプリロゴをトレイアイコンに使用（icon256優先 — 高DPIでも鮮明）
+  // dev: desktop/ 直下、packaged: app.asar 直下（electron-builder files で同梱）
+  const candidates = [
+    path.join(__dirname, '..', 'icon256.png'),
+    path.join(__dirname, '..', 'icon16.png'),
+  ];
+  let icon = nativeImage.createEmpty();
+  for (const p of candidates) {
+    const img = nativeImage.createFromPath(p);
+    if (!img.isEmpty()) { icon = img.resize({ width: 32, height: 32 }); break; }
   }
+  if (icon.isEmpty()) console.warn('[tray] icon asset missing — tray icon will be invisible');
 
   try {
     tray = new Tray(icon);

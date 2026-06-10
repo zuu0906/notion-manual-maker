@@ -1,6 +1,6 @@
 {
   "name": "chrome-manual-maker-desktop",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Notion Manual Maker Desktop — あらゆるアプリのマニュアルを作成",
   "main": "main/main.js",
   "scripts": {
@@ -25,7 +25,9 @@
       "renderer/**",
       "shared/**",
       "preload.js",
-      "overlay-preload.js"
+      "overlay-preload.js",
+      "icon16.png",
+      "icon256.png"
     ],
     "extraResources": [
       { "from": "../extension/_locales", "to": "_locales" },
