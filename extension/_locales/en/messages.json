@@ -191,5 +191,13 @@
   "stepDescPlaceholderDesktop": { "message": "Describe the action" },
   "stepMemoPlaceholderDesktop": { "message": "Additional notes (optional)" },
   "deleteStepTitle": { "message": "Delete this step" },
-  "aiGenBtnTitle": { "message": "Generate description with AI" }
+  "aiGenBtnTitle": { "message": "Generate description with AI" },
+
+  "injectionError": { "message": "Could not start recording on this page (e.g. chrome:// or restricted pages). Open a regular web page and try again." },
+  "savingProgress": { "message": "Saving $CURRENT$/$TOTAL$…", "placeholders": { "current": { "content": "$1" }, "total": { "content": "$2" } } },
+  "cacheAgeHint": { "message": "Page list loaded $MIN$ min ago — click to refresh", "placeholders": { "min": { "content": "$1" } } },
+  "ocrProcessing": { "message": "Analyzing…" },
+  "ocrFailed": { "message": "PII detection unavailable — personal info may not be blurred" },
+  "updateAvailable": { "message": "Update v$VER$ available — downloading in background", "placeholders": { "ver": { "content": "$1" } } },
+  "updateDownloaded": { "message": "Update v$VER$ ready — applied on next launch", "placeholders": { "ver": { "content": "$1" } } }
 }

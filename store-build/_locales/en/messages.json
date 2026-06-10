@@ -15,7 +15,7 @@
   "recordingLabel": { "message": "Recording" },
   "stepsLabel": { "message": "Steps" },
   "privacyLabel": { "message": "Auto-blur personal info" },
-  "privacyDesc": { "message": "Masks email, phone, credit card, and password fields" },
+  "privacyDesc": { "message": "Masks email, phone, card & password fields" },
   "googleSignInDesc": { "message": "Google account required for plan management and AI features" },
   "googleSignIn": { "message": "Sign in with Google" },
   "destLabel": { "message": "Save to" },
@@ -26,8 +26,8 @@
   "clearBtn": { "message": "Clear" },
   "pdfBtn": { "message": "Export PDF" },
   "saveBtn": { "message": "Save to Notion" },
-  "upgradeMsgFree": { "message": "Upgrade required to use AI features" },
-  "upgradeBtnText": { "message": "Upgrade on My Page" },
+  "upgradeMsgFree": { "message": "Upgrade to unlock AI features" },
+  "upgradeBtnText": { "message": "Upgrade" },
   "emptyHint": { "message": "Start recording and click anywhere on the page to capture screenshots" },
   "recordStatusZero": { "message": "0 steps recorded" },
   "recordingStepsZero": { "message": "0 steps" },
@@ -71,7 +71,7 @@
   "planRestricted": { "message": "Some features are now restricted." },
 
   "upgradeMsgStandard": {
-    "message": "$REMAINING$ AI uses left — Upgrade to Pro for 500/month",
+    "message": "$REMAINING$ AI uses left · Go Pro",
     "placeholders": { "remaining": { "content": "$1" } }
   },
   "aiCallsRemaining": {
@@ -169,5 +169,35 @@
   "inputDialogPlaceholder": { "message": "Enter the value to record..." },
   "skip": { "message": "Skip" },
   "passwordDialogTitle": { "message": "Recording password field" },
-  "passwordDialogMsg": { "message": "Password will not be saved. The step will be recorded as \"Enter password\" instead." }
+  "passwordDialogMsg": { "message": "Password will not be saved. The step will be recorded as \"Enter password\" instead." },
+
+  "captureBtn": { "message": "Capture" },
+  "upgradeToPro": { "message": "Upgrade to Pro" },
+  "desktopEmptyHint": { "message": "Press Ctrl+Shift+M or click \"Capture\" to add screenshots" },
+  "signInRequired": { "message": "Sign in to use AI and manage your plan" },
+  "desktopBulkGenBtn": { "message": "✦ AI Generate All" },
+  "signedIn": { "message": "Signed in." },
+  "sessionExpired": { "message": "Session expired. Please sign in again." },
+  "accountSwitched": { "message": "Signed in with a different account. Please reconnect Notion." },
+  "screenshotFailed": { "message": "Screenshot capture failed: $ERR$", "placeholders": { "err": { "content": "$1" } } },
+  "notionPageLoadTimeout": { "message": "Notion page load timed out. Click ↺ to retry." },
+  "captureLimitBanner": { "message": "$LIMIT$-shot monthly limit reached — Standard is unlimited", "placeholders": { "limit": { "content": "$1" } } },
+  "captureLimitMsg": { "message": "Monthly screenshot limit ($LIMIT$) reached.", "placeholders": { "limit": { "content": "$1" } } },
+  "upgradeAiLimitReached": { "message": "AI limit reached — go Pro for 500/month" },
+  "upgradeAiLow": { "message": "$REMAINING$ AI uses left — go Pro for 500", "placeholders": { "remaining": { "content": "$1" } } },
+  "upgradeAi80pct": { "message": "80% of AI uses gone — Pro has 5×" },
+  "upgradeAi50pct": { "message": "50% of AI uses gone — Pro gives 500" },
+  "wsMaxReachedFmt": { "message": "Workspace limit ($MAX$) reached.", "placeholders": { "max": { "content": "$1" } } },
+  "stepDescPlaceholderDesktop": { "message": "Describe the action" },
+  "stepMemoPlaceholderDesktop": { "message": "Additional notes (optional)" },
+  "deleteStepTitle": { "message": "Delete this step" },
+  "aiGenBtnTitle": { "message": "Generate description with AI" },
+
+  "injectionError": { "message": "Could not start recording on this page (e.g. chrome:// or restricted pages). Open a regular web page and try again." },
+  "savingProgress": { "message": "Saving $CURRENT$/$TOTAL$…", "placeholders": { "current": { "content": "$1" }, "total": { "content": "$2" } } },
+  "cacheAgeHint": { "message": "Page list loaded $MIN$ min ago — click to refresh", "placeholders": { "min": { "content": "$1" } } },
+  "ocrProcessing": { "message": "Analyzing…" },
+  "ocrFailed": { "message": "PII detection unavailable — personal info may not be blurred" },
+  "updateAvailable": { "message": "Update v$VER$ available — downloading in background", "placeholders": { "ver": { "content": "$1" } } },
+  "updateDownloaded": { "message": "Update v$VER$ ready — applied on next launch", "placeholders": { "ver": { "content": "$1" } } }
 }

@@ -120,16 +120,6 @@
 
     if (isPassword) {
       await showPasswordConfirm();
-    } else if (isTextInput) {
-      inputText = await promptTextInput(el, x, y);
-      if (inputText !== null) {
-        if (!isContentEditable) {
-          el.focus();
-          el.value = inputText;
-          el.dispatchEvent(new Event('input', { bubbles: true }));
-          el.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      }
     } else if (isSelect) {
       inputText = el.options[el.selectedIndex]?.text ?? null;
       pendingEl = el;
@@ -148,6 +138,9 @@
       elementHint: getElementHint(el),
       formNote: getFormNote(el),
       piiRegions,
+    }).catch(() => {
+      // Extension reloaded while page was open — reactivate on next click
+      deactivate();
     });
   });
 
@@ -170,7 +163,7 @@
     window.removeEventListener('scroll', onScroll);
     window.__cmm_active = false;
     pendingEl = null;
-    chrome.runtime.sendMessage({ type: 'RECORDING_STOPPED' });
+    chrome.runtime.sendMessage({ type: 'RECORDING_STOPPED' }).catch(() => {});
   }
 
   function showRipple(x, y) {

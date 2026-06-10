@@ -516,6 +516,10 @@ chrome.runtime.onMessage.addListener((msg) => {
     renderSteps();
     updateRecordUI();
     updateAiUI();
+  } else if (msg.type === 'INJECTION_ERROR') {
+    showMsg(t('injectionError'), 'error');
+  } else if (msg.type === 'SAVE_PROGRESS') {
+    saveBtn.textContent = t('savingProgress', [String(msg.current), String(msg.total)]);
   }
 });
 
@@ -580,6 +584,9 @@ async function loadNotionPages(token, force = false) {
       allNotionPages = c.notionPagesCache;
       applyDestFilter(destFilter.value);
       destRow.style.display = state.plan === 'free' ? 'none' : '';
+      // キャッシュの経過時間をツールチップで表示（更新ボタンへの導線）
+      const ageMin = Math.round((Date.now() - (c.notionPagesCacheTs ?? 0)) / 60000);
+      destRefreshBtn.title = t('cacheAgeHint', [String(ageMin)]);
       return;
     }
   }

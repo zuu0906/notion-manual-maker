@@ -3,7 +3,7 @@
   "name": "__MSG_extName__",
   "default_locale": "ja",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoJUXl9JQBUwtFt6HCIVVYm9LprkBacji4rUuS2E3cch34Uay0CfGLAmf2NBlDfH4a3g+XeoXUWVHPjfW9UhGPSsTl3zyOUjzVnL8G444XCtLFE74Wgpxwd1ecUDXO/jQbVzMhwV1e4ibcqWQx8sFBsMyR74rnx3EDZ+WQ5JAyo2pVyhB4VPeBeIQuQMzklrKuTLq48GmIRmu4cv0DmuPn/tTsGkZVnTl4AdHJ/26iccXReNhwDqfqM5Iy8dnPHs7FU1z0SJkYt4zMQQtcMGjlv7CSYw+a6PfF5sdD2tzzgvRtO9RkUXXUhIg/Szs8oDXyNltzflCrYcorT5yfU2vTQIDAQAB",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "クリックするだけでスクリーンショット+矢印をNotionへ自動保存",
   "permissions": [
     "activeTab",

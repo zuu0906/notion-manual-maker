@@ -39,19 +39,37 @@ async function saveSession() {
   await chrome.storage.session.set({ pendingClicks: steps, isRecording, recordingTabId });
 }
 
+// content.js注入失敗をユーザーに可視化（chrome://やCSP制限ページ等で発生）
+function handleInjectionError(err, context) {
+  console.warn(`[injection:${context}]`, err?.message ?? err);
+  if (isRecording) {
+    chrome.action.setBadgeBackgroundColor({ color: '#FF9500' });
+    chrome.action.setBadgeText({ text: 'ERR' });
+    notifyPopup({ type: 'INJECTION_ERROR', message: String(err?.message ?? err) });
+  }
+}
+
+// 注入成功時にエラーバッジを元に戻す
+function clearInjectionError() {
+  chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
+  chrome.action.setBadgeText({ text: pendingClicks.length > 0 ? String(pendingClicks.length) : 'REC' });
+}
+
+function injectContentScript(tabId, context) {
+  return chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] })
+    .then(() => { if (isRecording) clearInjectionError(); })
+    .catch(e => handleInjectionError(e, context));
+}
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (tabId === recordingTabId && changeInfo.status === 'complete' && isRecording) {
-    setTimeout(() => {
-      chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] }).catch(() => {});
-    }, 300);
+    setTimeout(() => injectContentScript(tabId, 'onUpdated'), 300);
   }
 });
 
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   if (details.tabId === recordingTabId && details.frameId === 0 && isRecording) {
-    setTimeout(() => {
-      chrome.scripting.executeScript({ target: { tabId: details.tabId }, files: ['content.js'] }).catch(() => {});
-    }, 300);
+    setTimeout(() => injectContentScript(details.tabId, 'onHistoryStateUpdated'), 300);
   }
 });
 
@@ -60,7 +78,19 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   if (!isRecording) return;
   recordingTabId = tabId;
   saveSession().catch(() => {});
-  chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] }).catch(() => {});
+  injectContentScript(tabId, 'onActivated');
+});
+
+// 記録中のタブが閉じられたら記録を停止して状態をクリーンアップ
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (tabId === recordingTabId && isRecording) {
+    isRecording = false;
+    recordingTabId = null;
+    chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
+    chrome.action.setBadgeText({ text: pendingClicks.length > 0 ? String(pendingClicks.length) : '' });
+    notifyPopup({ type: 'STATE_UPDATE', isRecording: false, steps: pendingClicks });
+    saveSession().catch(() => {});
+  }
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -114,10 +144,13 @@ async function startRecording(tabId) {
   recordingTabId = tabId;
   recordingStartTime = Date.now();
   await saveSession();
+  // 録画開始の視覚フィードバック（ポップアップは閉じるためバッジで示す）
+  chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
+  chrome.action.setBadgeText({ text: pendingClicks.length > 0 ? String(pendingClicks.length) : 'REC' });
   try {
     await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
   } catch (e) {
-    console.warn('[startRecording] executeScript failed:', e.message);
+    handleInjectionError(e, 'startRecording');
   }
   notifyPopup({ type: 'STATE_UPDATE', isRecording: true, steps: pendingClicks });
 }
@@ -270,9 +303,14 @@ async function saveToNotion(notionPageId, title, steps) {
 
   let savedCount = 0;
   let failedCount = 0;
+  notifyPopup({ type: 'SAVE_PROGRESS', current: 0, total: stepsToSave.length });
   for (const step of stepsToSave) {
     const imageUrl = await uploadToSupabase(step.annotatedDataUrl);
-    if (!imageUrl) { failedCount++; continue; }
+    if (!imageUrl) {
+      failedCount++;
+      notifyPopup({ type: 'SAVE_PROGRESS', current: savedCount + failedCount, total: stepsToSave.length });
+      continue;
+    }
 
     const blocks = [];
 
@@ -307,6 +345,7 @@ async function saveToNotion(notionPageId, title, steps) {
       failedCount++;
       console.error('[Notion] ブロック追加失敗:', e.message);
     }
+    notifyPopup({ type: 'SAVE_PROGRESS', current: savedCount + failedCount, total: stepsToSave.length });
   }
 
   await incrementScreenshotCount(savedCount);

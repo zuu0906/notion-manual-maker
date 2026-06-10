@@ -11,6 +11,7 @@ let isRecording = false;
 let recordingTabId = null;
 let clickQueue = Promise.resolve();
 let lastCaptureTime = 0;
+let recordingStartTime = null;
 const MIN_CAPTURE_INTERVAL = 300;
 
 // drawOnOffscreen でのストレージ呼び出しを避けるためのプランキャッシュ
@@ -33,23 +34,62 @@ async function restoreSession() {
 }
 
 async function saveSession() {
+  // 画像データを除いてセッション保存（容量オーバーを防ぐ）
   const steps = pendingClicks.map(({ annotatedDataUrl: _a, rawDataUrl: _r, ...rest }) => rest);
   await chrome.storage.session.set({ pendingClicks: steps, isRecording, recordingTabId });
 }
 
+// content.js注入失敗をユーザーに可視化（chrome://やCSP制限ページ等で発生）
+function handleInjectionError(err, context) {
+  console.warn(`[injection:${context}]`, err?.message ?? err);
+  if (isRecording) {
+    chrome.action.setBadgeBackgroundColor({ color: '#FF9500' });
+    chrome.action.setBadgeText({ text: 'ERR' });
+    notifyPopup({ type: 'INJECTION_ERROR', message: String(err?.message ?? err) });
+  }
+}
+
+// 注入成功時にエラーバッジを元に戻す
+function clearInjectionError() {
+  chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
+  chrome.action.setBadgeText({ text: pendingClicks.length > 0 ? String(pendingClicks.length) : 'REC' });
+}
+
+function injectContentScript(tabId, context) {
+  return chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] })
+    .then(() => { if (isRecording) clearInjectionError(); })
+    .catch(e => handleInjectionError(e, context));
+}
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (tabId === recordingTabId && changeInfo.status === 'complete' && isRecording) {
-    setTimeout(() => {
-      chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] }).catch(() => {});
-    }, 300);
+    setTimeout(() => injectContentScript(tabId, 'onUpdated'), 300);
   }
 });
 
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   if (details.tabId === recordingTabId && details.frameId === 0 && isRecording) {
-    setTimeout(() => {
-      chrome.scripting.executeScript({ target: { tabId: details.tabId }, files: ['content.js'] }).catch(() => {});
-    }, 300);
+    setTimeout(() => injectContentScript(details.tabId, 'onHistoryStateUpdated'), 300);
+  }
+});
+
+// タブ切り替え時に新しいタブへコンテンツスクリプトを注入して記録を継続
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  if (!isRecording) return;
+  recordingTabId = tabId;
+  saveSession().catch(() => {});
+  injectContentScript(tabId, 'onActivated');
+});
+
+// 記録中のタブが閉じられたら記録を停止して状態をクリーンアップ
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (tabId === recordingTabId && isRecording) {
+    isRecording = false;
+    recordingTabId = null;
+    chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
+    chrome.action.setBadgeText({ text: pendingClicks.length > 0 ? String(pendingClicks.length) : '' });
+    notifyPopup({ type: 'STATE_UPDATE', isRecording: false, steps: pendingClicks });
+    saveSession().catch(() => {});
   }
 });
 
@@ -59,7 +99,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       startRecording(sender.tab?.id ?? msg.tabId);
       break;
     case 'CLICK_CAPTURED':
-      clickQueue = clickQueue.then(() => handleClick(msg, sender.tab?.id)).catch(e => console.error('[click]', e));
+      // アクティブな記録タブからのクリックのみ処理（タブ切り替え後の遅延クリックを除外）
+      if (sender.tab?.id === recordingTabId) {
+        clickQueue = clickQueue.then(() => handleClick(msg, sender.tab?.id)).catch(e => console.error('[click]', e));
+      }
       break;
     case 'RECORDING_STOPPED':
       isRecording = false;
@@ -85,15 +128,30 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       pendingClicks = msg.steps ?? [];
       break;
     case 'GET_STATE':
-      sendResponse({ isRecording, steps: pendingClicks });
-      break;
+      // メモリのデータを優先（画像データあり）、サービスワーカー再起動後のみsessionを使用
+      chrome.storage.session.get(['pendingClicks', 'isRecording']).then(s => {
+        sendResponse({
+          isRecording: s.isRecording ?? isRecording,
+          steps: pendingClicks.length > 0 ? pendingClicks : (s.pendingClicks ?? []),
+        });
+      });
+      return true; // 非同期レスポンスのため true を返す
   }
 });
 
 async function startRecording(tabId) {
   isRecording = true;
   recordingTabId = tabId;
-  await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
+  recordingStartTime = Date.now();
+  await saveSession();
+  // 録画開始の視覚フィードバック（ポップアップは閉じるためバッジで示す）
+  chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
+  chrome.action.setBadgeText({ text: pendingClicks.length > 0 ? String(pendingClicks.length) : 'REC' });
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
+  } catch (e) {
+    handleInjectionError(e, 'startRecording');
+  }
   notifyPopup({ type: 'STATE_UPDATE', isRecording: true, steps: pendingClicks });
 }
 
@@ -125,6 +183,7 @@ async function handleClick({ x, y, viewportWidth, viewportHeight, inputText, isP
   });
 
   chrome.action.setBadgeText({ text: String(pendingClicks.length) });
+  // 新しいステップのみ送信（全ステップ送信は64MiB制限に当たる）
   notifyPopup({ type: 'STEP_ADDED', step: pendingClicks[pendingClicks.length - 1] });
   await saveSession();
 }
@@ -154,19 +213,6 @@ async function drawOnOffscreen(dataUrl, clickX, clickY, viewportWidth, viewportH
   ctx.beginPath();
   ctx.arc(x, y, 18 * scale, 0, Math.PI * 2);
   ctx.stroke();
-
-  const badgeR = 16 * scale;
-  const badgeX = x + 22 * scale;
-  const badgeY = y - 22 * scale;
-  ctx.fillStyle = '#FF3B30';
-  ctx.beginPath();
-  ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${Math.round(16 * scale)}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(String(stepNumber), badgeX, badgeY + 1);
 
   // Freeプランのウォーターマーク（起動直後の race condition を避けるため planReady を待つ）
   await planReadyPromise;
@@ -242,10 +288,13 @@ async function saveToNotion(notionPageId, title, steps) {
   const usedTitle = title || fallbackTitle;
   let notionPage;
   if (notionPageId && title) {
+    // 既存ページ選択 + title あり → 子ページとして作成
     notionPage = await createNotionPageUnder(notion_access_token, notionPageId, title);
   } else if (notionPageId) {
+    // 既存ページ選択 + title なし → 既存ページに追記
     notionPage = { id: notionPageId };
   } else {
+    // 新規ページ → ワークスペースルートに作成
     notionPage = await createNotionPage(notion_access_token, title || fallbackTitle);
   }
 
@@ -254,9 +303,14 @@ async function saveToNotion(notionPageId, title, steps) {
 
   let savedCount = 0;
   let failedCount = 0;
+  notifyPopup({ type: 'SAVE_PROGRESS', current: 0, total: stepsToSave.length });
   for (const step of stepsToSave) {
     const imageUrl = await uploadToSupabase(step.annotatedDataUrl);
-    if (!imageUrl) { failedCount++; continue; }
+    if (!imageUrl) {
+      failedCount++;
+      notifyPopup({ type: 'SAVE_PROGRESS', current: savedCount + failedCount, total: stepsToSave.length });
+      continue;
+    }
 
     const blocks = [];
 
@@ -291,6 +345,7 @@ async function saveToNotion(notionPageId, title, steps) {
       failedCount++;
       console.error('[Notion] ブロック追加失敗:', e.message);
     }
+    notifyPopup({ type: 'SAVE_PROGRESS', current: savedCount + failedCount, total: stepsToSave.length });
   }
 
   await incrementScreenshotCount(savedCount);
@@ -300,6 +355,8 @@ async function saveToNotion(notionPageId, title, steps) {
   const { notion_active_workspace_id } = await chrome.storage.local.get('notion_active_workspace_id');
   const notionPageUrl = `https://notion.so/${notionPage.id.replace(/-/g, '')}`;
   if (googleToken) {
+    const page_domain = stepsToSave[0]?.pageUrl ? (() => { try { return new URL(stepsToSave[0].pageUrl).hostname; } catch { return null; } })() : null;
+    const recording_duration_sec = recordingStartTime ? Math.round((Date.now() - recordingStartTime) / 1000) : null;
     fetch(`${SUPABASE_URL}/functions/v1/record-manual`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
@@ -309,6 +366,8 @@ async function saveToNotion(notionPageId, title, steps) {
         step_count: stepsToSave.length,
         notion_page_url: notionPageUrl,
         notion_workspace_id: notion_active_workspace_id ?? null,
+        page_domain,
+        recording_duration_sec,
       }),
     }).catch(() => {});
   }
@@ -450,13 +509,30 @@ async function incrementScreenshotCount(count) {
   await chrome.storage.sync.set({ monthly_screenshots: newCount });
 
   // DB側も更新（ポップアップを再開した際に0リセットされないよう）
-  const { googleToken } = await chrome.storage.session.get('googleToken');
+  let { googleToken } = await chrome.storage.session.get('googleToken');
+  // セッションクリア後（ブラウザ再起動等）はサイレントに再取得
+  if (!googleToken) {
+    try {
+      googleToken = await new Promise((resolve, reject) =>
+        chrome.identity.getAuthToken({ interactive: false }, t => {
+          if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+          else if (!t) reject(new Error('no_token'));
+          else resolve(t);
+        })
+      );
+      if (googleToken) await chrome.storage.session.set({ googleToken });
+    } catch (_) {}
+  }
+
   if (googleToken) {
     fetch(`${SUPABASE_URL}/functions/v1/record-screenshots`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ google_token: googleToken, count }),
-    }).catch(() => {});
+    })
+      .then(r => r.json())
+      .then(d => { if (d.error) console.error('[record-screenshots]', d.error); })
+      .catch(e => console.error('[record-screenshots]', e.message));
   }
 }
 

@@ -191,5 +191,13 @@
   "stepDescPlaceholderDesktop": { "message": "操作の説明" },
   "stepMemoPlaceholderDesktop": { "message": "補足メモ（省略可）" },
   "deleteStepTitle": { "message": "このステップを削除" },
-  "aiGenBtnTitle": { "message": "AIで説明文を自動生成" }
+  "aiGenBtnTitle": { "message": "AIで説明文を自動生成" },
+
+  "injectionError": { "message": "このページでは記録を開始できません（chrome://等の制限ページ）。通常のWebページを開いて再試行してください。" },
+  "savingProgress": { "message": "$CURRENT$/$TOTAL$ 保存中…", "placeholders": { "current": { "content": "$1" }, "total": { "content": "$2" } } },
+  "cacheAgeHint": { "message": "ページ一覧の取得から$MIN$分経過 — クリックで更新", "placeholders": { "min": { "content": "$1" } } },
+  "ocrProcessing": { "message": "解析中…" },
+  "ocrFailed": { "message": "個人情報検出を利用できません — ぼかしが適用されない可能性があります" },
+  "updateAvailable": { "message": "アップデートv$VER$があります — バックグラウンドでダウンロード中", "placeholders": { "ver": { "content": "$1" } } },
+  "updateDownloaded": { "message": "アップデートv$VER$の準備完了 — 次回起動時に適用されます", "placeholders": { "ver": { "content": "$1" } } }
 }
