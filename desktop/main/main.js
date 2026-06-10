@@ -1,4 +1,4 @@
-try { require('fs').readFileSync(require('path').resolve(__dirname, '..', '.env.local'), 'utf8').split(/\r?\n/).forEach(l => { const m = l.trim().match(/^([A-Z_][A-Z0-9_]*)=(.+)$/); if (m) process.env[m[1]] = m[2]; }); } catch {}
+try { const _fs = require('fs'), _p = require('path'); const _load = f => { try { _fs.readFileSync(f, 'utf8').split(/\r?\n/).forEach(l => { const m = l.trim().match(/^([A-Z_][A-Z0-9_]*)=(.+)$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }); } catch {} }; _load(_p.join(__dirname, '..', '.env.local')); if (process.resourcesPath) _load(_p.join(process.resourcesPath, '.env.local')); } catch {}
 
 const {
   app, BrowserWindow, globalShortcut, Tray, Menu,

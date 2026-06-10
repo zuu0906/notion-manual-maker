@@ -23,6 +23,12 @@ jobs:
         working-directory: desktop
         run: npm ci
 
+      - name: Create .env.local from secrets
+        working-directory: desktop
+        run: |
+          "GOOGLE_DESKTOP_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" | Out-File -FilePath .env.local -Encoding utf8
+          "GOOGLE_DESKTOP_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" | Add-Content -Path .env.local
+
       - name: Build & publish Windows installer
         working-directory: desktop
         env:

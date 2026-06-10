@@ -22,8 +22,7 @@ function getClientCredentials() {
   const secret = process.env.GOOGLE_DESKTOP_CLIENT_SECRET || store.get('google_client_secret');
   if (!id || !secret) {
     throw new Error(
-      'Google OAuth2 client credentials not set.\n' +
-      'Set GOOGLE_DESKTOP_CLIENT_ID and GOOGLE_DESKTOP_CLIENT_SECRET env vars.'
+      'Google OAuth2 client credentials not set. Set GOOGLE_DESKTOP_CLIENT_ID and GOOGLE_DESKTOP_CLIENT_SECRET env vars.'
     );
   }
   return { id, secret };

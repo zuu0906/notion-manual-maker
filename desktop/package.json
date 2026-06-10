@@ -28,7 +28,8 @@
       "overlay-preload.js"
     ],
     "extraResources": [
-      { "from": "../extension/_locales", "to": "_locales" }
+      { "from": "../extension/_locales", "to": "_locales" },
+      { "from": ".env.local", "to": ".env.local" }
     ],
     "publish": {
       "provider": "github",
