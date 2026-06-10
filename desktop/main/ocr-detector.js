@@ -12,6 +12,21 @@ const PII_PATTERNS = [
 
 const OCR_SCRIPT = path.join(__dirname, 'ocr.ps1');
 
+// クラッシュ等で残った古い一時ファイル（cmm-ocr-*.png）を起動時に削除
+function cleanupTempFiles() {
+  const dir = os.tmpdir();
+  fs.readdir(dir, (err, files) => {
+    if (err) return;
+    const cutoff = Date.now() - 60 * 60_000; // 1時間以上前のもの
+    for (const f of files) {
+      const m = f.match(/^cmm-ocr-(\d+)\.png$/);
+      if (m && Number(m[1]) < cutoff) {
+        fs.unlink(path.join(dir, f), () => {});
+      }
+    }
+  });
+}
+
 async function detectPiiRegions(dataUrl, scaleFactor = 1) {
   const tmp = path.join(os.tmpdir(), `cmm-ocr-${Date.now()}.png`);
   const b64 = dataUrl.replace(/^data:image\/\w+;base64,/, '');
@@ -116,4 +131,4 @@ async function detectPiiAndWords(dataUrl, scaleFactor = 1) {
   }
 }
 
-module.exports = { detectPiiRegions, detectPiiAndWords };
+module.exports = { detectPiiRegions, detectPiiAndWords, cleanupTempFiles };

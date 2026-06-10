@@ -10,7 +10,7 @@ const store = require('./store');
 const authGoogle = require('./auth-google');
 const authNotion = require('./auth-notion');
 const notion = require('./notion');
-const { detectPiiAndWords } = require('./ocr-detector');
+const { detectPiiAndWords, cleanupTempFiles } = require('./ocr-detector');
 const { autoUpdater } = require('electron-updater');
 
 // ── Single instance lock ───────────────────────────────────────────────────
@@ -36,6 +36,7 @@ app.whenReady().then(() => {
   createMainWindow();
   createTray();
   registerHotkeys();
+  cleanupTempFiles();
   // アップデートチェック（起動から5秒後）
   setTimeout(() => {
     autoUpdater.checkForUpdatesAndNotify().catch(err => {
@@ -154,8 +155,11 @@ function createTray() {
   }
   tray.setToolTip('Notion Manual Maker');
 
+  const showMainWindow = () => {
+    if (mainWindow && !mainWindow.isDestroyed()) { mainWindow.show(); mainWindow.focus(); }
+  };
   const menu = Menu.buildFromTemplate([
-    { label: 'Notion Manual Maker を開く', click: () => { mainWindow.show(); mainWindow.focus(); } },
+    { label: 'Notion Manual Maker を開く', click: showMainWindow },
     { type: 'separator' },
     { label: 'スクリーンショット撮影 (Ctrl+Shift+M)', click: () => takeScreenshot() },
     { type: 'separator' },
@@ -164,6 +168,7 @@ function createTray() {
   tray.setContextMenu(menu);
 
   tray.on('click', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
     if (mainWindow.isVisible()) {
       mainWindow.hide();
     } else {
@@ -178,7 +183,16 @@ function registerHotkeys() {
   const ok = globalShortcut.register('CommandOrControl+Shift+M', () => {
     takeScreenshot();
   });
-  if (!ok) console.warn('[hotkey] Ctrl+Shift+M could not be registered');
+  if (!ok) {
+    console.warn('[hotkey] Ctrl+Shift+M could not be registered');
+    // 他アプリがホットキーを占有している場合、ユーザーに通知（アプリ内ボタンは使用可能）
+    if (tray) {
+      tray.displayBalloon({
+        title: 'Notion Manual Maker',
+        content: 'ホットキー Ctrl+Shift+M を登録できませんでした（他のアプリが使用中）。アプリ内の撮影ボタンをご利用ください。',
+      });
+    }
+  }
 }
 
 // ── Screenshot capture ─────────────────────────────────────────────────────
@@ -447,7 +461,8 @@ ipcMain.on('capture:take', () => takeScreenshot());
 
 // ── IPC: UI ────────────────────────────────────────────────────────────────
 ipcMain.on('app:open-external', (_, url) => {
-  shell.openExternal(url);
+  // http/https のみ許可（file:// 等によるローカル実行を防止）
+  if (typeof url === 'string' && /^https?:\/\//i.test(url)) shell.openExternal(url);
 });
 
 ipcMain.on('preview:open', (_, src) => {

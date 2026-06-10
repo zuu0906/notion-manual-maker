@@ -12,6 +12,7 @@ const PLAN_LIMITS = {
   free:     { screenshots_per_month: 20,       workspaces: 1, ai_calls_per_month: 0 },
   standard: { screenshots_per_month: Infinity,  workspaces: 1, ai_calls_per_month: 100 },
   pro:      { screenshots_per_month: Infinity,  workspaces: 3, ai_calls_per_month: 500 },
+  team:     { screenshots_per_month: Infinity,  workspaces: 3, ai_calls_per_month: 500 },
 };
 
 module.exports = { CONFIG, PLAN_LIMITS };

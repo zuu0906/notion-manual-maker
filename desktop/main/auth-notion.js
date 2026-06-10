@@ -15,44 +15,49 @@ const REDIRECT_URI = CONFIG.NOTION_REDIRECT_URI; // http://localhost:3721/callba
 
 /**
  * Start the local callback server on a fixed port (3721) for Notion OAuth.
- * Returns a promise that resolves with the OAuth code.
+ * Returns { codePromise, cancel } — cancel() resolves the promise with an error
+ * and closes the server (window closed / timeout でのハング防止).
  */
 function startCallbackServer() {
-  return new Promise((resolve, reject) => {
-    const server = http.createServer();
-    let resolved = false;
+  const server = http.createServer();
+  let resolved = false;
+  let resolveCode, rejectCode;
+  const codePromise = new Promise((resolve, reject) => { resolveCode = resolve; rejectCode = reject; });
+  const settle = (result) => {
+    if (resolved) return;
+    resolved = true;
+    resolveCode(result);
+    server.close();
+  };
 
-    server.on('request', (req, res) => {
-      const url = new URL(req.url, 'http://localhost');
-      if (url.pathname === '/callback') {
-        const code = url.searchParams.get('code');
-        const error = url.searchParams.get('error');
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        if (code) {
-          res.end('<html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>✅ Notion接続完了</h2><p>このウィンドウを閉じてください。</p></body></html>');
-        } else {
-          res.end('<html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>❌ 接続エラー</h2><p>' + (error || 'unknown') + '</p></body></html>');
-        }
-        server.close();
-        if (!resolved) {
-          resolved = true;
-          resolve({ code, error });
-        }
+  server.on('request', (req, res) => {
+    const url = new URL(req.url, 'http://localhost');
+    if (url.pathname === '/callback') {
+      const code = url.searchParams.get('code');
+      const error = url.searchParams.get('error');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      if (code) {
+        res.end('<html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>✅ Notion接続完了</h2><p>このウィンドウを閉じてください。</p></body></html>');
       } else {
-        res.writeHead(404);
-        res.end();
+        res.end('<html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>❌ 接続エラー</h2><p>' + (error || 'unknown') + '</p></body></html>');
       }
-    });
-
-    server.on('error', (err) => {
-      if (!resolved) {
-        resolved = true;
-        reject(new Error(`ポート3721が使用中です: ${err.message}`));
-      }
-    });
-
-    server.listen(3721, 'localhost');
+      settle({ code, error });
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
   });
+
+  server.on('error', (err) => {
+    if (!resolved) {
+      resolved = true;
+      rejectCode(new Error(`ポート3721が使用中です: ${err.message}`));
+    }
+  });
+
+  server.listen(3721, 'localhost');
+
+  return { codePromise, cancel: (error) => settle({ code: null, error: error || 'cancelled' }) };
 }
 
 /**
@@ -60,7 +65,7 @@ function startCallbackServer() {
  * Returns { access_token, workspace_id, workspace_name } on success.
  */
 async function connectNotion() {
-  const codePromise = startCallbackServer();
+  const { codePromise, cancel } = startCallbackServer();
 
   const authUrl = new URL(NOTION_AUTH_URL);
   authUrl.searchParams.set('client_id', CONFIG.NOTION_CLIENT_ID);
@@ -75,8 +80,17 @@ async function connectNotion() {
   });
   authWin.loadURL(authUrl.toString());
 
-  const { code, error } = await codePromise;
-  if (!authWin.isDestroyed()) authWin.close();
+  // ウィンドウを手動で閉じた場合・5分経過した場合はキャンセル扱い（ハング防止）
+  authWin.on('closed', () => cancel('cancelled'));
+  const timeoutId = setTimeout(() => cancel('timeout'), 5 * 60_000);
+
+  let code, error;
+  try {
+    ({ code, error } = await codePromise);
+  } finally {
+    clearTimeout(timeoutId);
+    if (!authWin.isDestroyed()) authWin.close();
+  }
 
   if (!code) throw new Error(error || 'cancelled');
 

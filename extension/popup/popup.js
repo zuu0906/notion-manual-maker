@@ -349,6 +349,8 @@ googleSignInBtn.addEventListener('click', async () => {
     updateAiUI();
   } catch (e) {
     showMsg(t('googleSignInFailed', [e.message]), 'error');
+  } finally {
+    // 成功時はupdatePlanUI等でボタンが隠れるため、無条件で復元してstuck状態を防ぐ
     googleSignInBtn.disabled = false;
     document.getElementById('google-sign-in-text').textContent = t('googleSignIn');
   }

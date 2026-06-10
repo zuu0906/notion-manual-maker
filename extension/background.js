@@ -134,6 +134,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           isRecording: s.isRecording ?? isRecording,
           steps: pendingClicks.length > 0 ? pendingClicks : (s.pendingClicks ?? []),
         });
+      }).catch(() => {
+        // storage失敗時もメモリの状態で必ず応答する（ポップアップのハング防止）
+        sendResponse({ isRecording, steps: pendingClicks });
       });
       return true; // 非同期レスポンスのため true を返す
   }
@@ -278,8 +281,9 @@ async function saveToNotion(notionPageId, title, steps) {
             return { error: `フリープランの上限(20枚/月)に達します。残り${remaining}枚です。プランをアップグレードしてください。` };
           }
         }
-      } catch (_) {
+      } catch (e) {
         // ネットワークエラー時はローカルチェック結果を優先して続行
+        console.warn('[saveToNotion] server-side limit recheck failed:', e?.message ?? e);
       }
     }
   }
@@ -368,8 +372,9 @@ async function saveToNotion(notionPageId, title, steps) {
         notion_workspace_id: notion_active_workspace_id ?? null,
         page_domain,
         recording_duration_sec,
+        source: 'extension',
       }),
-    }).catch(() => {});
+    }).catch(e => console.warn('[record-manual]', e?.message ?? e));
   }
 
   pendingClicks = [];
@@ -382,9 +387,9 @@ async function saveToNotion(notionPageId, title, steps) {
     return { error: `Notionへの保存に失敗しました（${failedCount}件）` };
   }
   if (failedCount > 0) {
-    return { success: true, url: notionPageUrl, warning: `${savedCount}件保存しました（${failedCount}件失敗）` };
+    return { success: true, url: notionPageUrl, notionPageUrl, warning: `${savedCount}件保存しました（${failedCount}件失敗）` };
   }
-  return { success: true, url: notionPageUrl };
+  return { success: true, url: notionPageUrl, notionPageUrl };
 }
 
 const NOTION_ERROR_MAP = {

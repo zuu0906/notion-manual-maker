@@ -29,14 +29,23 @@ function getClientCredentials() {
 }
 
 /**
- * Start a temporary loopback HTTP server, return { port, waitForCode() }.
+ * Start a temporary loopback HTTP server, return { port, waitForCode(), cancel() }.
  * The server listens for GET /callback?code=... and resolves with the code.
+ * cancel() resolves waitForCode with { code: null, error } and closes the server
+ * (used when the user closes the auth window or the flow times out).
  */
 function startCallbackServer() {
   return new Promise((resolve) => {
     const server = http.createServer();
     let resolveCode;
+    let settled = false;
     const codePromise = new Promise((res) => { resolveCode = res; });
+    const settle = (result) => {
+      if (settled) return;
+      settled = true;
+      resolveCode(result);
+      server.close();
+    };
 
     server.on('request', (req, res) => {
       const url = new URL(req.url, `http://localhost`);
@@ -46,12 +55,11 @@ function startCallbackServer() {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         if (code) {
           res.end('<html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>✅ 認証完了</h2><p>このウィンドウを閉じてください。</p></body></html>');
-          resolveCode({ code, error: null });
+          settle({ code, error: null });
         } else {
           res.end('<html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>❌ 認証エラー</h2><p>' + (error || 'unknown') + '</p></body></html>');
-          resolveCode({ code: null, error: error || 'cancelled' });
+          settle({ code: null, error: error || 'cancelled' });
         }
-        server.close();
       } else {
         res.writeHead(404);
         res.end();
@@ -60,7 +68,11 @@ function startCallbackServer() {
 
     server.listen(0, '127.0.0.1', () => {
       const port = server.address().port;
-      resolve({ port, waitForCode: () => codePromise });
+      resolve({
+        port,
+        waitForCode: () => codePromise,
+        cancel: (error) => settle({ code: null, error: error || 'cancelled' }),
+      });
     });
   });
 }
@@ -129,7 +141,7 @@ async function getToken() {
  */
 async function signInWithGoogle() {
   const { id: clientId, secret: clientSecret } = getClientCredentials();
-  const { port, waitForCode } = await startCallbackServer();
+  const { port, waitForCode, cancel } = await startCallbackServer();
   const redirectUri = `http://127.0.0.1:${port}/callback`;
 
   const authUrl = new URL(GOOGLE_AUTH_URL);
@@ -148,8 +160,13 @@ async function signInWithGoogle() {
   });
   authWin.loadURL(authUrl.toString());
 
+  // ウィンドウを手動で閉じた場合・5分経過した場合はキャンセル扱い（ハング防止）
+  authWin.on('closed', () => cancel('cancelled'));
+  const timeoutId = setTimeout(() => cancel('timeout'), 5 * 60_000);
+
   const { code, error } = await waitForCode();
-  authWin.close();
+  clearTimeout(timeoutId);
+  if (!authWin.isDestroyed()) authWin.close();
 
   if (!code) throw new Error(error || 'cancelled');
 
