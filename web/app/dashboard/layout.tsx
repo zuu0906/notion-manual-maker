@@ -38,7 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between gap-4">
           <a href={`/${locale}`} className="flex items-center gap-1.5 text-sm font-semibold text-n-900 flex-shrink-0">
             <img src="/icon.png" alt="Notion Manual Maker" className="w-5 h-5 rounded" />
-            Manual Maker
+            Notion Manual Maker
           </a>
           <div className="hidden sm:flex items-center gap-1 text-sm text-n-700">
             <a href={`/${locale}/how-it-works`} className="px-3 py-1.5 rounded-notion hover:bg-n-100 transition-colors">{nav.howItWorks}</a>
