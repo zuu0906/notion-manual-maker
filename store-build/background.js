@@ -24,7 +24,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.plan) cachedPlan = changes.plan.newValue ?? 'free';
 });
 
-restoreSession();
+// SW再起動時の復元。メッセージ処理はこのPromiseを待ってから状態を参照する
+const sessionReady = restoreSession();
 
 async function restoreSession() {
   const s = await chrome.storage.session.get(['pendingClicks', 'isRecording', 'recordingTabId']);
@@ -98,19 +99,36 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case 'START_RECORDING':
       startRecording(sender.tab?.id ?? msg.tabId);
       break;
-    case 'CLICK_CAPTURED':
-      // アクティブな記録タブからのクリックのみ処理（タブ切り替え後の遅延クリックを除外）
-      if (sender.tab?.id === recordingTabId) {
-        clickQueue = clickQueue.then(() => handleClick(msg, sender.tab?.id)).catch(e => console.error('[click]', e));
-      }
+    case 'CLICK_CAPTURED': {
+      const senderTabId = sender.tab?.id;
+      clickQueue = clickQueue.then(async () => {
+        // SW再起動直後はrestoreSession完了を待つ（recordingTabIdがnullのままクリックを捨てない）
+        await sessionReady;
+        // アクティブな記録タブからのクリックのみ処理（タブ切り替え後の遅延クリックを除外）
+        if (senderTabId !== recordingTabId) {
+          // 記録対象外でもオーバーレイは復帰させる（隠れたまま固まるのを防ぐ）
+          if (senderTabId) chrome.tabs.sendMessage(senderTabId, { type: 'CAPTURE_DONE', x: msg.x, y: msg.y }).catch(() => {});
+          return;
+        }
+        await handleClick(msg, senderTabId);
+      }).catch(e => console.error('[click]', e));
       break;
-    case 'RECORDING_STOPPED':
+    }
+    case 'RECORDING_STOPPED': {
+      // 記録タブのオーバーレイを確実に解除（ポップアップからの停止はアクティブタブにしか届かないため）
+      const stopTabId = recordingTabId;
+      if (stopTabId && sender.tab?.id !== stopTabId) {
+        chrome.tabs.sendMessage(stopTabId, { type: 'STOP_RECORDING' }).catch(() => {});
+      }
       isRecording = false;
       recordingTabId = null;
-      chrome.action.setBadgeText({ text: '' });
+      chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
+      // ステップが残っている間は件数を表示（タブclose時の挙動と統一）
+      chrome.action.setBadgeText({ text: pendingClicks.length > 0 ? String(pendingClicks.length) : '' });
       notifyPopup({ type: 'STATE_UPDATE', isRecording: false, steps: pendingClicks });
       saveSession().catch(() => {});
       break;
+    }
     case 'SAVE_TO_NOTION':
       saveToNotion(msg.notionPageId, msg.title, msg.steps)
         .then(sendResponse)
@@ -159,36 +177,47 @@ async function startRecording(tabId) {
 }
 
 async function handleClick({ x, y, viewportWidth, viewportHeight, inputText, isPassword, elementHint, formNote = '', piiRegions = [] }, tabId) {
-  const now = Date.now();
-  const wait = Math.max(100, MIN_CAPTURE_INTERVAL - (now - lastCaptureTime));
-  await new Promise(r => setTimeout(r, wait));
-  lastCaptureTime = Date.now();
+  try {
+    const now = Date.now();
+    const wait = Math.max(100, MIN_CAPTURE_INTERVAL - (now - lastCaptureTime));
+    await new Promise(r => setTimeout(r, wait));
+    lastCaptureTime = Date.now();
 
-  const stepNumber = pendingClicks.length + 1;
-  const dataUrl = await chrome.tabs.captureVisibleTab({ format: 'png' });
-  const tab = tabId ? await chrome.tabs.get(tabId) : null;
-  const annotated = await drawOnOffscreen(dataUrl, x, y, viewportWidth, viewportHeight, stepNumber, piiRegions);
-  if (tabId) chrome.tabs.sendMessage(tabId, { type: 'CAPTURE_DONE', x, y }).catch(() => {});
+    const stepNumber = pendingClicks.length + 1;
+    const dataUrl = await chrome.tabs.captureVisibleTab({ format: 'png' });
+    const tab = tabId ? await chrome.tabs.get(tabId) : null;
+    const annotated = await drawOnOffscreen(dataUrl, x, y, viewportWidth, viewportHeight, stepNumber, piiRegions);
 
-  pendingClicks.push({
-    stepNumber,
-    x, y, viewportWidth, viewportHeight,
-    rawDataUrl: dataUrl,
-    annotatedDataUrl: annotated,
-    label: '',
-    pageUrl: tab?.url ?? '',
-    pageTitle: tab?.title ?? '',
-    hasPiiBlur: piiRegions.length > 0,
-    elementHint: elementHint || '',
-    inputText: isPassword ? null : (inputText || null),
-    isPassword: isPassword || false,
-    formNote: formNote || '',
-  });
+    pendingClicks.push({
+      stepNumber,
+      x, y, viewportWidth, viewportHeight,
+      rawDataUrl: dataUrl,
+      annotatedDataUrl: annotated,
+      label: '',
+      pageUrl: tab?.url ?? '',
+      pageTitle: tab?.title ?? '',
+      hasPiiBlur: piiRegions.length > 0,
+      elementHint: elementHint || '',
+      inputText: isPassword ? null : (inputText || null),
+      isPassword: isPassword || false,
+      formNote: formNote || '',
+    });
 
-  chrome.action.setBadgeText({ text: String(pendingClicks.length) });
-  // 新しいステップのみ送信（全ステップ送信は64MiB制限に当たる）
-  notifyPopup({ type: 'STEP_ADDED', step: pendingClicks[pendingClicks.length - 1] });
-  await saveSession();
+    chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
+    chrome.action.setBadgeText({ text: String(pendingClicks.length) });
+    // 新しいステップのみ送信（全ステップ送信は64MiB制限に当たる）
+    notifyPopup({ type: 'STEP_ADDED', step: pendingClicks[pendingClicks.length - 1] });
+    await saveSession();
+  } catch (e) {
+    // キャプチャ失敗（レート制限・ウィンドウ非フォーカス等）— エラーを可視化して記録は継続
+    console.warn('[handleClick]', e?.message ?? e);
+    chrome.action.setBadgeBackgroundColor({ color: '#FF9500' });
+    chrome.action.setBadgeText({ text: 'ERR' });
+    notifyPopup({ type: 'INJECTION_ERROR', message: String(e?.message ?? e) });
+  } finally {
+    // 成否に関わらずオーバーレイを復帰させる（隠れたまま記録不能になるのを防ぐ）
+    if (tabId) chrome.tabs.sendMessage(tabId, { type: 'CAPTURE_DONE', x, y }).catch(() => {});
+  }
 }
 
 async function drawOnOffscreen(dataUrl, clickX, clickY, viewportWidth, viewportHeight, stepNumber, piiRegions = []) {
