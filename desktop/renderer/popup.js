@@ -230,6 +230,11 @@ async function initUserSession() {
 
       if (wsDiffers) {
         if (serverWs.length === 0) {
+          const lastConnectAt = await api.storeGet('notion_last_connect_at', 0);
+          if (Date.now() - lastConnectAt < 120_000) {
+            // 接続直後(2分以内)はサーバー未反映の可能性 → ローカルをサーバーに再push
+            syncWorkspacesToServer(freshWs);
+          } else {
           // サーバーで全切断 → ローカルもクリア
           api.storeDeleteMulti([
             'notion_workspaces', 'notion_active_workspace_id',
@@ -242,6 +247,7 @@ async function initUserSession() {
           wsAddBtn.style.display = 'none';
           allNotionPages = [];
           pagesCacheTs = 0;
+          }
         } else {
           // アクティブWSがサーバーにない場合は先頭に切り替え
           const curActiveId = await api.storeGet('notion_active_workspace_id', null);
@@ -404,8 +410,14 @@ async function connectNotion() {
     if (idx >= 0) {
       newWs = workspaces.map((w, i) => i === idx ? { id: workspace_id, name: workspace_name, token: access_token } : w);
     } else if (workspaces.length >= maxWs) {
-      showMsg(t('wsMaxReachedFmt', String(maxWs)), 'error');
-      return;
+      if (maxWs === 1) {
+        // Free/Standard(上限1): 既存WSを新WSに自動置き換え
+        newWs = [{ id: workspace_id, name: workspace_name, token: access_token }];
+      } else {
+        // Pro(上限3): 上限超過エラー
+        showMsg(t('wsMaxReachedFmt', String(maxWs)), 'error');
+        return;
+      }
     } else {
       newWs = [...workspaces, { id: workspace_id, name: workspace_name, token: access_token }];
     }
@@ -415,6 +427,7 @@ async function connectNotion() {
       notion_active_workspace_id: workspace_id,
       notion_access_token: access_token,
       notion_workspace_name: workspace_name,
+      notion_last_connect_at: Date.now(),
     });
 
     setNotionConnected(workspace_name);
@@ -427,9 +440,9 @@ async function connectNotion() {
     }
   } catch (e) {
     showMsg(t('notionConnectFailed', e.message), 'error');
-    connectBtn.textContent = orig;
   } finally {
     connectBtn.disabled = false;
+    if (connectBtn.textContent === t('connecting')) connectBtn.textContent = orig;
   }
 }
 

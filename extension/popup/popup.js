@@ -749,8 +749,14 @@ async function connectNotion() {
         i === idx ? { id: workspaceId, name: workspaceName, token: data.access_token } : w
       );
     } else if (existing.length >= maxWs) {
-      showMsg(t('wsMaxReached', [String(maxWs)]), 'error');
-      return;
+      if (maxWs === 1) {
+        // Free/Standard(上限1): 既存WSを新WSに自動置き換え
+        workspaces = [{ id: workspaceId, name: workspaceName, token: data.access_token }];
+      } else {
+        // Pro(上限3): 上限超過エラー
+        showMsg(t('wsMaxReached', [String(maxWs)]), 'error');
+        return;
+      }
     } else {
       workspaces = [...existing, { id: workspaceId, name: workspaceName, token: data.access_token }];
     }
@@ -769,9 +775,9 @@ async function connectNotion() {
     await syncWorkspacesToServer(workspaces);
   } catch (e) {
     showMsg(t('notionConnectFailed', [e.message]), 'error');
-    connectBtn.textContent = originalText;
   } finally {
     connectBtn.disabled = false;
+    if (connectBtn.textContent === t('connecting')) connectBtn.textContent = originalText;
   }
 }
 
@@ -1208,12 +1214,14 @@ async function saveToNotion() {
         showMsg(resp.error, 'error');
       } else if (resp?.success) {
         showMsg(resp.warning ? resp.warning : t('savedToNotion'), resp.warning ? 'error' : 'success');
-        state.steps = [];
-        state.isRecording = false;
-        pageTitle.value = '';
-        stopAndStopContent();
-        renderSteps();
-        updateRecordUI();
+        if (!resp.warning) {
+          state.steps = [];
+          state.isRecording = false;
+          pageTitle.value = '';
+          stopAndStopContent();
+          renderSteps();
+          updateRecordUI();
+        }
         // 保存後にローカルのカウントを再読み込みして使用量バーを更新
         const { monthly_screenshots: saved } = await chrome.storage.sync.get('monthly_screenshots');
         state.monthly_screenshots = saved ?? state.monthly_screenshots;
