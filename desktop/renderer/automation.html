@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;" />
+  <title>自動実行（β）</title>
+  <style>
+    :root { --bg:#f7f7f8; --fg:#1c1c1e; --sub:#6b6b70; --line:#e2e2e5; --accent:#2b7cff; --danger:#d93636; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", system-ui, sans-serif;
+           background:var(--bg); color:var(--fg); font-size:14px; }
+    header { padding:16px 18px 10px; }
+    h1 { font-size:16px; margin:0 0 2px; }
+    .beta { display:inline-block; font-size:11px; color:#fff; background:var(--accent);
+            border-radius:6px; padding:1px 6px; margin-left:6px; vertical-align:middle; }
+    .sub { color:var(--sub); font-size:12px; margin:0; }
+    main { padding:6px 14px 18px; }
+    .toolbar { display:flex; gap:8px; align-items:center; margin:8px 0 12px; }
+    select, button { font-size:13px; border-radius:8px; border:1px solid var(--line);
+                     background:#fff; color:var(--fg); padding:7px 10px; cursor:pointer; }
+    button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+    button:disabled { opacity:.5; cursor:default; }
+    .list { display:flex; flex-direction:column; gap:8px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+            display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .card .meta { min-width:0; }
+    .card .name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card .info { color:var(--sub); font-size:12px; margin-top:2px; }
+    .card .actions { display:flex; gap:6px; flex-shrink:0; }
+    .empty { color:var(--sub); text-align:center; padding:40px 10px; line-height:1.7; }
+    .status { margin-top:12px; font-size:12px; color:var(--sub); min-height:18px; }
+    .status.warn { color:var(--danger); }
+    .del { border-color:transparent; color:var(--sub); background:transparent; }
+    .del:hover { color:var(--danger); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>自動実行<span class="beta">β</span></h1>
+    <p class="sub">記録したフローをAIが再現します。実行中は <b>Esc</b> で緊急停止できます。</p>
+  </header>
+  <main>
+    <div class="toolbar">
+      <label for="mode" class="sub">実行モード</label>
+      <select id="mode">
+        <option value="supervised">監視つき（危険な操作のみ確認）</option>
+        <option value="step_by_step">1ステップずつ確認</option>
+      </select>
+      <button id="refresh">更新</button>
+    </div>
+    <div id="list" class="list"></div>
+    <div id="status" class="status"></div>
+  </main>
+
+  <script src="automation.js"></script>
+</body>
+</html>

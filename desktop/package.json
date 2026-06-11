@@ -26,6 +26,8 @@
       "shared/**",
       "preload.js",
       "overlay-preload.js",
+      "automation-preload.js",
+      "run-overlay-preload.js",
       "icon16.png",
       "icon256.png"
     ],

@@ -13,6 +13,9 @@ const notion = require('./notion');
 const { detectPiiAndWords, cleanupTempFiles } = require('./ocr-detector');
 const { autoUpdater } = require('electron-updater');
 
+// 自動実行機能（β）— AUTOMATION_ENABLED=1 のときだけロード。未設定なら完全無効。
+const automation = process.env.AUTOMATION_ENABLED === '1' ? require('./automation') : null;
+
 // ── Single instance lock ───────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) { app.quit(); process.exit(0); }
@@ -37,6 +40,7 @@ app.whenReady().then(() => {
   createTray();
   registerHotkeys();
   cleanupTempFiles();
+  if (automation) automation.init({ getMainWindow: () => mainWindow, store });
   // アップデートチェック（起動から5秒後）
   setTimeout(() => {
     autoUpdater.checkForUpdatesAndNotify().catch(err => {
@@ -152,13 +156,19 @@ function createTray() {
   const showMainWindow = () => {
     if (mainWindow && !mainWindow.isDestroyed()) { mainWindow.show(); mainWindow.focus(); }
   };
-  const menu = Menu.buildFromTemplate([
+  const template = [
     { label: 'Notion Manual Maker を開く', click: showMainWindow },
     { type: 'separator' },
     { label: 'スクリーンショット撮影 (Ctrl+Shift+M)', click: () => takeScreenshot() },
+  ];
+  if (automation) {
+    template.push({ type: 'separator' }, automation.trayMenuItem());
+  }
+  template.push(
     { type: 'separator' },
     { label: '終了', click: () => { tray.destroy(); app.exit(0); } },
-  ]);
+  );
+  const menu = Menu.buildFromTemplate(template);
   tray.setContextMenu(menu);
 
   tray.on('click', () => {
