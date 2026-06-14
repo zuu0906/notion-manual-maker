@@ -66,6 +66,23 @@ t('applyOps reorder で並べ替え', () => {
   assert.deepStrictEqual(labels, ['B', 'C', 'A']);
 });
 
+t('applyOps set_order で1番目と3番目を入れ替え', () => {
+  const id = freshFlow(); // [A,B,C]
+  store.applyOps(id, [{ op: 'set_order', order: [2, 1, 0] }]);
+  const labels = store.getFlow(id).steps.map(s => s.label);
+  assert.deepStrictEqual(labels, ['C', 'B', 'A']);
+  // stepNumber も振り直し
+  assert.deepStrictEqual(store.getFlow(id).steps.map(s => s.stepNumber), [1, 2, 3]);
+});
+
+t('applyOps set_order は不正な順列を無視', () => {
+  const id = freshFlow();
+  store.applyOps(id, [{ op: 'set_order', order: [0, 0, 1] }]);     // 重複
+  assert.deepStrictEqual(store.getFlow(id).steps.map(s => s.label), ['A', 'B', 'C']);
+  store.applyOps(id, [{ op: 'set_order', order: [0, 1] }]);        // 長さ不足
+  assert.deepStrictEqual(store.getFlow(id).steps.map(s => s.label), ['A', 'B', 'C']);
+});
+
 t('applyOps update で patch 適用', () => {
   const id = freshFlow();
   store.applyOps(id, [{ op: 'update', index: 2, patch: { label: 'C2' } }]);

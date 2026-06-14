@@ -139,6 +139,14 @@ function applyOps(id, ops) {
     } else if (op.op === 'reorder') {
       const [m] = flow.steps.splice(op.from, 1);
       if (m) flow.steps.splice(op.to, 0, m);
+    } else if (op.op === 'set_order') {
+      // 全ステップの新しい並び順を一発指定（決定論的・連鎖reorderの曖昧さを回避）。
+      const order = op.order;
+      if (Array.isArray(order) && order.length === flow.steps.length) {
+        const ok = order.every((n) => Number.isInteger(n) && n >= 0 && n < flow.steps.length)
+          && new Set(order).size === order.length;
+        if (ok) flow.steps = order.map((i) => flow.steps[i]);
+      }
     } else if (op.op === 'update') {
       if (flow.steps[op.index]) flow.steps[op.index] = { ...flow.steps[op.index], ...op.patch };
     }
