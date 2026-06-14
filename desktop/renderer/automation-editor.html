@@ -45,6 +45,21 @@
               font-size:12px; color:var(--sub); min-height:20px; }
     .status.ok { color:var(--ok); } .status.warn { color:var(--danger); }
     .empty { color:var(--sub); text-align:center; padding:32px; }
+    /* W7b: 文章編集モーダル */
+    .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.42); display:none;
+                align-items:center; justify-content:center; z-index:50; }
+    .modal-bg.show { display:flex; }
+    .modal { background:#fff; border-radius:14px; padding:18px; width:90%; max-width:440px;
+             box-shadow:0 12px 40px rgba(0,0,0,0.3); }
+    .modal h2 { font-size:15px; margin:0 0 4px; }
+    .modal .hint { margin:0 0 10px; }
+    .modal textarea { width:100%; font:inherit; font-size:13px; padding:8px 10px; border:1px solid var(--line);
+                      border-radius:8px; min-height:64px; resize:vertical; }
+    .changes { list-style:none; padding:0; margin:10px 0; }
+    .changes li { background:#f3f6ff; border:1px solid #dce6ff; border-radius:8px; padding:7px 10px;
+                  margin-bottom:6px; font-size:13px; }
+    .modal .row { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+    button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
   </style>
 </head>
 <body>
@@ -66,6 +81,23 @@
     <div id="empty" class="empty" style="display:none">ステップがありません。</div>
   </main>
   <div id="status" class="status"></div>
+
+  <div id="nlBg" class="modal-bg">
+    <div class="modal">
+      <h2>✦ 文章でフローを編集</h2>
+      <p class="hint">やりたいことを文章で書いてください。例:「3番目のステップを削除」「最初のステップ名を"ログイン"に」</p>
+      <textarea id="nlInput" placeholder="例: 2番目と3番目を入れ替えて、最後のメモに『確認用』と書いて"></textarea>
+      <div class="row">
+        <button id="nlClose">閉じる</button>
+        <button id="nlSuggest" class="primary">提案する</button>
+      </div>
+      <ul id="nlChanges" class="changes" style="display:none"></ul>
+      <div id="nlApplyRow" class="row" style="display:none">
+        <button id="nlCancel">やめる</button>
+        <button id="nlApply" class="primary">この内容で変更</button>
+      </div>
+    </div>
+  </div>
 
   <script src="automation-editor.js"></script>
 </body>

@@ -16,6 +16,7 @@ const replayEngine = require('./replay-engine');
 const inputDriver = require('./input-driver');
 const safety = require('./safety');
 const hud = require('./hud');
+const nlEditor = require('./nl-editor');
 
 let automationWindow = null;
 let editorWindows = new Map(); // flowId -> BrowserWindow
@@ -170,6 +171,14 @@ function registerIpc() {
     } finally {
       await inputDriver.dispose().catch(() => {});
     }
+  });
+
+  // ── W7b: 自然言語編集（提案のみ。適用は承認後に apply-ops で行う）──────────
+  ipcMain.handle('automation:nl-propose', async (_e, { id, instruction }) => {
+    const flow = flowStore.getFlow(id);
+    if (!flow) return { ok: false, error: 'flow_not_found' };
+    try { return await nlEditor.propose(flow, instruction); }
+    catch (e) { return { ok: false, error: e.message }; }
   });
 
   // ── W7: フロー編集 ─────────────────────────────────────────────────────────

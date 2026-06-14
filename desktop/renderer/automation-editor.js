@@ -193,8 +193,70 @@ function showDryBadge(index, r) {
   return found;
 }
 
+// ── W7b: 自然言語編集（提案→差分→承認）─────────────────────────────────────
+const nl = {
+  bg: document.getElementById('nlBg'),
+  input: document.getElementById('nlInput'),
+  suggest: document.getElementById('nlSuggest'),
+  close: document.getElementById('nlClose'),
+  changes: document.getElementById('nlChanges'),
+  applyRow: document.getElementById('nlApplyRow'),
+  apply: document.getElementById('nlApply'),
+  cancel: document.getElementById('nlCancel'),
+};
+let proposedOps = null;
+
+function openNlEditor() {
+  proposedOps = null;
+  nl.input.value = '';
+  nl.changes.style.display = 'none';
+  nl.changes.innerHTML = '';
+  nl.applyRow.style.display = 'none';
+  nl.bg.classList.add('show');
+  setTimeout(() => nl.input.focus(), 30);
+}
+function closeNl() { nl.bg.classList.remove('show'); }
+
+nl.close.addEventListener('click', closeNl);
+nl.cancel.addEventListener('click', () => { proposedOps = null; nl.changes.style.display = 'none'; nl.applyRow.style.display = 'none'; });
+
+nl.suggest.addEventListener('click', async () => {
+  const instruction = nl.input.value.trim();
+  if (!instruction) return;
+  nl.suggest.disabled = true;
+  setStatus('AIが編集内容を考えています…');
+  try {
+    const res = await window.automation.nlPropose(flowId, instruction);
+    if (!res.ok) {
+      const msg = { ai_not_configured: 'AI機能が設定されていません。', empty_instruction: '指示を入力してください。',
+                    no_actionable_ops: '実行できる編集を見つけられませんでした。言い換えてみてください。' }[res.error] || ('提案に失敗しました: ' + res.error);
+      setStatus(msg, 'warn');
+      nl.changes.style.display = 'none'; nl.applyRow.style.display = 'none';
+      return;
+    }
+    proposedOps = res.ops;
+    nl.changes.innerHTML = '';
+    res.changes.forEach((c) => { const li = document.createElement('li'); li.textContent = c; nl.changes.appendChild(li); });
+    nl.changes.style.display = '';
+    nl.applyRow.style.display = '';
+    setStatus('内容を確認して「この内容で変更」を押してください。');
+  } finally {
+    nl.suggest.disabled = false;
+  }
+});
+
+nl.apply.addEventListener('click', async () => {
+  if (!proposedOps || !proposedOps.length) return;
+  const res = await window.automation.applyOps(flowId, proposedOps);
+  if (!res.ok) { setStatus('適用に失敗しました: ' + res.error, 'warn'); return; }
+  flow = res.flow;
+  render();
+  closeNl();
+  setStatus('文章編集を適用しました。問題があれば「元に戻す」で戻せます。', 'ok');
+});
+
 // W7b / W8 のフック
-els.nlEdit.addEventListener('click', () => { if (window.openNlEditor) window.openNlEditor(); else setStatus('文章編集は準備中です。', 'warn'); });
+els.nlEdit.addEventListener('click', openNlEditor);
 els.dryRun.addEventListener('click', runDryRun);
 
 window.automation.onEditorInit(({ flowId: id }) => { flowId = id; load(); });

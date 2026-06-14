@@ -205,10 +205,23 @@ async function verifyResult(ctx = {}) {
   return normalizeVerify(parseAiJson(raw));
 }
 
+/**
+ * テキストのみのJSON補完（W7b NLエディタ用）。画像なし。
+ * @param {string} promptText
+ * @returns {Promise<string>} 生テキスト（JSON想定）
+ */
+async function completeJson(promptText) {
+  if (process.env.AUTOMATION_AI_BACKEND === 'proxy') {
+    throw new Error('proxy_backend_not_implemented');
+  }
+  return callGemini([{ text: String(promptText || '') }]);
+}
+
 module.exports = {
   isConfigured,
   decideNextAction,
   verifyResult,
+  completeJson,
   // テスト用内部関数（ネットワーク非依存・純関数）
   _internals: {
     splitDataUrl, parseAiJson, normalizeAction, normalizeVerify,
