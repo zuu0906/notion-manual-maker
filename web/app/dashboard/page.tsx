@@ -8,6 +8,9 @@ const STRIPE_STANDARD_PRICE_ID = 'price_1TeTkw1zfFhRe5YP4sbK4wKa';
 const STRIPE_PRO_PRICE_ID      = 'price_1TeTmC1zfFhRe5YPW4ReYraX';
 const CUSTOMER_PORTAL_URL      = 'https://billing.stripe.com/p/login/28EbIT8sHfD0bk70vS5gc00';
 
+// MCP連携セクションの公開フラグ — 拡張v1.1.0リリースまで一旦非公開（2026-06-11ユーザー判断）
+const MCP_SECTION_ENABLED = false;
+
 const NOTION_CLIENT_ID = '345d872b-594c-810c-9c3d-00376d7425b3';
 const NOTION_PROXY_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion-proxy`;
 const WEB_NOTION_REDIRECT_URI = 'https://notion-manual-maker.vercel.app/auth/notion-callback';
@@ -97,6 +100,20 @@ const MESSAGES: Record<Locale, Msgs> = {
     send: '送る',
     connect: '接続',
     manuals: '件',
+    mcpTitle: 'AI連携 (MCP)',
+    mcpDesc: 'Claude などのAIアシスタントから、あなたのマニュアルを直接参照できるようになります。',
+    mcpCreateKey: 'APIキーを発行',
+    mcpKeyNamePlaceholder: 'キーの名前（例: 自宅PC）',
+    mcpNoKeys: 'APIキーはまだありません。',
+    mcpRevoke: '失効',
+    mcpCopyConfig: '設定をコピー',
+    mcpCopied: 'コピーしました！Claude Desktop の claude_desktop_config.json に貼り付けてください。',
+    mcpNewKeyNotice: '⚠️ このキーは今だけ表示されます。下のボタンで設定をコピーして保存してください。',
+    mcpRequiresPro: 'MCP連携は Pro プラン以上で利用できます。',
+    mcpLastUsed: '最終使用: {date}',
+    mcpNeverUsed: '未使用',
+    mcpKeyLimit: 'APIキーの発行に失敗しました: {error}',
+    mcpConfirmRevoke: 'このキーを失効しますか？接続中のAIクライアントは使えなくなります。',
   },
   en: {
     loading: 'Loading…',
@@ -179,11 +196,50 @@ const MESSAGES: Record<Locale, Msgs> = {
     send: 'Send',
     connect: 'Connect',
     manuals: 'manuals',
+    mcpTitle: 'AI Integration (MCP)',
+    mcpDesc: 'Let AI assistants like Claude reference your manuals directly.',
+    mcpCreateKey: 'Create API key',
+    mcpKeyNamePlaceholder: 'Key name (e.g. Home PC)',
+    mcpNoKeys: 'No API keys yet.',
+    mcpRevoke: 'Revoke',
+    mcpCopyConfig: 'Copy config',
+    mcpCopied: 'Copied! Paste it into claude_desktop_config.json in Claude Desktop.',
+    mcpNewKeyNotice: '⚠️ This key is shown only once. Copy the config below and save it.',
+    mcpRequiresPro: 'MCP integration is available on the Pro plan and above.',
+    mcpLastUsed: 'Last used: {date}',
+    mcpNeverUsed: 'Never used',
+    mcpKeyLimit: 'Failed to create API key: {error}',
+    mcpConfirmRevoke: 'Revoke this key? Connected AI clients will stop working.',
   },
 };
 
 function interpolate(msg: string, vars: Record<string, string> = {}): string {
   return msg.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+}
+
+type McpKey = {
+  id: string;
+  name: string | null;
+  key_masked: string;
+  last_used_at: string | null;
+  created_at: string;
+};
+
+function mcpConfigSnippet(key: string): string {
+  // Authorization はSupabaseのJWTゲート用（anonキー・公開情報）、MCPキーは x-mcp-key で送る
+  return JSON.stringify({
+    mcpServers: {
+      'notion-manual-maker': {
+        command: 'npx',
+        args: [
+          '-y', 'mcp-remote',
+          `${SUPABASE_FUNCTIONS_URL}/mcp-server`,
+          '--header', `Authorization: Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          '--header', `x-mcp-key: ${key}`,
+        ],
+      },
+    },
+  }, null, 2);
 }
 
 export default function DashboardPage() {
@@ -204,6 +260,11 @@ export default function DashboardPage() {
   const [cancelAt, setCancelAt] = useState<string | null>(null);
   const [msg, setMsg] = useState('');
   const [notionConnecting, setNotionConnecting] = useState(false);
+  const [mcpKeys, setMcpKeys] = useState<McpKey[]>([]);
+  const [mcpNewKey, setMcpNewKey] = useState<string | null>(null);
+  const [mcpKeyName, setMcpKeyName] = useState('');
+  const [mcpBusy, setMcpBusy] = useState(false);
+  const [mcpCopied, setMcpCopied] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -275,10 +336,74 @@ export default function DashboardPage() {
       }
       const invoicesData = await invoicesRes.json();
       if (invoicesRes.ok && invoicesData.invoices) setInvoices(invoicesData.invoices);
+      if (MCP_SECTION_ENABLED && profileRes.ok && (profileData.plan === 'pro' || profileData.plan === 'team')) {
+        fetchMcpKeys(s);
+      }
       return profileRes.ok ? (profileData as UserProfile) : null;
     } finally {
       setLoading(false);
     }
+  }
+
+  async function fetchMcpKeys(s: Session) {
+    try {
+      const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/mcp-keys`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ supabase_token: s.access_token, action: 'list' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.keys) setMcpKeys(data.keys);
+    } catch { /* MCPセクションは補助機能 — 失敗しても他に影響させない */ }
+  }
+
+  async function createMcpKey() {
+    if (!session) return;
+    setMcpBusy(true);
+    setMcpCopied(false);
+    try {
+      const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/mcp-keys`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ supabase_token: session.access_token, action: 'create', name: mcpKeyName || null }),
+      });
+      const data = await res.json();
+      if (res.ok && data.key) {
+        setMcpNewKey(data.key.key);
+        setMcpKeyName('');
+        await fetchMcpKeys(session);
+      } else {
+        setMsg(t('mcpKeyLimit', { error: data.error ?? '' }));
+      }
+    } catch {
+      setMsg(t('networkError'));
+    } finally {
+      setMcpBusy(false);
+    }
+  }
+
+  async function revokeMcpKey(keyId: string) {
+    if (!session) return;
+    if (!window.confirm(t('mcpConfirmRevoke'))) return;
+    try {
+      await fetch(`${SUPABASE_FUNCTIONS_URL}/mcp-keys`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ supabase_token: session.access_token, action: 'revoke', key_id: keyId }),
+      });
+      setMcpNewKey(null);
+      await fetchMcpKeys(session);
+    } catch {
+      setMsg(t('networkError'));
+    }
+  }
+
+  async function copyMcpConfig(key: string) {
+    try {
+      await navigator.clipboard.writeText(mcpConfigSnippet(key));
+      setMcpCopied(true);
+      setTimeout(() => setMcpCopied(false), 4000);
+    } catch { /* clipboard未許可 */ }
   }
 
   async function handleSetLocale(newLocale: 'ja' | 'en') {
@@ -1082,6 +1207,84 @@ export default function DashboardPage() {
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {/* AI Integration (MCP) */}
+            {MCP_SECTION_ENABLED && profile && (
+              <div className="card">
+                <div className="card-h">
+                  <span className="card-title">{t('mcpTitle')}</span>
+                  {(profile.plan === 'pro' || profile.plan === 'team') && (
+                    <span className="card-meta">{mcpKeys.length} / 5</span>
+                  )}
+                </div>
+                <div style={{ padding: '4px 0 0' }}>
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-3)', margin: '0 0 10px' }}>{t('mcpDesc')}</p>
+
+                  {(profile.plan !== 'pro' && profile.plan !== 'team') ? (
+                    <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0, padding: '8px 0' }}>
+                      🔒 {t('mcpRequiresPro')}
+                    </p>
+                  ) : (
+                    <>
+                      {mcpNewKey && (
+                        <div style={{ background: 'oklch(0.97 0.03 90)', border: '1px solid oklch(0.85 0.08 90)', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
+                          <div style={{ fontSize: 12, marginBottom: 6 }}>{t('mcpNewKeyNotice')}</div>
+                          <code style={{ fontSize: 11, fontFamily: 'var(--font-mono)', wordBreak: 'break-all', display: 'block', marginBottom: 8 }}>{mcpNewKey}</code>
+                          <button className="btn-outline" style={{ fontSize: 12 }} onClick={() => copyMcpConfig(mcpNewKey)}>
+                            {t('mcpCopyConfig')}
+                          </button>
+                          {mcpCopied && <div style={{ fontSize: 11.5, color: 'oklch(0.42 0.10 155)', marginTop: 6 }}>{t('mcpCopied')}</div>}
+                        </div>
+                      )}
+
+                      <ul className="list">
+                        {mcpKeys.length === 0 && !mcpNewKey && (
+                          <li style={{ padding: '10px 0', color: 'var(--ink-4)', fontSize: 13, border: 'none' }}>
+                            {t('mcpNoKeys')}
+                          </li>
+                        )}
+                        {mcpKeys.map((k) => (
+                          <li key={k.id}>
+                            <div className="row-body">
+                              <div className="row-title" style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5 }}>
+                                {k.name ? `${k.name} · ` : ''}{k.key_masked}
+                              </div>
+                              <div className="row-sub">
+                                <span>
+                                  {k.last_used_at
+                                    ? t('mcpLastUsed', { date: new Date(k.last_used_at).toLocaleDateString(dateLocale) })
+                                    : t('mcpNeverUsed')}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="row-actions">
+                              <button className="btn-outline" style={{ fontSize: 11 }} onClick={() => revokeMcpKey(k.id)}>
+                                {t('mcpRevoke')}
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {mcpKeys.length < 5 && (
+                        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                          <input
+                            type="text"
+                            value={mcpKeyName}
+                            onChange={(e) => setMcpKeyName(e.target.value)}
+                            placeholder={t('mcpKeyNamePlaceholder')}
+                            style={{ flex: 1, fontSize: 12.5, padding: '6px 10px', border: '1px solid var(--line)', borderRadius: 6 }}
+                          />
+                          <button className="btn-outline" onClick={createMcpKey} disabled={mcpBusy}>
+                            {mcpBusy ? t('processing') : t('mcpCreateKey')}
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             )}
 

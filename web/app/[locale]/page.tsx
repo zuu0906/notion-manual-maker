@@ -1,7 +1,7 @@
 import { setRequestLocale } from 'next-intl/server';
 import HeroStage from './HeroStage';
 
-const STORE_URL = 'https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpjjkiojneipicd';
+const STORE_URL = 'https://chromewebstore.google.com/detail/notion-manual-maker/kapchgeffhkfffhflcpjjkiojneipicd';
 
 // ── Bilingual copy ──────────────────────────────────────────────
 const COPY = {

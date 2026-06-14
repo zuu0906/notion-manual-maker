@@ -31,6 +31,16 @@ Deno.serve(async (req) => {
     const { sub: google_id } = await gRes.json();
     if (!google_id) return json({ error: 'google_id missing' }, 401);
 
+    // steps_json: ステップ詳細（MCP連携・自動実行の基盤）。巨大ペイロードはガード
+    let steps_json = null;
+    if (body.steps_json && Array.isArray(body.steps_json.steps)) {
+      const steps = body.steps_json.steps.slice(0, 200);
+      const serialized = JSON.stringify({ steps });
+      if (serialized.length <= 1_000_000) {
+        steps_json = { steps };
+      }
+    }
+
     const { data, error } = await supabase.from('manuals').insert({
       google_id,
       title: body.title ?? '無題のマニュアル',
@@ -40,6 +50,7 @@ Deno.serve(async (req) => {
       page_domain: body.page_domain ?? null,
       recording_duration_sec: body.recording_duration_sec ?? null,
       source: body.source ?? 'extension',
+      steps_json,
     }).select('id').single();
 
     if (error) return json({ error: error.message }, 500);

@@ -25,7 +25,7 @@ const FOOTER = {
   en: { privacy: 'Privacy Policy', terms: 'Terms of Service', contact: 'Contact' },
 } as const;
 
-const STORE_URL = 'https://chrome.google.com/webstore';
+const STORE_URL = 'https://chromewebstore.google.com/detail/notion-manual-maker/kapchgeffhkfffhflcpjjkiojneipicd';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const locale = detectLocale();

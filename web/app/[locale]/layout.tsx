@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing } from '../../i18n/routing';
 import '../lp.css';
 
-const STORE_URL = 'https://chromewebstore.google.com/detail/kapchgeffhkfffhflcpjjkiojneipicd';
+const STORE_URL = 'https://chromewebstore.google.com/detail/notion-manual-maker/kapchgeffhkfffhflcpjjkiojneipicd';
 
 export async function generateMetadata({
   params,

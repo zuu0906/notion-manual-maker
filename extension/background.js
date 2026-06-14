@@ -1,5 +1,6 @@
 // Service Worker — スクショ取得・Offscreen canvas呼び出し・Notion送信
 import { CONFIG, PLAN_LIMITS } from './shared/config.js';
+import { startPlayback, stopPlayback, getPlaybackState } from './player.js';
 
 chrome.action.setBadgeBackgroundColor({ color: '#FF3B30' });
 
@@ -157,8 +158,63 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ isRecording, steps: pendingClicks });
       });
       return true; // 非同期レスポンスのため true を返す
+
+    // ── 自動実行（リプレイ）──
+    case 'PLAY_RECORDED': {
+      // いま記録したステップ（pendingClicks）をその場で再生
+      const steps = pendingClicks.map(({ annotatedDataUrl: _a, rawDataUrl: _r, ...rest }) => rest);
+      startPlayback(steps, msg.mode, notifyPopup).then(sendResponse);
+      return true;
+    }
+    case 'PLAY_MANUAL':
+      playSavedManual(msg.manualId, msg.mode).then(sendResponse);
+      return true;
+    case 'LIST_REPLAY_MANUALS':
+      listReplayManuals().then(sendResponse);
+      return true;
+    case 'PLAY_STOP':
+      stopPlayback();
+      break;
+    case 'PLAY_GET_STATE':
+      sendResponse(getPlaybackState());
+      break;
   }
 });
+
+// 保存済みマニュアルを取得して再生
+async function playSavedManual(manualId, mode) {
+  const { googleToken } = await chrome.storage.session.get('googleToken');
+  if (!googleToken) return { error: 'not_signed_in' };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/my-manuals`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ google_token: googleToken, action: 'get', manual_id: manualId }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { error: data.error ?? 'fetch_failed' };
+    return await startPlayback(data.steps ?? [], mode, notifyPopup);
+  } catch (e) {
+    return { error: String(e?.message ?? e) };
+  }
+}
+
+async function listReplayManuals() {
+  const { googleToken } = await chrome.storage.session.get('googleToken');
+  if (!googleToken) return { error: 'not_signed_in' };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/my-manuals`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ google_token: googleToken, action: 'list' }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { error: data.error ?? 'fetch_failed' };
+    return { ok: true, manuals: data.manuals ?? [] };
+  } catch (e) {
+    return { error: String(e?.message ?? e) };
+  }
+}
 
 async function startRecording(tabId) {
   isRecording = true;
@@ -342,6 +398,7 @@ async function saveToNotion(notionPageId, title, steps) {
 
   let savedCount = 0;
   let failedCount = 0;
+  const stepRecords = []; // steps_json用（MCP連携・自動実行の基盤）
   notifyPopup({ type: 'SAVE_PROGRESS', current: 0, total: stepsToSave.length });
   for (const step of stepsToSave) {
     const imageUrl = await uploadToSupabase(step.annotatedDataUrl);
@@ -350,6 +407,21 @@ async function saveToNotion(notionPageId, title, steps) {
       notifyPopup({ type: 'SAVE_PROGRESS', current: savedCount + failedCount, total: stepsToSave.length });
       continue;
     }
+
+    stepRecords.push({
+      stepNumber: step.stepNumber,
+      imageUrl,
+      label: step.label || '',
+      memo: step.memo || '',
+      pageUrl: step.pageUrl || '',
+      pageTitle: step.pageTitle || '',
+      x: step.x, y: step.y,
+      viewportWidth: step.viewportWidth, viewportHeight: step.viewportHeight,
+      elementHint: step.elementHint || '',
+      inputText: step.isPassword ? null : (step.inputText ?? null),
+      isPassword: !!step.isPassword,
+      formNote: step.formNote || '',
+    });
 
     const blocks = [];
 
@@ -408,6 +480,7 @@ async function saveToNotion(notionPageId, title, steps) {
         page_domain,
         recording_duration_sec,
         source: 'extension',
+        steps_json: stepRecords.length > 0 ? { steps: stepRecords } : null,
       }),
     }).catch(e => console.warn('[record-manual]', e?.message ?? e));
   }

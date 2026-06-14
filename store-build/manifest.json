@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "default_locale": "ja",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "クリックするだけでスクリーンショット+矢印をNotionへ自動保存",
   "permissions": [
     "activeTab",
@@ -14,7 +14,7 @@
     "webNavigation"
   ],
   "oauth2": {
-    "client_id": "1097550430323-6r11eua9fustnbffh91c8bi4lbc8a0a9.apps.googleusercontent.com",
+    "client_id": "1097550430323-ipgkdaios3b7e2tfvrm2dc7otau4renp.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/userinfo.email"
     ]

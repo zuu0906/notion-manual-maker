@@ -477,6 +477,26 @@
 
     <div id="msg"></div>
 
+    <!-- 自動実行（Pro） -->
+    <div id="replay-section" style="display:none">
+      <div class="divider"></div>
+      <div class="steps-header-row">
+        <span class="steps-label" data-i18n="replayTitle"></span>
+        <button class="ai-setup-link" id="replay-toggle" data-i18n="replayShow"></button>
+      </div>
+      <div id="replay-body" style="display:none">
+        <div class="row" style="padding-top:4px;">
+          <select id="replay-mode" class="page-dest-select" style="flex:1;width:auto;">
+            <option value="step_by_step" data-i18n="replayModeConfirm"></option>
+            <option value="supervised" data-i18n="replayModeAuto"></option>
+          </select>
+          <button class="btn-default" id="replay-recorded-btn" disabled data-i18n="replayRunRecorded"></button>
+        </div>
+        <div id="replay-list" style="max-height:140px;overflow-y:auto;"></div>
+        <div id="replay-status" style="display:none;font-size:11px;color:#9b9a97;padding:4px 16px 8px;"></div>
+      </div>
+    </div>
+
     <div class="upgrade-row" id="upgrade-section" style="display:none">
       <span id="upgrade-msg" data-i18n="upgradeMsgFree"></span>
       <div class="upgrade-btns">

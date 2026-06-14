@@ -123,6 +123,15 @@ const privacyBlurToggle = document.getElementById('privacy-blur-toggle');
 // DOM refs — Customer Portal
 const portalLink = document.getElementById('portal-link');
 
+// DOM refs — 自動実行
+const replaySection     = document.getElementById('replay-section');
+const replayToggle      = document.getElementById('replay-toggle');
+const replayBody        = document.getElementById('replay-body');
+const replayMode        = document.getElementById('replay-mode');
+const replayRecordedBtn = document.getElementById('replay-recorded-btn');
+const replayList        = document.getElementById('replay-list');
+const replayStatus      = document.getElementById('replay-status');
+
 // DOM refs — AI
 const bulkGenBtn         = document.getElementById('bulk-gen-btn');
 const aiCallsLabel       = document.getElementById('ai-calls-label');
@@ -546,6 +555,15 @@ chrome.runtime.onMessage.addListener((msg) => {
     showMsg(t('injectionError'), 'error');
   } else if (msg.type === 'SAVE_PROGRESS') {
     saveBtn.textContent = t('savingProgress', [String(msg.current), String(msg.total)]);
+  } else if (msg.type === 'PLAY_PROGRESS') {
+    replayStatus.style.display = '';
+    replayStatus.textContent = t('replayProgress', [String(msg.current), String(msg.total)]);
+  } else if (msg.type === 'PLAY_DONE') {
+    replayStatus.style.display = '';
+    replayStatus.textContent = msg.stopped ? t('replayStopped') : t('replayDone');
+  } else if (msg.type === 'PLAY_ERROR') {
+    replayStatus.style.display = 'none';
+    showMsg(t('replayFailed'), 'error');
   }
 });
 
@@ -559,6 +577,84 @@ clearBtn.addEventListener('click', clearSteps);
 pdfBtn.addEventListener('click', exportPdf);
 
 bulkGenBtn.addEventListener('click', generateManual);
+
+// ── 自動実行（リプレイ）─────────────────────────────────────────────────────
+let replayManualsLoaded = false;
+
+replayToggle.addEventListener('click', async () => {
+  const open = replayBody.style.display === 'none';
+  replayBody.style.display = open ? '' : 'none';
+  replayToggle.textContent = open ? t('replayHide') : t('replayShow');
+  if (open && !replayManualsLoaded) await loadReplayManuals();
+});
+
+async function loadReplayManuals() {
+  replayList.innerHTML = `<div class="empty-hint" style="padding:12px 16px;">${t('replayLoading')}</div>`;
+  const res = await chrome.runtime.sendMessage({ type: 'LIST_REPLAY_MANUALS' }).catch(() => null);
+  replayList.innerHTML = '';
+  if (!res || res.error) {
+    const hint = document.createElement('div');
+    hint.className = 'empty-hint';
+    hint.style.padding = '12px 16px';
+    hint.textContent = res?.error === 'not_signed_in' ? t('googleSignInDesc') : t('replayNoManuals');
+    replayList.appendChild(hint);
+    return;
+  }
+  replayManualsLoaded = true;
+  if ((res.manuals ?? []).length === 0) {
+    const hint = document.createElement('div');
+    hint.className = 'empty-hint';
+    hint.style.padding = '12px 16px';
+    hint.textContent = t('replayNoManuals');
+    replayList.appendChild(hint);
+    return;
+  }
+  for (const m of res.manuals) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.style.padding = '6px 16px';
+    const label = document.createElement('span');
+    label.style.cssText = 'flex:1;font-size:12px;color:#37352f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    label.textContent = m.title;
+    label.title = `${m.title}（${m.step_count}）`;
+    const btn = document.createElement('button');
+    btn.className = 'btn-default';
+    btn.textContent = t('replayRun');
+    btn.addEventListener('click', () => runReplay({ type: 'PLAY_MANUAL', manualId: m.id, mode: replayMode.value }));
+    row.appendChild(label);
+    row.appendChild(btn);
+    replayList.appendChild(row);
+  }
+}
+
+replayRecordedBtn.addEventListener('click', () => {
+  runReplay({ type: 'PLAY_RECORDED', mode: replayMode.value });
+});
+
+async function runReplay(message) {
+  // 再生は新規タブにスクリプト注入するため <all_urls> が必要（記録開始時と同じフロー）
+  const granted = await new Promise(resolve =>
+    chrome.permissions.request({ origins: ['<all_urls>'] }, resolve)
+  );
+  if (!granted) {
+    showMsg(t('permissionRequired'), 'error');
+    return;
+  }
+  replayStatus.style.display = '';
+  replayStatus.textContent = t('replayLoading');
+  const res = await chrome.runtime.sendMessage(message).catch(() => null);
+  if (!res || res.error) {
+    replayStatus.textContent = '';
+    replayStatus.style.display = 'none';
+    if (res?.error === 'replay_requires_pro') showMsg(t('replayRequiresPro'), 'error');
+    else if (res?.error === 'already_playing') showMsg(t('replayAlreadyPlaying'), 'error');
+    else if (res?.error === 'not_signed_in') showMsg(t('googleSignInDesc'), 'error');
+    else showMsg(t('replayFailed'), 'error');
+    return;
+  }
+  replayStatus.textContent = t('replayStarted', [String(res.total)]);
+  // 再生は新しいタブで始まる — ポップアップはタブ切替で自動的に閉じる
+}
 
 pageDestSelect.addEventListener('change', () => {
   titleRow.style.display = pageDestSelect.value ? 'none' : '';
@@ -847,6 +943,7 @@ function updateRecordUI() {
   saveBtn.disabled = count === 0;
   clearBtn.disabled = count === 0;
   pdfBtn.disabled = count === 0;
+  replayRecordedBtn.disabled = count === 0;
   if (state.isRecording) {
     recBanner.style.display = 'flex';
     recStepCount.textContent = t('recordingSteps', [String(count)]);
@@ -1317,6 +1414,8 @@ function updatePlanUI() {
   }
   // PDFはStandard以上
   if (pdfBtn) pdfBtn.style.display = (plan === 'standard' || plan === 'pro') ? '' : 'none';
+  // 自動実行はPro以上
+  if (replaySection) replaySection.style.display = (plan === 'pro' || plan === 'team') ? '' : 'none';
   // Freeプランは新規ページのみ（保存先選択なし）
   if (destRow) destRow.style.display = plan === 'free' ? 'none' : '';
   // ワークスペースセレクターの表示更新

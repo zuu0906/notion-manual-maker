@@ -188,10 +188,19 @@ async function saveToNotion({ notionPageId, title, stepsToSave, googleToken, pla
   let savedCount = 0;
   let failedCount = 0;
   const allBlocks = [];
+  const stepRecords = []; // steps_json用（MCP連携の基盤）
 
   stepsToSave.forEach((step, i) => {
     const imageUrl = imageUrls[i];
     if (!imageUrl) { failedCount++; return; }
+
+    stepRecords.push({
+      stepNumber: step.stepNumber,
+      imageUrl,
+      label: step.label || '',
+      memo: step.memo || '',
+      ocrContext: step.ocrContext || '',
+    });
 
     const displayNumber = stepOffset + step.stepNumber;
     const headingText = step.label || `Step ${displayNumber}`;
@@ -244,6 +253,7 @@ async function saveToNotion({ notionPageId, title, stepsToSave, googleToken, pla
         notion_workspace_id: wsId,
         recording_duration_sec: recordingDurationSec ?? null,
         source: 'desktop',
+        steps_json: stepRecords.length > 0 ? { steps: stepRecords } : null,
       }),
     }).catch(() => {});
   }
