@@ -15,6 +15,7 @@ const flowStore = require('./flow-store');
 const replayEngine = require('./replay-engine');
 const inputDriver = require('./input-driver');
 const safety = require('./safety');
+const hud = require('./hud');
 
 let automationWindow = null;
 let _ctx = null; // { getMainWindow, store }
@@ -65,25 +66,39 @@ function registerIpc() {
     const flow = flowStore.getFlow(id);
     if (!flow) return { ok: false, error: 'flow_not_found' };
 
+    const total = Array.isArray(flow.steps) ? flow.steps.length : 0;
     const send = (channel, payload) => {
       if (automationWindow && !automationWindow.isDestroyed()) {
         automationWindow.webContents.send(channel, payload);
       }
     };
+    // 進捗を管理ウィンドウと実行中HUDの両方へ流す
+    const onProgress = (p) => {
+      const payload = { total, ...p };
+      send('automation:run-progress', payload);
+      hud.update(payload);
+    };
 
     try {
       await inputDriver.init();
-      safety.registerEmergencyStop(() => send('automation:run-progress', { phase: 'aborted' }));
+      hud.show();
+      onProgress({ phase: 'starting' });
+      safety.registerEmergencyStop(() => onProgress({ phase: 'aborted' }));
       const result = await replayEngine.run(flow, {
         mode: mode || 'supervised',
-        onProgress: (p) => send('automation:run-progress', p),
+        onProgress,
       });
+      // 終端フェーズを HUD に反映してから少し見せて閉じる
+      hud.update({ total, phase: (result && result.status) || 'done' });
       return { ok: true, result };
     } catch (e) {
+      hud.update({ total, phase: 'failed', error: e.message });
       return { ok: false, error: e.message };
     } finally {
       safety.unregisterEmergencyStop();
       await inputDriver.dispose().catch(() => {});
+      // 終端メッセージを一瞬見せてから HUD を閉じる
+      setTimeout(() => hud.hide(), 1400);
     }
   });
 
