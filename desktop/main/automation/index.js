@@ -79,14 +79,16 @@ function registerIpc() {
       hud.update(payload);
     };
 
+    let aborted = false;
     try {
       await inputDriver.init();
       hud.show();
       onProgress({ phase: 'starting' });
-      safety.registerEmergencyStop(() => onProgress({ phase: 'aborted' }));
+      safety.registerEmergencyStop(() => { aborted = true; onProgress({ phase: 'aborted' }); });
       const result = await replayEngine.run(flow, {
         mode: mode || 'supervised',
         onProgress,
+        shouldAbort: () => aborted,
       });
       // 終端フェーズを HUD に反映してから少し見せて閉じる
       hud.update({ total, phase: (result && result.status) || 'done' });
