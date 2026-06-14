@@ -59,16 +59,34 @@ async function runFlow(id) {
   setStatus('実行を開始しています…');
   const res = await window.automation.runFlow(id, modeEl.value);
   if (!res.ok) { setStatus(`実行できませんでした: ${res.error}`, true); return; }
-  const st = res.result && res.result.status;
-  if (st === 'engine_not_ready') {
-    setStatus('実行エンジンは準備中です（Phase 1 の実装が完了すると動作します）。', true);
-  } else if (st === 'success') {
-    setStatus('完了しました。');
-  } else if (st === 'aborted') {
-    setStatus('中断しました。');
-  } else {
-    setStatus(`終了: ${st}`);
+  setStatus(summarizeReport(res.result), res.result && res.result.status !== 'success');
+}
+
+// W14: 実行レポートを1行サマリにする
+function summarizeReport(result) {
+  if (!result) return '完了しました。';
+  const st = result.status;
+  if (st === 'engine_not_ready') return '実行エンジンは準備中です。';
+  const rep = result.report;
+  const sec = rep && rep.durationMs != null ? `・${(rep.durationMs / 1000).toFixed(1)}秒` : '';
+  const healed = rep && rep.healed ? `・自己修復${rep.healed}件` : '';
+  if (st === 'success') {
+    const n = rep ? rep.total : '';
+    return `✓ 完了（${n}ステップ${sec}${healed}）`;
   }
+  if (st === 'aborted') return `中断しました${sec}`;
+  // failed
+  const failed = rep && rep.steps ? rep.steps.find((s) => s.status !== 'ok') : null;
+  const where = failed ? `ステップ${failed.stepNumber}「${failed.label || failed.action}」で停止` : '失敗';
+  const why = (rep && rep.failedReason) || (failed && failed.reason) || '';
+  const whyJp = ({
+    target_not_found: '対象が見つかりませんでした',
+    activate_failed: '対象ウィンドウを前面化できませんでした',
+    verification_failed: '成功条件を満たしませんでした',
+    confirmation_required: '確認が必要な操作のため停止しました',
+    secret_input_required: '秘匿入力が必要です',
+  })[why] || why;
+  return `${where}${whyJp ? '：' + whyJp : ''}${sec}`;
 }
 
 async function deleteFlow(id) {

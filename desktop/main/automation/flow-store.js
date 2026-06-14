@@ -188,6 +188,27 @@ function restore(id) {
   }
 }
 
+/** W14: 実行レポートを履歴へ追記（最新MAX件のみ保持）。runs.json に保存。 */
+const MAX_RUN_LOG = 20;
+function appendRunLog(id, entry) {
+  ensureInit();
+  const dir = flowDir(id);
+  if (!fs.existsSync(dir)) return;
+  const file = path.join(dir, 'runs.json');
+  let log = [];
+  try { log = JSON.parse(fs.readFileSync(file, 'utf8')); if (!Array.isArray(log)) log = []; } catch { log = []; }
+  log.unshift(entry);
+  if (log.length > MAX_RUN_LOG) log = log.slice(0, MAX_RUN_LOG);
+  try { fs.writeFileSync(file, JSON.stringify(log, null, 2), 'utf8'); } catch {}
+}
+
+/** 実行履歴を新しい順で返す。 */
+function getRunLog(id) {
+  ensureInit();
+  try { const l = JSON.parse(fs.readFileSync(path.join(flowDir(id), 'runs.json'), 'utf8')); return Array.isArray(l) ? l : []; }
+  catch { return []; }
+}
+
 /** ステップのスクショ絶対パス（HUD/編集UIのプレビュー用） */
 function screenshotPath(id, file) {
   ensureInit();
@@ -197,4 +218,5 @@ function screenshotPath(id, file) {
 module.exports = {
   init, listFlows, getFlow, saveFlow, deleteFlow,
   updateStep, applyOps, renameFlow, backup, restore, screenshotPath,
+  appendRunLog, getRunLog,
 };

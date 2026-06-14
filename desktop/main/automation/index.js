@@ -75,6 +75,35 @@ function createEditorWindow(flowId) {
   return win;
 }
 
+// W14: 実行結果から保存用レポートを組み立てる
+function buildReport(flow, result, mode) {
+  const steps = (result.results || []).map((r) => ({
+    stepNumber: r.stepNumber,
+    label: (flow.steps[r.stepIndex] && flow.steps[r.stepIndex].label) || '',
+    action: r.action,
+    status: r.status,
+    method: r.method || null,
+    confidence: typeof r.confidence === 'number' ? Math.round(r.confidence * 100) / 100 : null,
+    verify: r.verify || null,
+    reason: r.reason || null,
+  }));
+  const okCount = steps.filter((s) => s.status === 'ok').length;
+  return {
+    flowId: flow.id,
+    flowName: flow.name,
+    mode,
+    status: result.status,
+    startedAt: result.startedAt || null,
+    finishedAt: result.finishedAt || null,
+    durationMs: result.durationMs || null,
+    total: flow.steps.length,
+    okCount,
+    failedReason: result.error || null,
+    healed: result.healed || 0,
+    steps,
+  };
+}
+
 // 編集後に一覧ウィンドウへ再読込を促す
 function notifyFlowsChanged() {
   if (automationWindow && !automationWindow.isDestroyed()) {
@@ -152,6 +181,12 @@ function registerIpc() {
         }
         if (healed > 0) { result.healed = healed; notifyFlowsChanged(); }
       }
+      // W14: 実行レポートを組み立てて履歴へ保存
+      try {
+        const report = buildReport(flow, result, mode || 'supervised');
+        flowStore.appendRunLog(id, report);
+        result.report = report;
+      } catch {}
       // 終端フェーズを HUD に反映してから少し見せて閉じる
       hud.update({ total, phase: (result && result.status) || 'done' });
       return { ok: true, result };
@@ -167,6 +202,12 @@ function registerIpc() {
   });
 
   ipcMain.handle('automation:open-window', () => { createAutomationWindow(); return { ok: true }; });
+
+  // ── W14: 実行履歴（レポート） ────────────────────────────────────────────
+  ipcMain.handle('automation:get-run-log', (_e, id) => {
+    try { return { ok: true, log: flowStore.getRunLog(id) }; }
+    catch (e) { return { ok: false, error: e.message }; }
+  });
 
   // ── W10: オンボーディング（初回ガイドの表示状態を store に保存）──────────────
   ipcMain.handle('automation:onboarding-state', () => {

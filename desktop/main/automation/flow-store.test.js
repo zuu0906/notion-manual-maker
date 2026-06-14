@@ -117,6 +117,20 @@ t('listFlows は要約を更新日時降順で返す', () => {
   assert.strictEqual(me.stepCount, 3);
 });
 
+t('appendRunLog / getRunLog は新しい順で最大20件保持', () => {
+  const id = freshFlow();
+  for (let i = 0; i < 25; i++) store.appendRunLog(id, { status: 'success', n: i });
+  const log = store.getRunLog(id);
+  assert.strictEqual(log.length, 20);
+  assert.strictEqual(log[0].n, 24); // 最新が先頭
+  assert.strictEqual(log[19].n, 5);
+});
+
+t('getRunLog 履歴なしは空配列', () => {
+  const id = freshFlow();
+  assert.deepStrictEqual(store.getRunLog(id), []);
+});
+
 // 後始末
 try { fs.rmSync(tmp, { recursive: true, force: true }); } catch {}
 

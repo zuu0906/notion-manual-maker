@@ -37,11 +37,15 @@ async function run(flow, opts = {}) {
   const deps = { ...defaultDeps, ...(opts.deps || {}) };
   const { inputDriver, screenReader, matcher, ai, safety, sleep } = deps;
 
+  // W14: 実行レポート用の計時。全 return をこの helper で包む。
+  const startedAt = Date.now();
+  const done = (o) => ({ startedAt, finishedAt: Date.now(), durationMs: Date.now() - startedAt, ...o });
+
   if (!flow || !Array.isArray(flow.steps) || flow.steps.length === 0) {
-    return { status: 'failed', results: [], error: 'empty_flow' };
+    return done({ status: 'failed', results: [], error: 'empty_flow' });
   }
   if (!inputDriver.isReady || !inputDriver.isReady()) {
-    return { status: 'engine_not_ready', results: [], error: 'input_driver_not_ready' };
+    return done({ status: 'engine_not_ready', results: [], error: 'input_driver_not_ready' });
   }
 
   const mode = opts.mode || 'supervised';
@@ -56,12 +60,12 @@ async function run(flow, opts = {}) {
     const step = flow.steps[i];
     const stepNumber = step.stepNumber || i + 1;
     const label = step.label || '';
-    if (aborted()) return { status: 'aborted', results };
+    if (aborted()) return done({ status: 'aborted', results });
 
     // ① 進捗通知（前面化は確認/入力ダイアログ後に operation 直前で行う＝
     //    ダイアログがフォーカスを奪っても対象を取り違えないため。executeStep内で実施）
     report(stepNumber, 'locating', { label });
-    if (aborted()) return { status: 'aborted', results };
+    if (aborted()) return done({ status: 'aborted', results });
 
     // ② 安全/確認（ドライランは実行しないので確認不要）
     const dangerous = safety.isDangerous(step);
@@ -71,16 +75,16 @@ async function run(flow, opts = {}) {
         if (typeof opts.onConfirm === 'function') {
           report(stepNumber, 'confirm', { label });
           const ok = await opts.onConfirm({ message: confirmMessage(step, dangerous), danger: dangerous, step });
-          if (!ok) return { status: 'aborted', results };
+          if (!ok) return done({ status: 'aborted', results });
         } else if (dangerous) {
           // 危険操作は確認手段が無ければ実行しない
           results.push({ stepNumber, action: step.action, status: 'failed', reason: 'confirmation_required' });
-          return { status: 'failed', results, error: 'confirmation_required' };
+          return done({ status: 'failed', results, error: 'confirmation_required' });
         }
         // step_by_step かつ onConfirm 無し → そのまま続行
       }
     }
-    if (aborted()) return { status: 'aborted', results };
+    if (aborted()) return done({ status: 'aborted', results });
 
     // ③ ロケーター + ④ 実行（dryRun時は特定のみ・実行しない）
     let res;
@@ -98,13 +102,13 @@ async function run(flow, opts = {}) {
     results.push(res);
     // ドライランは失敗でも止めず全ステップを評価。本実行は失敗で即停止。
     if (!dryRun && res.status !== 'ok') {
-      return { status: 'failed', results, error: res.reason };
+      return done({ status: 'failed', results, error: res.reason });
     }
     await sleep(dryRun ? 0 : STEP_GAP_MS);
   }
 
   const allOk = results.every((r) => r.status === 'ok');
-  return { status: allOk ? 'success' : 'failed', results, dryRun };
+  return done({ status: allOk ? 'success' : 'failed', results, dryRun });
 }
 
 // ── 1ステップの特定＋実行（dryRun=true なら特定のみで実行しない）────────────

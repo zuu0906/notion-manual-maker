@@ -463,5 +463,14 @@ const flow = (steps) => ({ id: 'f1', name: 'test', steps });
     assert.ok(!recovered);
   });
 
+  // ── W14: 実行レポート計時 ──
+  await t('結果に計時(startedAt/finishedAt/durationMs)が付く', async () => {
+    const { deps } = makeDeps({});
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'wait', waitMs: 1 }]), { deps });
+    assert.strictEqual(typeof r.startedAt, 'number');
+    assert.strictEqual(typeof r.finishedAt, 'number');
+    assert.ok(r.durationMs >= 0);
+  });
+
   console.log(`\n${pass} passed`);
 })();

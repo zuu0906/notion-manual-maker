@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('automation', {
   getFlow: (id) => ipcRenderer.invoke('automation:get-flow', id),
   deleteFlow: (id) => ipcRenderer.invoke('automation:delete-flow', id),
   runFlow: (id, mode) => ipcRenderer.invoke('automation:run-flow', { id, mode }),
+  getRunLog: (id) => ipcRenderer.invoke('automation:get-run-log', id),
   onRunProgress: (cb) => {
     const handler = (_e, payload) => cb(payload);
     ipcRenderer.on('automation:run-progress', handler);
