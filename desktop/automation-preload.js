@@ -26,6 +26,10 @@ contextBridge.exposeInMainWorld('automation', {
   },
   replyPrompt: (reqId, value) => ipcRenderer.send(`automation:prompt-reply:${reqId}`, value),
 
+  // ── W10: オンボーディング ──
+  onboardingState: () => ipcRenderer.invoke('automation:onboarding-state'),
+  onboardingDone: () => ipcRenderer.invoke('automation:onboarding-done'),
+
   // ── W7: フロー編集 ──
   openEditor: (id) => ipcRenderer.invoke('automation:open-editor', id),
   renameFlow: (id, name) => ipcRenderer.invoke('automation:rename-flow', { id, name }),

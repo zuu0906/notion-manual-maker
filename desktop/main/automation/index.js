@@ -158,6 +158,16 @@ function registerIpc() {
 
   ipcMain.handle('automation:open-window', () => { createAutomationWindow(); return { ok: true }; });
 
+  // ── W10: オンボーディング（初回ガイドの表示状態を store に保存）──────────────
+  ipcMain.handle('automation:onboarding-state', () => {
+    const done = !!(_ctx && _ctx.store && _ctx.store.get('automation_onboarded', false));
+    return { ok: true, done };
+  });
+  ipcMain.handle('automation:onboarding-done', () => {
+    try { if (_ctx && _ctx.store) _ctx.store.set('automation_onboarded', true); } catch {}
+    return { ok: true };
+  });
+
   // ── W8: ドライラン（特定のみ・クリック/入力しない）────────────────────────
   ipcMain.handle('automation:dry-run-flow', async (_e, id) => {
     const flow = flowStore.getFlow(id);

@@ -140,6 +140,22 @@ modal.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') modal.ok
 
 if (window.automation.onPrompt) window.automation.onPrompt(showPrompt);
 
+// ── W10: 初回オンボーディング ─────────────────────────────────────────────────
+async function maybeShowOnboarding() {
+  try {
+    const res = await window.automation.onboardingState();
+    if (res && res.ok && !res.done) {
+      document.getElementById('onbBg').classList.add('show');
+    }
+  } catch {}
+}
+const onbStart = document.getElementById('onbStart');
+if (onbStart) onbStart.addEventListener('click', async () => {
+  document.getElementById('onbBg').classList.remove('show');
+  try { await window.automation.onboardingDone(); } catch {}
+});
+maybeShowOnboarding();
+
 refreshBtn.addEventListener('click', loadFlows);
 
 window.automation.onRunProgress((p) => {

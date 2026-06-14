@@ -44,6 +44,19 @@
     .modal input { width:100%; font:inherit; font-size:14px; padding:8px 10px; border:1px solid var(--line);
                    border-radius:8px; margin-bottom:12px; }
     .modal .row { display:flex; gap:8px; justify-content:flex-end; }
+    /* W10: オンボーディング */
+    .onb-bg { position:fixed; inset:0; background:rgba(247,247,248,0.98); display:none;
+              flex-direction:column; padding:28px 24px; z-index:60; overflow:auto; }
+    .onb-bg.show { display:flex; }
+    .onb h1 { font-size:20px; margin:4px 0 2px; }
+    .onb .lead { color:var(--sub); font-size:13px; margin:0 0 18px; }
+    .onb .pt { display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; }
+    .onb .ic { width:34px; height:34px; flex-shrink:0; border-radius:9px; background:#eef2ff; color:var(--accent);
+               font-size:18px; display:flex; align-items:center; justify-content:center; }
+    .onb .pt .t { font-weight:600; font-size:14px; }
+    .onb .pt .d { color:var(--sub); font-size:12.5px; margin-top:2px; line-height:1.55; }
+    .onb .foot { margin-top:auto; padding-top:18px; }
+    .onb .foot button { width:100%; padding:11px; font-size:14px; }
   </style>
 </head>
 <body>
@@ -63,6 +76,20 @@
     <div id="list" class="list"></div>
     <div id="status" class="status"></div>
   </main>
+
+  <div id="onbBg" class="onb-bg">
+    <div class="onb">
+      <h1>自動実行へようこそ <span class="beta">β</span></h1>
+      <p class="lead">記録したマニュアルの操作を、AIがあなたの代わりに再現します。使う前に3つだけ。</p>
+      <div class="pt"><div class="ic">▷</div><div><div class="t">記録したフローを再現します</div>
+        <div class="d">画面の要素を3段階（UI構造 → 文字 → AI）で見つけてクリック・入力します。多少レイアウトが変わっても追従します。</div></div></div>
+      <div class="pt"><div class="ic">⎋</div><div><div class="t">いつでも Esc で止められます</div>
+        <div class="d">実行中は画面下に進捗が出ます。おかしいと思ったら Esc キーで即停止。危険そうな操作は実行前に確認します。</div></div></div>
+      <div class="pt"><div class="ic">✎</div><div><div class="t">不安なら確認・編集できます</div>
+        <div class="d">「ドライラン」はクリックせず特定できるか確認。「編集」ではステップ名や順番を直せて、文章で「3番目を削除」のように指示もできます。</div></div></div>
+    </div>
+    <div class="foot"><button id="onbStart" class="primary">はじめる</button></div>
+  </div>
 
   <div id="modalBg" class="modal-bg">
     <div class="modal">
