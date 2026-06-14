@@ -8,6 +8,16 @@ contextBridge.exposeInMainWorld('automation', {
   deleteFlow: (id) => ipcRenderer.invoke('automation:delete-flow', id),
   runFlow: (id, mode) => ipcRenderer.invoke('automation:run-flow', { id, mode }),
   getRunLog: (id) => ipcRenderer.invoke('automation:get-run-log', id),
+
+  // ── W15: 操作の自動記録 ──
+  recordingState: () => ipcRenderer.invoke('automation:recording-state'),
+  startRecording: (name) => ipcRenderer.invoke('automation:start-recording', { name }),
+  stopRecording: () => ipcRenderer.invoke('automation:stop-recording'),
+  onRecordingProgress: (cb) => {
+    const handler = (_e, p) => cb(p);
+    ipcRenderer.on('automation:recording-progress', handler);
+    return () => ipcRenderer.removeListener('automation:recording-progress', handler);
+  },
   onRunProgress: (cb) => {
     const handler = (_e, payload) => cb(payload);
     ipcRenderer.on('automation:run-progress', handler);

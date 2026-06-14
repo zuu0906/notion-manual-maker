@@ -72,7 +72,17 @@
         <option value="step_by_step">1ステップずつ確認</option>
       </select>
       <button id="refresh">更新</button>
+      <button id="record" class="primary">● 操作を記録</button>
     </div>
+    <div id="recBar" style="display:none; background:#fff5f5; border:1px solid #f0c6c6; border-radius:10px; padding:10px 12px; margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#d93636;display:inline-block;animation:blink 1s infinite;"></span>
+        <span id="recText" style="flex:1;font-size:13px;">記録中… ふだん通り操作してください（0 操作）</span>
+        <button id="recStop" class="primary" style="background:#d93636;border-color:#d93636;">記録を終了</button>
+      </div>
+      <p class="sub" style="margin:6px 0 0;">このウィンドウ上のクリックは記録されません。終わったらここに戻って「記録を終了」。</p>
+    </div>
+    <style>@keyframes blink{50%{opacity:.3}}</style>
     <div id="list" class="list"></div>
     <div id="status" class="status"></div>
   </main>

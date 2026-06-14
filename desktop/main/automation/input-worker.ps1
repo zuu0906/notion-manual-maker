@@ -360,6 +360,26 @@ while ($null -ne ($line = $stdin.ReadLine())) {
                 if ($null -eq $res) { Reply $id '"found":false' }
                 else { Reply $id ('"found":true,' + $res) }
             }
+            'uiaFocused' {
+                # 記録(W15)用: 現在フォーカス中の要素情報＋入力値を返す
+                $el = $null
+                try { $el = [System.Windows.Automation.AutomationElement]::FocusedElement } catch {}
+                $info = Uia-Info $el
+                if ($null -eq $info) { Reply $id '"element":null' }
+                else {
+                    $val = ''
+                    try {
+                        $vp = $el.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+                        $val = $vp.Current.Value
+                    } catch {
+                        try {
+                            $tp = $el.GetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern)
+                            $val = $tp.DocumentRange.GetText(500)
+                        } catch {}
+                    }
+                    Reply $id ($info + ',"value":"' + (Esc $val) + '"')
+                }
+            }
             default { ReplyErr $id "unknown cmd: $($req.cmd)" }
         }
     } catch {

@@ -11,7 +11,8 @@
   "dependencies": {
     "dotenv": "^16.0.0",
     "electron-store": "^8.2.0",
-    "electron-updater": "^6.3.9"
+    "electron-updater": "^6.3.9",
+    "uiohook-napi": "^1.5.5"
   },
   "devDependencies": {
     "electron": "^30.4.0",
@@ -32,8 +33,14 @@
       "icon256.png"
     ],
     "extraResources": [
-      { "from": "../extension/_locales", "to": "_locales" },
-      { "from": ".env.local", "to": ".env.local" }
+      {
+        "from": "../extension/_locales",
+        "to": "_locales"
+      },
+      {
+        "from": ".env.local",
+        "to": ".env.local"
+      }
     ],
     "publish": {
       "provider": "github",
@@ -42,12 +49,24 @@
       "releaseType": "release"
     },
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "icon256.png",
       "artifactName": "Notion-Manual-Maker-Setup.exe"
     },
     "protocols": [
-      { "name": "Notion Manual Maker", "schemes": ["cmm"] }
+      {
+        "name": "Notion Manual Maker",
+        "schemes": [
+          "cmm"
+        ]
+      }
     ]
   }
 }

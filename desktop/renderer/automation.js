@@ -158,6 +158,47 @@ modal.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') modal.ok
 
 if (window.automation.onPrompt) window.automation.onPrompt(showPrompt);
 
+// ── W15: 操作の自動記録 ───────────────────────────────────────────────────────
+const recordBtn = document.getElementById('record');
+const recBar = document.getElementById('recBar');
+const recText = document.getElementById('recText');
+const recStop = document.getElementById('recStop');
+
+function setRecording(on) {
+  recBar.style.display = on ? '' : 'none';
+  recordBtn.style.display = on ? 'none' : '';
+}
+
+if (recordBtn) recordBtn.addEventListener('click', async () => {
+  const name = (prompt('記録するフローの名前を入力してください', '新しいフロー') || '').trim();
+  if (name === '') return; // キャンセル
+  const res = await window.automation.startRecording(name || undefined);
+  if (!res.ok) { setStatus('記録を開始できませんでした: ' + res.error, true); return; }
+  recText.textContent = '記録中… ふだん通り操作してください（0 操作）';
+  setRecording(true);
+  setStatus('');
+});
+
+if (recStop) recStop.addEventListener('click', async () => {
+  const res = await window.automation.stopRecording();
+  setRecording(false);
+  if (!res.ok) {
+    setStatus(res.error === 'no_steps' ? '操作が記録されませんでした。' : '記録の保存に失敗しました: ' + res.error, true);
+    return;
+  }
+  setStatus(`✓ 記録しました（${res.stepCount}操作）。編集で内容を確認・調整できます。`);
+  loadFlows();
+});
+
+if (window.automation.onRecordingProgress) window.automation.onRecordingProgress((p) => {
+  if (p && typeof p.steps === 'number') recText.textContent = `記録中… ふだん通り操作してください（${p.steps} 操作）`;
+});
+
+// 起動時に記録中状態を復元（ウィンドウ再オープン時）
+(async () => {
+  try { const r = await window.automation.recordingState(); if (r && r.recording) setRecording(true); } catch {}
+})();
+
 // ── W10: 初回オンボーディング ─────────────────────────────────────────────────
 async function maybeShowOnboarding() {
   try {

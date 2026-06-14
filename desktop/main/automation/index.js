@@ -17,6 +17,7 @@ const inputDriver = require('./input-driver');
 const safety = require('./safety');
 const hud = require('./hud');
 const nlEditor = require('./nl-editor');
+const recorder = require('./recorder');
 
 let automationWindow = null;
 let editorWindows = new Map(); // flowId -> BrowserWindow
@@ -202,6 +203,31 @@ function registerIpc() {
   });
 
   ipcMain.handle('automation:open-window', () => { createAutomationWindow(); return { ok: true }; });
+
+  // ── W15: 操作の自動記録 ────────────────────────────────────────────────────
+  ipcMain.handle('automation:recording-state', () => ({ ok: true, recording: recorder.isRecording() }));
+
+  ipcMain.handle('automation:start-recording', async (_e, { name } = {}) => {
+    if (recorder.isRecording()) return { ok: false, error: 'already_recording' };
+    const send = (p) => {
+      if (automationWindow && !automationWindow.isDestroyed()) automationWindow.webContents.send('automation:recording-progress', p);
+    };
+    try {
+      return await recorder.start({
+        name,
+        ignoreProcessNames: [app.getName(), 'electron', 'Notion Manual Maker'],
+        onProgress: send,
+      });
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
+
+  ipcMain.handle('automation:stop-recording', async () => {
+    try {
+      const r = await recorder.stop();
+      if (r.ok) notifyFlowsChanged();
+      return r;
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
 
   // ── W14: 実行履歴（レポート） ────────────────────────────────────────────
   ipcMain.handle('automation:get-run-log', (_e, id) => {

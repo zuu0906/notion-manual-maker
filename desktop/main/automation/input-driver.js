@@ -135,5 +135,12 @@ module.exports = {
     };
   }),
   uiaFind: (uia) => send('uiaFind', { uia }, 8000).then(r => (r.found ? { rect: r.rect, score: r.score } : null)),
+  uiaFocused: () => send('uiaFocused', {}, 8000).then(r => {
+    if (r.element === null) return null;
+    return {
+      name: r.name, controlType: r.controlType, automationId: r.automationId,
+      className: r.className, isPassword: r.isPassword, value: r.value, rect: r.rect,
+    };
+  }),
   uiaTreeSummary: () => Promise.resolve(''), // W4/W5 で必要になれば worker に uiaTree を追加
 };
