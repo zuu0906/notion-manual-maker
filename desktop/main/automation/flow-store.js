@@ -149,6 +149,17 @@ function applyOps(id, ops) {
   fs.writeFileSync(flowFile(id), JSON.stringify(flow, null, 2), 'utf8');
 }
 
+/** フロー名の変更（W7 編集UI）。1世代バックアップを取ってから更新。 */
+function renameFlow(id, name) {
+  ensureInit();
+  const flow = getFlow(id);
+  if (!flow) return;
+  backup(id);
+  flow.name = String(name || '').trim() || flow.name || '無題のフロー';
+  flow.updatedAt = Date.now();
+  fs.writeFileSync(flowFile(id), JSON.stringify(flow, null, 2), 'utf8');
+}
+
 /** 1世代バックアップ（undo用）。flow.json → flow.bak.json */
 function backup(id) {
   ensureInit();
@@ -177,5 +188,5 @@ function screenshotPath(id, file) {
 
 module.exports = {
   init, listFlows, getFlow, saveFlow, deleteFlow,
-  updateStep, applyOps, backup, restore, screenshotPath,
+  updateStep, applyOps, renameFlow, backup, restore, screenshotPath,
 };

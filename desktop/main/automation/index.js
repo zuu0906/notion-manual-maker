@@ -18,6 +18,7 @@ const safety = require('./safety');
 const hud = require('./hud');
 
 let automationWindow = null;
+let editorWindows = new Map(); // flowId -> BrowserWindow
 let _ctx = null; // { getMainWindow, store }
 
 function createAutomationWindow() {
@@ -43,6 +44,41 @@ function createAutomationWindow() {
   automationWindow.loadFile(path.join(__dirname, '..', '..', 'renderer', 'automation.html'));
   automationWindow.on('closed', () => { automationWindow = null; });
   return automationWindow;
+}
+
+// W7: フロー編集ウィンドウ（flowId ごとに1枚）
+function createEditorWindow(flowId) {
+  const existing = editorWindows.get(flowId);
+  if (existing && !existing.isDestroyed()) { existing.show(); existing.focus(); return existing; }
+
+  const win = new BrowserWindow({
+    width: 680,
+    height: 760,
+    minWidth: 520,
+    minHeight: 520,
+    title: 'フローを編集',
+    icon: path.join(__dirname, '..', '..', 'icon128.png'),
+    webPreferences: {
+      preload: path.join(__dirname, '..', '..', 'automation-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, '..', '..', 'renderer', 'automation-editor.html'));
+  win.webContents.once('did-finish-load', () => {
+    win.webContents.send('automation:editor-init', { flowId });
+  });
+  win.on('closed', () => { editorWindows.delete(flowId); });
+  editorWindows.set(flowId, win);
+  return win;
+}
+
+// 編集後に一覧ウィンドウへ再読込を促す
+function notifyFlowsChanged() {
+  if (automationWindow && !automationWindow.isDestroyed()) {
+    automationWindow.webContents.send('automation:flows-changed');
+  }
 }
 
 function registerIpc() {
@@ -105,6 +141,43 @@ function registerIpc() {
   });
 
   ipcMain.handle('automation:open-window', () => { createAutomationWindow(); return { ok: true }; });
+
+  // ── W7: フロー編集 ─────────────────────────────────────────────────────────
+  ipcMain.handle('automation:open-editor', (_e, id) => {
+    if (!flowStore.getFlow(id)) return { ok: false, error: 'flow_not_found' };
+    createEditorWindow(id);
+    return { ok: true };
+  });
+
+  ipcMain.handle('automation:rename-flow', (_e, { id, name }) => {
+    try { flowStore.renameFlow(id, name); notifyFlowsChanged(); return { ok: true }; }
+    catch (e) { return { ok: false, error: e.message }; }
+  });
+
+  ipcMain.handle('automation:update-step', (_e, { id, index, patch }) => {
+    try { flowStore.updateStep(id, index, patch); notifyFlowsChanged(); return { ok: true, flow: flowStore.getFlow(id) }; }
+    catch (e) { return { ok: false, error: e.message }; }
+  });
+
+  ipcMain.handle('automation:apply-ops', (_e, { id, ops }) => {
+    try { flowStore.applyOps(id, ops); notifyFlowsChanged(); return { ok: true, flow: flowStore.getFlow(id) }; }
+    catch (e) { return { ok: false, error: e.message }; }
+  });
+
+  ipcMain.handle('automation:restore-flow', (_e, id) => {
+    try { const ok = flowStore.restore(id); notifyFlowsChanged(); return { ok, flow: ok ? flowStore.getFlow(id) : null }; }
+    catch (e) { return { ok: false, error: e.message }; }
+  });
+
+  // ステップのスクショを dataUrl で返す（編集UIプレビュー用・renderer は fs 不可のため）
+  ipcMain.handle('automation:get-step-image', (_e, { id, file }) => {
+    try {
+      if (!file) return { ok: true, dataUrl: null };
+      const p = flowStore.screenshotPath(id, file);
+      const b64 = require('fs').readFileSync(p).toString('base64');
+      return { ok: true, dataUrl: `data:image/png;base64,${b64}` };
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
 }
 
 /**

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
+  <title>フローを編集</title>
+  <style>
+    :root { --bg:#f7f7f8; --fg:#1c1c1e; --sub:#6b6b70; --line:#e2e2e5; --accent:#2b7cff; --danger:#d93636; --ok:#1e9e54; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:"Segoe UI","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;
+           background:var(--bg); color:var(--fg); font-size:14px; }
+    header { padding:14px 18px 8px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:2; }
+    .titlerow { display:flex; gap:8px; align-items:center; }
+    #flowName { font-size:16px; font-weight:600; flex:1; padding:6px 8px; border:1px solid transparent;
+                border-radius:8px; background:transparent; color:var(--fg); }
+    #flowName:hover, #flowName:focus { border-color:var(--line); background:#fff; outline:none; }
+    .hint { color:var(--sub); font-size:12px; margin:6px 0 0; }
+    .bar { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    button { font-size:13px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--fg);
+             padding:6px 10px; cursor:pointer; }
+    button:disabled { opacity:.45; cursor:default; }
+    button.ghost { border-color:transparent; background:transparent; color:var(--sub); }
+    .spacer { flex:1; }
+    main { padding:12px 16px 28px; }
+    .step { background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:10px; }
+    .step.dragging { opacity:.5; }
+    .srow { display:flex; gap:10px; align-items:flex-start; }
+    .num { width:26px; height:26px; flex-shrink:0; border-radius:50%; background:#eef2ff; color:var(--accent);
+           font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; }
+    .thumb { width:120px; height:72px; object-fit:cover; border-radius:8px; border:1px solid var(--line);
+             background:#f0f0f2; flex-shrink:0; }
+    .thumb.empty { display:flex; align-items:center; justify-content:center; color:#b8b8bc; font-size:11px; }
+    .fields { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+    .badge { display:inline-block; font-size:11px; color:#fff; background:var(--sub); border-radius:6px; padding:1px 6px; }
+    .badge.danger { background:var(--danger); }
+    label.fl { font-size:11px; color:var(--sub); display:block; margin-bottom:2px; }
+    input[type=text], textarea { width:100%; font:inherit; font-size:13px; padding:6px 8px; border:1px solid var(--line);
+                                 border-radius:8px; background:#fff; color:var(--fg); }
+    textarea { resize:vertical; min-height:34px; }
+    .secret { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--sub); }
+    .sactions { display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+    .sactions button { padding:4px 8px; }
+    .del:hover { color:var(--danger); border-color:var(--danger); }
+    .status { position:sticky; bottom:0; background:var(--bg); padding:8px 16px; border-top:1px solid var(--line);
+              font-size:12px; color:var(--sub); min-height:20px; }
+    .status.ok { color:var(--ok); } .status.warn { color:var(--danger); }
+    .empty { color:var(--sub); text-align:center; padding:32px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="titlerow">
+      <input id="flowName" type="text" placeholder="フロー名" />
+      <span id="dirty" class="badge" style="display:none">未保存</span>
+    </div>
+    <p class="hint">ステップ名・メモ・入力値を編集できます。並べ替えは ↑↓、不要な手順は削除。変更は自動保存され、<b>元に戻す</b>で1つ前に戻せます。</p>
+    <div class="bar">
+      <button id="nlEdit">✦ 文章で編集</button>
+      <button id="dryRun">▷ ドライラン（クリックせず確認）</button>
+      <div class="spacer"></div>
+      <button id="undo" class="ghost">元に戻す</button>
+    </div>
+  </header>
+  <main>
+    <div id="steps"></div>
+    <div id="empty" class="empty" style="display:none">ステップがありません。</div>
+  </main>
+  <div id="status" class="status"></div>
+
+  <script src="automation-editor.js"></script>
+</body>
+</html>

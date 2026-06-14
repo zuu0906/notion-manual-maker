@@ -48,6 +48,7 @@ function render(flows) {
       </div>
       <div class="actions">
         <button class="primary" data-run="${escapeHtml(f.id)}">実行</button>
+        <button data-edit="${escapeHtml(f.id)}" title="編集">編集</button>
         <button class="del" data-del="${escapeHtml(f.id)}" title="削除">削除</button>
       </div>`;
     listEl.appendChild(card);
@@ -79,9 +80,14 @@ async function deleteFlow(id) {
 listEl.addEventListener('click', (e) => {
   const runId = e.target.getAttribute('data-run');
   const delId = e.target.getAttribute('data-del');
+  const editId = e.target.getAttribute('data-edit');
   if (runId) runFlow(runId);
+  else if (editId) window.automation.openEditor(editId);
   else if (delId) deleteFlow(delId);
 });
+
+// 編集ウィンドウでの変更を一覧へ反映
+if (window.automation.onFlowsChanged) window.automation.onFlowsChanged(loadFlows);
 
 refreshBtn.addEventListener('click', loadFlows);
 
