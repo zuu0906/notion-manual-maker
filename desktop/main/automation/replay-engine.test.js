@@ -41,7 +41,7 @@ function makeDeps(over = {}) {
   const ai = {
     isConfigured: () => over.aiConfigured || false,
     decideNextAction: over.decideNextAction || (async () => ({ action: 'fail', confidence: 0, reason: 'x' })),
-    verifyResult: async () => ({ status: 'uncertain', reason: '' }),
+    verifyResult: over.verifyResult || (async () => ({ status: 'uncertain', reason: '' })),
   };
   const safety = {
     isDangerous: over.isDangerous || (() => false),
@@ -313,6 +313,66 @@ const flow = (steps) => ({ id: 'f1', name: 'test', steps });
     const r = await engine.run(flow([{ stepNumber: 1, action: 'type', windowTitle: 'メモ帳', inputText: 'hi' }]), { deps });
     assert.strictEqual(r.status, 'success');
     assert.ok(calls.filter((c) => c.name === 'activate').length >= 2, 'activateがリトライされる');
+  });
+
+  // ── W11: AI結果検証 ──
+  await t('successCriteria + verify success → ok（verify記録）', async () => {
+    let verifyCalled = false;
+    const { deps } = makeDeps({
+      aiConfigured: true,
+      verifyResult: async () => { verifyCalled = true; return { status: 'success', reason: 'ok' }; },
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', inputText: 'x', successCriteria: '保存された' }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.strictEqual(r.results[0].verify, 'success');
+    assert.ok(verifyCalled);
+  });
+
+  await t('verify fail → step失敗(verification_failed)でフロー停止', async () => {
+    const { deps } = makeDeps({
+      aiConfigured: true,
+      verifyResult: async () => ({ status: 'fail', reason: 'まだ保存されていない' }),
+    });
+    const r = await engine.run(flow([
+      { stepNumber: 1, action: 'type', inputText: 'x', successCriteria: '保存された' },
+      { stepNumber: 2, action: 'type', inputText: 'y' },
+    ]), { deps });
+    assert.strictEqual(r.status, 'failed');
+    assert.strictEqual(r.results[0].reason, 'verification_failed');
+    assert.strictEqual(r.results.length, 1); // 後続は実行しない
+  });
+
+  await t('verify uncertain → 続行（誤停止しない）', async () => {
+    const { deps } = makeDeps({
+      aiConfigured: true,
+      verifyResult: async () => ({ status: 'uncertain', reason: '判断できない' }),
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', inputText: 'x', successCriteria: 'c' }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.strictEqual(r.results[0].verify, 'uncertain');
+  });
+
+  await t('successCriteria なしなら検証しない', async () => {
+    let called = false;
+    const { deps } = makeDeps({ aiConfigured: true, verifyResult: async () => { called = true; return { status: 'fail' }; } });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', inputText: 'x' }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.ok(!called, 'successCriteria無しでverifyを呼んではいけない');
+  });
+
+  await t('AI未設定なら検証スキップ', async () => {
+    let called = false;
+    const { deps } = makeDeps({ aiConfigured: false, verifyResult: async () => { called = true; return { status: 'fail' }; } });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', inputText: 'x', successCriteria: 'c' }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.ok(!called);
+  });
+
+  await t('dryRun は検証しない', async () => {
+    let called = false;
+    const { deps } = makeDeps({ aiConfigured: true, verifyResult: async () => { called = true; return { status: 'fail' }; } });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', inputText: 'x', successCriteria: 'c' }]), { deps, dryRun: true });
+    assert.ok(!called);
   });
 
   console.log(`\n${pass} passed`);

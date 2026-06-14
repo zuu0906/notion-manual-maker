@@ -23,9 +23,10 @@ const defaultDeps = {
   sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
 };
 
-const OCR_ACCEPT = 0.6;     // この信頼度以上の OCR 一致は採用、未満は AI へ委ねる
-const ACT_SETTLE_MS = 250;  // 前面化/操作後に画面が落ち着くのを待つ
-const STEP_GAP_MS = 120;    // ステップ間の小休止
+const OCR_ACCEPT = 0.6;       // この信頼度以上の OCR 一致は採用、未満は AI へ委ねる
+const ACT_SETTLE_MS = 250;    // 前面化/操作後に画面が落ち着くのを待つ
+const STEP_GAP_MS = 120;      // ステップ間の小休止
+const VERIFY_SETTLE_MS = 450; // 検証用キャプチャ前にUI更新を待つ
 
 /**
  * @param {object} flow  Flow
@@ -89,6 +90,10 @@ async function run(flow, opts = {}) {
       res = { stepNumber, action: step.action, status: 'failed', reason: e.message };
     }
     if (dangerous) res.dangerous = true;
+    // ⑤ W11: AI結果検証（successCriteria があり成功した step のみ）
+    if (!dryRun && res.status === 'ok' && step.successCriteria) {
+      res = await verifyStep(step, res, { deps, report });
+    }
     results.push(res);
     // ドライランは失敗でも止めず全ステップを評価。本実行は失敗で即停止。
     if (!dryRun && res.status !== 'ok') {
@@ -163,6 +168,35 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
     }
   }
   return ok(step, { method: located.method, confidence: located.confidence, x: located.x, y: located.y, reason: located.reason });
+}
+
+// ── W11: AI結果検証 ─────────────────────────────────────────────────────────
+// step.successCriteria を満たしたか、操作後の画面を Gemini で確認する。
+//   fail      → 誤動作の連鎖を防ぐため step を失敗に倒す（フロー停止）
+//   uncertain → 続行（働いているフローを誤って止めない）。result.verify に記録
+//   success   → 続行
+// 検証はあくまで補助。capture/AI呼び出しに失敗したら検証をスキップして元の結果を返す。
+async function verifyStep(step, result, { deps, report }) {
+  const { ai, screenReader, sleep } = deps;
+  if (!ai || !ai.isConfigured || !ai.isConfigured()) return result;
+  report(step.stepNumber || 0, 'verifying', { label: step.label || '' });
+  await sleep(VERIFY_SETTLE_MS); // 画面が更新されるのを待つ
+
+  let cap;
+  try { cap = await screenReader.capture(); } catch { return result; }
+  if (!cap) return result;
+
+  let v;
+  try {
+    v = await ai.verifyResult({ screenshotDataUrl: cap.dataUrl, successCriteria: step.successCriteria, step });
+  } catch { return result; }
+  if (!v) return result;
+
+  result.verify = v.status;
+  if (v.status === 'fail') {
+    return { ...result, status: 'failed', reason: 'verification_failed', verifyReason: v.reason || '' };
+  }
+  return result; // success / uncertain は続行
 }
 
 // ── ロケーター3階層（UIA → OCR → AI）。返り値は物理px or null ──────────────

@@ -70,6 +70,10 @@ function renderStep(step, i, total) {
           <label class="fl">メモ</label>
           <textarea data-f="memo" placeholder="補足">${escapeHtml(step.memo || '')}</textarea>
         </div>
+        <div>
+          <label class="fl">成功条件（任意・実行後にAIが達成を確認）</label>
+          <input type="text" data-f="successCriteria" value="${escapeHtml(step.successCriteria || '')}" placeholder="例: 保存完了の表示が出る" />
+        </div>
       </div>
       <div class="sactions">
         <button data-act="up" ${i === 0 ? 'disabled' : ''} title="上へ">↑</button>

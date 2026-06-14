@@ -12,7 +12,7 @@
 // 並べ替えは set_order（最終並び順を一発指定）で表現する。連鎖 reorder は
 // 適用とプレビューで index がズレて曖昧になるため NL編集では使わせない。
 const ALLOWED_OPS = Object.freeze(['delete_step', 'set_order', 'update']);
-const ALLOWED_PATCH_KEYS = Object.freeze(['label', 'memo', 'inputText', 'isSecret']);
+const ALLOWED_PATCH_KEYS = Object.freeze(['label', 'memo', 'inputText', 'isSecret', 'successCriteria']);
 
 function buildPrompt(flow, instruction) {
   // ユーザーは「○番目」と1始まりで話す。AIにも1始まりの「number」で扱わせ、
@@ -122,7 +122,7 @@ function describeOps(flow, ops) {
     if (op.op === 'reorder') return `「${nameOf(op.from)}」を ${op.to + 1} 番目へ移動`;
     if (op.op === 'update') {
       const parts = Object.entries(op.patch).map(([k, v]) => {
-        const label = { label: 'ステップ名', memo: 'メモ', inputText: '入力値', isSecret: '秘匿' }[k] || k;
+        const label = { label: 'ステップ名', memo: 'メモ', inputText: '入力値', isSecret: '秘匿', successCriteria: '成功条件' }[k] || k;
         const val = k === 'isSecret' ? (v ? 'オン' : 'オフ') : (v === null ? '（消去）' : `「${v}」`);
         return `${label}を ${val}`;
       });
