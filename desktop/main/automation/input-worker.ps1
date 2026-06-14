@@ -104,10 +104,47 @@ public static class Win32Input {
     [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] static extern int GetWindowText(IntPtr hWnd, StringBuilder s, int max);
     [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    [DllImport("user32.dll")] static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+    [DllImport("user32.dll")] static extern bool BringWindowToTop(IntPtr hWnd);
+    [DllImport("user32.dll")] static extern IntPtr SetActiveWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, IntPtr dwExtraInfo);
+    [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
 
     public static string GetTitle(IntPtr h) { var sb = new StringBuilder(512); GetWindowText(h, sb, 512); return sb.ToString(); }
     public static uint GetPid(IntPtr h) { uint pid; GetWindowThreadProcessId(h, out pid); return pid; }
     public static void Restore(IntPtr h) { ShowWindow(h, 9); }
+
+    // SetForegroundWindow alone is blocked by Windows' foreground lock when another
+    // app is active. Bypass it via the AttachThreadInput + dummy ALT-key technique.
+    public static bool ForceForeground(IntPtr hWnd) {
+        if (hWnd == IntPtr.Zero) return false;
+        ShowWindow(hWnd, 9); // SW_RESTORE
+        IntPtr fg = GetForegroundWindow();
+        if (fg == hWnd) return true;
+
+        uint pidTmp;
+        uint targetThread = GetWindowThreadProcessId(hWnd, out pidTmp);
+        uint fgThread = (fg == IntPtr.Zero) ? 0u : GetWindowThreadProcessId(fg, out pidTmp);
+        uint thisThread = GetCurrentThreadId();
+
+        const byte VK_MENU = 0x12;       // ALT
+        const uint KEYEVENTF_KEYUP_ = 0x0002;
+        keybd_event(VK_MENU, 0, 0, IntPtr.Zero);            // ALT down — unlocks SetForegroundWindow
+
+        bool a1 = false, a2 = false;
+        if (fgThread != 0 && fgThread != thisThread) a1 = AttachThreadInput(thisThread, fgThread, true);
+        if (targetThread != 0 && targetThread != thisThread && targetThread != fgThread) a2 = AttachThreadInput(thisThread, targetThread, true);
+
+        BringWindowToTop(hWnd);
+        SetForegroundWindow(hWnd);
+        SetActiveWindow(hWnd);
+
+        if (a1) AttachThreadInput(thisThread, fgThread, false);
+        if (a2) AttachThreadInput(thisThread, targetThread, false);
+        keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP_, IntPtr.Zero); // ALT up
+
+        return GetForegroundWindow() == hWnd;
+    }
 }
 '@
 Add-Type -TypeDefinition $csharp
@@ -300,11 +337,10 @@ while ($null -ne ($line = $stdin.ReadLine())) {
                     if ($okName -and $okTitle) { $target = $p; break }
                 }
                 if ($target) {
-                    [Win32Input]::Restore($target.MainWindowHandle) | Out-Null
-                    [Win32Input]::SetForegroundWindow($target.MainWindowHandle) | Out-Null
-                    Reply $id '"found":true'
+                    $fg = [Win32Input]::ForceForeground($target.MainWindowHandle)
+                    Reply $id ('"found":true,"foreground":' + ($fg.ToString().ToLower()))
                 } else {
-                    Reply $id '"found":false'
+                    Reply $id '"found":false,"foreground":false'
                 }
             }
             'launch' {

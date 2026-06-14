@@ -40,15 +40,32 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
       console.log('launch notepad...');
       await drv.launch('notepad.exe');
       await sleep(1500);
-      console.log('foreground after launch...');
+
+      // メモ帳を確実に前面化してからtypeする（launch直後はフォアグラウンド奪取防止で
+      // 裏に開くため、activateしないと入力が他アプリへ漏れる）。
+      console.log('activate notepad (processName=notepad)...');
+      let activated = false;
+      for (let i = 0; i < 3 && !activated; i++) {
+        activated = await drv.activate({ processName: 'notepad' });
+        if (!activated) await sleep(700);
+      }
+      console.log('  activated:', activated);
+      await sleep(400);
+
       const fg = await drv.foreground();
-      console.log('  ', JSON.stringify(fg));
-      console.log('typing (IME非依存・日本語含む)...');
-      await drv.type('自動入力テスト OK 12345\n');
-      await sleep(300);
-      await drv.key('enter');
-      await drv.type('SendInput works.');
-      console.log('  done — メモ帳に文字が入っていれば成功（保存せず閉じてください）');
+      console.log('  foreground now:', JSON.stringify(fg));
+      const onNotepad = /notepad/i.test(fg.processName || '');
+      if (!onNotepad) {
+        console.error('  ⚠️ メモ帳が前面になっていません。入力が他アプリへ漏れるため type をスキップします。');
+        console.error('     → メモ帳を手動で前面にして再実行するか、activateの不調を調査してください。');
+      } else {
+        console.log('typing (IME非依存・日本語含む)...');
+        await drv.type('自動入力テスト OK 12345\n');
+        await sleep(300);
+        await drv.key('enter');
+        await drv.type('SendInput works.');
+        console.log('  done — メモ帳に文字が入っていれば成功（保存せず閉じてください）');
+      }
     }
 
     await drv.dispose();
