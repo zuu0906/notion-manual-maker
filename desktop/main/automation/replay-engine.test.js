@@ -43,6 +43,7 @@ function makeDeps(over = {}) {
     isConfigured: () => over.aiConfigured || false,
     decideNextAction: over.decideNextAction || (async () => ({ action: 'fail', confidence: 0, reason: 'x' })),
     verifyResult: over.verifyResult || (async () => ({ status: 'uncertain', reason: '' })),
+    recoverFromObstacle: over.recoverFromObstacle || (async () => ({ action: 'fail', confidence: 0, reason: 'none' })),
   };
   const safety = {
     isDangerous: over.isDangerous || (() => false),
@@ -419,6 +420,47 @@ const flow = (steps) => ({ id: 'f1', name: 'test', steps });
     });
     await engine.run(flow([{ stepNumber: 1, action: 'click', label: 'x' }]), { deps, dryRun: true });
     assert.ok(!inspected);
+  });
+
+  // ── W13: AI例外処理 ──
+  await t('特定不能→AI復旧(click)→再特定で成功', async () => {
+    let n = 0, recovered = false;
+    const { deps, calls } = makeDeps({
+      aiConfigured: true,
+      matchByUia: async () => (++n >= 2 ? { x: 5, y: 6, confidence: 1, method: 'uia', reason: '' } : null),
+      recoverFromObstacle: async () => { recovered = true; return { action: 'click', x: 500, y: 500, confidence: 0.9, reason: 'close dialog' }; },
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'click', label: 'x' }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.ok(recovered, '復旧が呼ばれる');
+    assert.strictEqual(calls.filter((c) => c.name === 'click').length, 2); // 復旧click + 本来click
+  });
+
+  await t('AI復旧がfail→target_not_found', async () => {
+    const { deps } = makeDeps({
+      aiConfigured: true,
+      recoverFromObstacle: async () => ({ action: 'fail', confidence: 0, reason: 'none' }),
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'click', label: 'x' }]), { deps });
+    assert.strictEqual(r.status, 'failed');
+    assert.strictEqual(r.results[0].reason, 'target_not_found');
+  });
+
+  await t('復旧しても再特定できなければ失敗', async () => {
+    const { deps } = makeDeps({
+      aiConfigured: true,
+      matchByUia: async () => null,
+      recoverFromObstacle: async () => ({ action: 'key', text: 'esc', confidence: 0.8, reason: 'esc' }),
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'click', label: 'x' }]), { deps });
+    assert.strictEqual(r.results[0].reason, 'target_not_found');
+  });
+
+  await t('AI未設定なら例外処理しない', async () => {
+    let recovered = false;
+    const { deps } = makeDeps({ aiConfigured: false, recoverFromObstacle: async () => { recovered = true; return { action: 'key', text: 'esc' }; } });
+    await engine.run(flow([{ stepNumber: 1, action: 'click', label: 'x' }]), { deps });
+    assert.ok(!recovered);
   });
 
   console.log(`\n${pass} passed`);

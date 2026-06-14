@@ -205,6 +205,39 @@ async function verifyResult(ctx = {}) {
   return normalizeVerify(parseAiJson(raw));
 }
 
+function buildRecoverPrompt(step = {}) {
+  return [
+    'A desktop automation step could not find its target element.',
+    'Look at the screenshot for an UNEXPECTED obstacle blocking the screen:',
+    'a dialog, popup, cookie/consent banner, permission prompt, notification, or error message.',
+    `The step we are trying to do: ${step.label || step.action || '(step)'}`,
+    'If an obstacle is present, return ONE action to dismiss/close it so the flow can continue:',
+    '  - "click" its close/OK/cancel/dismiss button (x,y normalized 0..1000), or',
+    '  - "key" with "text":"esc".',
+    'If there is NO blocking obstacle (the target is simply missing), return {"action":"fail"}.',
+    '',
+    'Return STRICT JSON only:',
+    '{"action": "click" | "key" | "fail", "x": 0, "y": 0, "text": "esc", "confidence": 0.0, "reason": "..."}',
+    'Omit x/y/text when not relevant.',
+  ].join('\n');
+}
+
+/**
+ * 特定不能時の例外処理（W13）。画面の障害物を検知し、解消アクションを1つ返す。
+ * @param {{screenshotDataUrl:string,step:object}} ctx
+ * @returns {Promise<AiAction>} action='fail' なら障害物なし（復旧不要/不可）
+ */
+async function recoverFromObstacle(ctx = {}) {
+  if (process.env.AUTOMATION_AI_BACKEND === 'proxy') {
+    throw new Error('proxy_backend_not_implemented');
+  }
+  const shot = imagePart(ctx.screenshotDataUrl);
+  if (!shot) return { action: 'fail', confidence: 0, reason: 'no_screenshot' };
+  const parts = [{ text: buildRecoverPrompt(ctx.step) }, { text: 'CURRENT screenshot:' }, shot];
+  const raw = await callGemini(parts);
+  return normalizeAction(parseAiJson(raw));
+}
+
 /**
  * テキストのみのJSON補完（W7b NLエディタ用）。画像なし。
  * @param {string} promptText
@@ -221,10 +254,11 @@ module.exports = {
   isConfigured,
   decideNextAction,
   verifyResult,
+  recoverFromObstacle,
   completeJson,
   // テスト用内部関数（ネットワーク非依存・純関数）
   _internals: {
     splitDataUrl, parseAiJson, normalizeAction, normalizeVerify,
-    buildDecidePrompt, buildVerifyPrompt, clampInt, clamp01,
+    buildDecidePrompt, buildVerifyPrompt, buildRecoverPrompt, clampInt, clamp01,
   },
 };

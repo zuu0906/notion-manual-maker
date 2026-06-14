@@ -18,6 +18,7 @@ const PHASE_META = Object.freeze({
   acting:      { title: '操作を実行中…',           tone: 'run',  busy: true,  done: false },
   verifying:   { title: '結果を確認中…',           tone: 'run',  busy: true,  done: false },
   'ai-fallback': { title: 'AIが判断しています…',   tone: 'run',  busy: true,  done: false },
+  recovering:  { title: '画面の状態を整えています…', tone: 'warn', busy: true,  done: false },
   waiting:     { title: '入力をお待ちしています',   tone: 'warn', busy: false, done: false },
   confirm:     { title: '確認をお待ちしています',   tone: 'warn', busy: false, done: false },
   retry:       { title: 'やり直しています…',       tone: 'warn', busy: true,  done: false },

@@ -155,7 +155,15 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
   // click / scroll は対象座標が必要 → ロケーター階層で物理pxを得る
   const fgForClick = await activate(); // 確認ダイアログ後でも正しい前面で特定する
   if (!fgForClick && hasWindowTarget(step)) return fail(step, 'activate_failed');
-  const located = await locate(step, { deps, report });
+  let located = await locate(step, { deps, report });
+  // W13: 特定不能 → AIで障害物(ダイアログ等)を検知して1回だけ解消し再特定
+  if (!located && !dryRun && ai && ai.isConfigured && ai.isConfigured()) {
+    const recovered = await tryRecover(step, { deps, report });
+    if (recovered) {
+      await activate(); // 復旧操作でフォーカスが移った可能性 → 再前面化
+      located = await locate(step, { deps, report });
+    }
+  }
   if (!located) return fail(step, 'target_not_found');
 
   report(stepNumber, 'acting', { label, method: located.method });
@@ -186,6 +194,36 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
     } catch { /* 取得失敗は修復スキップ */ }
   }
   return result;
+}
+
+// ── W13: AI例外処理 ─────────────────────────────────────────────────────────
+// 特定不能時、画面の障害物(ダイアログ/バナー等)をAIで検知し、解消アクションを1回だけ実行。
+// 解消できたら true（呼び出し側が再特定する）。ホワイトリスト済みアクションのみ実行。
+async function tryRecover(step, { deps, report }) {
+  const { ai, screenReader, inputDriver, sleep } = deps;
+  if (!ai || typeof ai.recoverFromObstacle !== 'function') return false;
+  let cap;
+  try { cap = await screenReader.capture(); } catch { return false; }
+  if (!cap) return false;
+
+  report(step.stepNumber || 0, 'recovering', { label: step.label || '' });
+  let a;
+  try { a = await ai.recoverFromObstacle({ screenshotDataUrl: cap.dataUrl, step }); } catch { return false; }
+  if (!a || a.action === 'fail') return false;
+
+  try {
+    if (a.action === 'key') {
+      await inputDriver.key(a.text || 'esc');
+    } else if (a.action === 'click' && a.x != null && a.y != null) {
+      await inputDriver.click(Math.round((a.x / 1000) * cap.width), Math.round((a.y / 1000) * cap.height), 'left');
+    } else if (a.action === 'scroll') {
+      await inputDriver.scroll(300);
+    } else {
+      return false;
+    }
+  } catch { return false; }
+  await sleep(ACT_SETTLE_MS);
+  return true;
 }
 
 // ── W11: AI結果検証 ─────────────────────────────────────────────────────────
