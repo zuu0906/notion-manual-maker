@@ -49,8 +49,15 @@ hero-stage.jsx
 styles.css
 dashboard.css
 tweaks-panel.jsx
-"Chrome Manual Maker.html"
-"My Page.html"
+Chrome Manual Maker.html
+My Page.html
+
+# Desktop installer / build output
+Notion-Manual-Maker-Setup.exe
+*-Setup.exe
+
+# Local image scratch (screenshots / annotated captures)
+矢印修正.jpg
 
 # TypeScript build cache
 web/tsconfig.tsbuildinfo
