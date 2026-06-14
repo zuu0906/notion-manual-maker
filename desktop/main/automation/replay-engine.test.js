@@ -251,5 +251,36 @@ const flow = (steps) => ({ id: 'f1', name: 'test', steps });
     assert.ok(!calls.find((c) => c.name === 'click'));
   });
 
+  // ── W9: 実行時入力/確認 後のフォーカス復帰（前面化タイミング）──
+  const idxOf = (calls, name) => calls.findIndex((c) => c.name === name);
+  await t('type は入力解決の後に前面化してから入力する', async () => {
+    const { deps, calls } = makeDeps({});
+    let inputResolved = -1, n = 0;
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', processName: 'np', isSecret: true, inputText: null }]),
+      { deps, onRuntimeInput: async () => { inputResolved = n++; return 'pw'; } });
+    assert.strictEqual(r.status, 'success');
+    // activate は type の直前（=入力解決の後）に呼ばれる
+    assert.ok(idxOf(calls, 'activate') < idxOf(calls, 'type'), 'activate は type より前');
+    assert.deepStrictEqual(calls.find((c) => c.name === 'type').args, ['pw']);
+  });
+
+  await t('click は確認の後に前面化してから特定・クリックする', async () => {
+    let confirmedAt = -1;
+    const order = [];
+    const { deps } = makeDeps({
+      isDangerous: () => true,
+      uiaFind: async () => ({ rect: { x: 0, y: 0, w: 10, h: 10 }, score: 1 }),
+    });
+    // matchByUia をデフォルト(null)から実物相当へ：uiaFind を使うため matcher を本物にしたいが、
+    // ここではフェイク matcher の matchByUia を直接与える
+    deps.matcher.matchByUia = async () => { order.push('locate'); return { x: 5, y: 5, confidence: 1, method: 'uia', reason: '' }; };
+    deps.inputDriver.activate = async () => { order.push('activate'); return true; };
+    deps.inputDriver.click = async () => { order.push('click'); };
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'click', processName: 'np', label: '削除' }]),
+      { deps, onConfirm: async () => { order.push('confirm'); return true; } });
+    assert.strictEqual(r.status, 'success');
+    assert.deepStrictEqual(order, ['confirm', 'activate', 'locate', 'click']);
+  });
+
   console.log(`\n${pass} passed`);
 })();

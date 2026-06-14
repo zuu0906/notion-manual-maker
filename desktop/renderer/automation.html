@@ -32,6 +32,18 @@
     .status.warn { color:var(--danger); }
     .del { border-color:transparent; color:var(--sub); background:transparent; }
     .del:hover { color:var(--danger); }
+    /* W9: 実行中プロンプト */
+    .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.42); display:none;
+                align-items:center; justify-content:center; z-index:50; }
+    .modal-bg.show { display:flex; }
+    .modal { background:#fff; border-radius:14px; padding:18px 18px 14px; width:88%; max-width:380px;
+             box-shadow:0 12px 40px rgba(0,0,0,0.3); }
+    .modal h2 { font-size:15px; margin:0 0 8px; }
+    .modal h2.danger { color:var(--danger); }
+    .modal p { font-size:13px; color:#333; margin:0 0 12px; white-space:pre-wrap; }
+    .modal input { width:100%; font:inherit; font-size:14px; padding:8px 10px; border:1px solid var(--line);
+                   border-radius:8px; margin-bottom:12px; }
+    .modal .row { display:flex; gap:8px; justify-content:flex-end; }
   </style>
 </head>
 <body>
@@ -51,6 +63,18 @@
     <div id="list" class="list"></div>
     <div id="status" class="status"></div>
   </main>
+
+  <div id="modalBg" class="modal-bg">
+    <div class="modal">
+      <h2 id="modalTitle"></h2>
+      <p id="modalMsg"></p>
+      <input id="modalInput" type="text" style="display:none" />
+      <div class="row">
+        <button id="modalCancel">キャンセル</button>
+        <button id="modalOk" class="primary">OK</button>
+      </div>
+    </div>
+  </div>
 
   <script src="automation.js"></script>
 </body>

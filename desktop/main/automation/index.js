@@ -115,6 +115,19 @@ function registerIpc() {
       hud.update(payload);
     };
 
+    // W9: 実行中に確認/入力を管理ウィンドウへ尋ね、応答をワンショットIPCで待つ
+    const ask = (kind, payload) => new Promise((resolve) => {
+      if (!automationWindow || automationWindow.isDestroyed()) return resolve(null);
+      const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      ipcMain.once(`automation:prompt-reply:${reqId}`, (_e, val) => resolve(val));
+      try { automationWindow.show(); automationWindow.focus(); } catch {}
+      automationWindow.webContents.send('automation:prompt', { reqId, kind, ...payload });
+    });
+    const onConfirm = ({ message, danger }) => ask('confirm', { message, danger });
+    const onRuntimeInput = (step) =>
+      ask('input', { label: step.label || '', isSecret: !!step.isSecret, message: step.promptMessage || '' })
+        .then((v) => (v == null ? null : String(v)));
+
     let aborted = false;
     try {
       await inputDriver.init();
@@ -125,6 +138,8 @@ function registerIpc() {
         mode: mode || 'supervised',
         onProgress,
         shouldAbort: () => aborted,
+        onConfirm,
+        onRuntimeInput,
       });
       // 終端フェーズを HUD に反映してから少し見せて閉じる
       hud.update({ total, phase: (result && result.status) || 'done' });

@@ -89,6 +89,57 @@ listEl.addEventListener('click', (e) => {
 // 編集ウィンドウでの変更を一覧へ反映
 if (window.automation.onFlowsChanged) window.automation.onFlowsChanged(loadFlows);
 
+// ── W9: 実行中の確認/入力プロンプト ──────────────────────────────────────────
+const modal = {
+  bg: document.getElementById('modalBg'),
+  title: document.getElementById('modalTitle'),
+  msg: document.getElementById('modalMsg'),
+  input: document.getElementById('modalInput'),
+  ok: document.getElementById('modalOk'),
+  cancel: document.getElementById('modalCancel'),
+};
+let activePrompt = null; // { reqId, kind }
+
+function showPrompt(p) {
+  activePrompt = p;
+  const isInput = p.kind === 'input';
+  modal.title.textContent = isInput ? '入力してください' : (p.danger ? '確認（注意が必要な操作）' : '確認');
+  modal.title.className = (!isInput && p.danger) ? 'danger' : '';
+  modal.msg.textContent = p.message || (isInput ? (p.label || '値を入力してください') : 'この操作を実行しますか？');
+  if (isInput) {
+    modal.input.style.display = '';
+    modal.input.type = p.isSecret ? 'password' : 'text';
+    modal.input.value = '';
+    modal.ok.textContent = '入力';
+  } else {
+    modal.input.style.display = 'none';
+    modal.ok.textContent = p.danger ? '実行する' : 'OK';
+  }
+  modal.bg.classList.add('show');
+  if (isInput) setTimeout(() => modal.input.focus(), 30);
+  else setTimeout(() => modal.ok.focus(), 30);
+}
+
+function resolvePrompt(value) {
+  if (!activePrompt) return;
+  window.automation.replyPrompt(activePrompt.reqId, value);
+  activePrompt = null;
+  modal.bg.classList.remove('show');
+}
+
+modal.ok.addEventListener('click', () => {
+  if (!activePrompt) return;
+  if (activePrompt.kind === 'input') resolvePrompt(modal.input.value);
+  else resolvePrompt(true);
+});
+modal.cancel.addEventListener('click', () => {
+  if (!activePrompt) return;
+  resolvePrompt(activePrompt.kind === 'input' ? null : false);
+});
+modal.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') modal.ok.click(); });
+
+if (window.automation.onPrompt) window.automation.onPrompt(showPrompt);
+
 refreshBtn.addEventListener('click', loadFlows);
 
 window.automation.onRunProgress((p) => {

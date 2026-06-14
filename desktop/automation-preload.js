@@ -18,6 +18,14 @@ contextBridge.exposeInMainWorld('automation', {
     return () => ipcRenderer.removeListener('automation:flows-changed', handler);
   },
 
+  // ── W9: 実行中の確認/入力プロンプト ──
+  onPrompt: (cb) => {
+    const handler = (_e, payload) => cb(payload);
+    ipcRenderer.on('automation:prompt', handler);
+    return () => ipcRenderer.removeListener('automation:prompt', handler);
+  },
+  replyPrompt: (reqId, value) => ipcRenderer.send(`automation:prompt-reply:${reqId}`, value),
+
   // ── W7: フロー編集 ──
   openEditor: (id) => ipcRenderer.invoke('automation:open-editor', id),
   renameFlow: (id, name) => ipcRenderer.invoke('automation:rename-flow', { id, name }),

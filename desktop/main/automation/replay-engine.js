@@ -57,10 +57,9 @@ async function run(flow, opts = {}) {
     const label = step.label || '';
     if (aborted()) return { status: 'aborted', results };
 
-    // ① 対象ウィンドウを前面化（best-effort）
+    // ① 進捗通知（前面化は確認/入力ダイアログ後に operation 直前で行う＝
+    //    ダイアログがフォーカスを奪っても対象を取り違えないため。executeStep内で実施）
     report(stepNumber, 'locating', { label });
-    await activateWindow(step, inputDriver);
-    await sleep(ACT_SETTLE_MS);
     if (aborted()) return { status: 'aborted', results };
 
     // ② 安全/確認（ドライランは実行しないので確認不要）
@@ -109,6 +108,13 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
   const stepNumber = step.stepNumber || 0;
   const label = step.label || '';
 
+  // 操作直前に対象ウィンドウを前面化（確認/入力ダイアログでフォーカスが移った後でも
+  // 正しい前面で特定・入力できるようにする）。dryRun は settle を入れない。
+  const activate = async () => {
+    await activateWindow(step, inputDriver);
+    if (!dryRun) await sleep(ACT_SETTLE_MS);
+  };
+
   // 座標を要さないアクションは先に処理
   if (action === 'wait') {
     report(stepNumber, 'acting', { label });
@@ -119,7 +125,7 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
     report(stepNumber, 'acting', { label });
     const vk = String(step.vk || step.key || '').trim();
     if (!vk) return fail(step, 'missing_key');
-    if (!dryRun) await inputDriver.key(vk);
+    if (!dryRun) { await activate(); await inputDriver.key(vk); }
     return ok(step, { method: 'none' });
   }
   if (action === 'type') {
@@ -129,13 +135,15 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
       const willPrompt = (step.isSecret && step.inputText == null) || step.promptAtRuntime;
       return ok(step, { method: 'none', reason: willPrompt ? 'prompt_at_runtime' : 'ready' });
     }
-    const text = await resolveTypeText(step, opts);
+    const text = await resolveTypeText(step, opts); // 実行時入力プロンプト（フォーカスを奪う場合あり）
     if (text == null) return fail(step, 'secret_input_required');
+    await activate();                                 // プロンプトで奪ったフォーカスを対象へ戻す
     await inputDriver.type(text);
     return ok(step, { method: 'none' });
   }
 
   // click / scroll は対象座標が必要 → ロケーター階層で物理pxを得る
+  await activate(); // 確認ダイアログ後でも正しい前面で特定する
   const located = await locate(step, { deps, report });
   if (!located) return fail(step, 'target_not_found');
 
