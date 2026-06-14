@@ -202,5 +202,54 @@ const flow = (steps) => ({ id: 'f1', name: 'test', steps });
     assert.strictEqual(r.status, 'success');
   });
 
+  // ── W8: ドライラン ──
+  await t('dryRun はクリック/入力せず特定だけ行う', async () => {
+    const { deps, calls } = makeDeps({
+      matchByUia: async () => ({ x: 5, y: 6, confidence: 1, method: 'uia', reason: '' }),
+    });
+    const r = await engine.run(flow([
+      { stepNumber: 1, action: 'click', label: 'a' },
+      { stepNumber: 2, action: 'type', inputText: 'x' },
+    ]), { deps, dryRun: true });
+    assert.strictEqual(r.dryRun, true);
+    assert.strictEqual(r.status, 'success');
+    assert.ok(!calls.find((c) => c.name === 'click'), 'dryRunでクリックしてはいけない');
+    assert.ok(!calls.find((c) => c.name === 'type'), 'dryRunで入力してはいけない');
+  });
+
+  await t('dryRun は失敗しても止めず全ステップ評価', async () => {
+    let n = 0;
+    const { deps } = makeDeps({
+      matchByUia: async () => { n++; return n === 1 ? null : { x: 1, y: 1, confidence: 1, method: 'uia', reason: '' }; },
+    });
+    const r = await engine.run(flow([
+      { stepNumber: 1, action: 'click', label: 'a' }, // 特定不可
+      { stepNumber: 2, action: 'click', label: 'b' }, // 特定可
+    ]), { deps, dryRun: true });
+    assert.strictEqual(r.results.length, 2);
+    assert.strictEqual(r.results[0].status, 'failed');
+    assert.strictEqual(r.results[1].status, 'ok');
+    assert.strictEqual(r.status, 'failed'); // 1つでも失敗なら全体failed
+  });
+
+  await t('dryRun の秘匿typeは prompt_at_runtime として ok', async () => {
+    const { deps } = makeDeps({});
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', isSecret: true, inputText: null }]),
+      { deps, dryRun: true });
+    assert.strictEqual(r.results[0].status, 'ok');
+    assert.strictEqual(r.results[0].reason, 'prompt_at_runtime');
+  });
+
+  await t('dryRun は危険操作でも確認を求めず特定する', async () => {
+    const { deps, calls } = makeDeps({
+      isDangerous: () => true,
+      matchByUia: async () => ({ x: 1, y: 1, confidence: 1, method: 'uia', reason: '' }),
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'click', label: '削除' }]), { deps, dryRun: true });
+    assert.strictEqual(r.results[0].status, 'ok');
+    assert.strictEqual(r.results[0].dangerous, true);
+    assert.ok(!calls.find((c) => c.name === 'click'));
+  });
+
   console.log(`\n${pass} passed`);
 })();

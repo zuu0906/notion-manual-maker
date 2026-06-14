@@ -44,6 +44,7 @@ async function run(flow, opts = {}) {
   }
 
   const mode = opts.mode || 'supervised';
+  const dryRun = !!opts.dryRun;
   const total = flow.steps.length;
   const results = [];
   const report = (stepNumber, phase, extra = {}) =>
@@ -62,42 +63,47 @@ async function run(flow, opts = {}) {
     await sleep(ACT_SETTLE_MS);
     if (aborted()) return { status: 'aborted', results };
 
-    // ② 安全/確認
+    // ② 安全/確認（ドライランは実行しないので確認不要）
     const dangerous = safety.isDangerous(step);
-    const wantConfirm = dangerous || mode === 'step_by_step';
-    if (wantConfirm) {
-      if (typeof opts.onConfirm === 'function') {
-        report(stepNumber, 'confirm', { label });
-        const ok = await opts.onConfirm({ message: confirmMessage(step, dangerous), danger: dangerous, step });
-        if (!ok) return { status: 'aborted', results };
-      } else if (dangerous) {
-        // 危険操作は確認手段が無ければ実行しない
-        results.push({ stepNumber, action: step.action, status: 'failed', reason: 'confirmation_required' });
-        return { status: 'failed', results, error: 'confirmation_required' };
+    if (!dryRun) {
+      const wantConfirm = dangerous || mode === 'step_by_step';
+      if (wantConfirm) {
+        if (typeof opts.onConfirm === 'function') {
+          report(stepNumber, 'confirm', { label });
+          const ok = await opts.onConfirm({ message: confirmMessage(step, dangerous), danger: dangerous, step });
+          if (!ok) return { status: 'aborted', results };
+        } else if (dangerous) {
+          // 危険操作は確認手段が無ければ実行しない
+          results.push({ stepNumber, action: step.action, status: 'failed', reason: 'confirmation_required' });
+          return { status: 'failed', results, error: 'confirmation_required' };
+        }
+        // step_by_step かつ onConfirm 無し → そのまま続行
       }
-      // step_by_step かつ onConfirm 無し → そのまま続行
     }
     if (aborted()) return { status: 'aborted', results };
 
-    // ③ ロケーター + ④ 実行
+    // ③ ロケーター + ④ 実行（dryRun時は特定のみ・実行しない）
     let res;
     try {
-      res = await executeStep(step, { deps, report, opts, mode });
+      res = await executeStep(step, { deps, report, opts, mode, dryRun });
     } catch (e) {
       res = { stepNumber, action: step.action, status: 'failed', reason: e.message };
     }
+    if (dangerous) res.dangerous = true;
     results.push(res);
-    if (res.status !== 'ok') {
+    // ドライランは失敗でも止めず全ステップを評価。本実行は失敗で即停止。
+    if (!dryRun && res.status !== 'ok') {
       return { status: 'failed', results, error: res.reason };
     }
-    await sleep(STEP_GAP_MS);
+    await sleep(dryRun ? 0 : STEP_GAP_MS);
   }
 
-  return { status: 'success', results };
+  const allOk = results.every((r) => r.status === 'ok');
+  return { status: allOk ? 'success' : 'failed', results, dryRun };
 }
 
-// ── 1ステップの特定＋実行 ───────────────────────────────────────────────────
-async function executeStep(step, { deps, report, opts }) {
+// ── 1ステップの特定＋実行（dryRun=true なら特定のみで実行しない）────────────
+async function executeStep(step, { deps, report, opts, dryRun }) {
   const { inputDriver, screenReader, matcher, ai, sleep } = deps;
   const action = (step.action || 'click').toLowerCase();
   const stepNumber = step.stepNumber || 0;
@@ -106,18 +112,23 @@ async function executeStep(step, { deps, report, opts }) {
   // 座標を要さないアクションは先に処理
   if (action === 'wait') {
     report(stepNumber, 'acting', { label });
-    await sleep(Math.max(0, Number(step.waitMs) || 500));
+    if (!dryRun) await sleep(Math.max(0, Number(step.waitMs) || 500));
     return ok(step, { method: 'none' });
   }
   if (action === 'key') {
     report(stepNumber, 'acting', { label });
     const vk = String(step.vk || step.key || '').trim();
     if (!vk) return fail(step, 'missing_key');
-    await inputDriver.key(vk);
+    if (!dryRun) await inputDriver.key(vk);
     return ok(step, { method: 'none' });
   }
   if (action === 'type') {
     report(stepNumber, 'acting', { label });
+    // ドライランは実際の値解決(プロンプト)をせず、実行時入力が要るかだけ判定
+    if (dryRun) {
+      const willPrompt = (step.isSecret && step.inputText == null) || step.promptAtRuntime;
+      return ok(step, { method: 'none', reason: willPrompt ? 'prompt_at_runtime' : 'ready' });
+    }
     const text = await resolveTypeText(step, opts);
     if (text == null) return fail(step, 'secret_input_required');
     await inputDriver.type(text);
@@ -129,12 +140,14 @@ async function executeStep(step, { deps, report, opts }) {
   if (!located) return fail(step, 'target_not_found');
 
   report(stepNumber, 'acting', { label, method: located.method });
-  if (action === 'scroll') {
-    await inputDriver.move(located.x, located.y);
-    await inputDriver.scroll(resolveScrollDelta(step, located));
-  } else {
-    // click（既定）
-    await inputDriver.click(located.x, located.y, step.button === 'right' ? 'right' : 'left');
+  if (!dryRun) {
+    if (action === 'scroll') {
+      await inputDriver.move(located.x, located.y);
+      await inputDriver.scroll(resolveScrollDelta(step, located));
+    } else {
+      // click（既定）
+      await inputDriver.click(located.x, located.y, step.button === 'right' ? 'right' : 'left');
+    }
   }
   return ok(step, { method: located.method, confidence: located.confidence, x: located.x, y: located.y, reason: located.reason });
 }

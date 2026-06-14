@@ -156,9 +156,46 @@ els.undo.addEventListener('click', async () => {
   setStatus('1つ前の状態に戻しました。', 'ok');
 });
 
-// W7b / W8 のフック（後続コミットで実装）
+// ── W8: ドライラン（クリックせず各ステップを特定できるか確認）────────────────
+async function runDryRun() {
+  setStatus('ドライラン中… 対象ウィンドウを確認しています（クリックはしません）。');
+  els.dryRun.disabled = true;
+  clearDryBadges();
+  try {
+    const res = await window.automation.dryRunFlow(flowId);
+    if (!res.ok) { setStatus('ドライランに失敗しました: ' + res.error, 'warn'); return; }
+    const results = (res.result && res.result.results) || [];
+    let okN = 0;
+    results.forEach((r, i) => { if (showDryBadge(i, r)) okN++; });
+    const total = results.length;
+    if (okN === total) setStatus(`✓ 全 ${total} ステップを特定できました。実行できる見込みです。`, 'ok');
+    else setStatus(`${okN}/${total} ステップを特定。✕の手順は実行時に失敗する可能性があります（名前/メモを直すか、対象アプリを開いて再確認）。`, 'warn');
+  } finally {
+    els.dryRun.disabled = false;
+  }
+}
+function clearDryBadges() {
+  els.steps.querySelectorAll('[data-dry]').forEach((e) => e.remove());
+}
+function showDryBadge(index, r) {
+  const stepEl = els.steps.children[index];
+  if (!stepEl) return r.status === 'ok';
+  const found = r.status === 'ok';
+  const badge = document.createElement('span');
+  badge.setAttribute('data-dry', '1');
+  badge.className = 'badge';
+  badge.style.background = found ? '#1e9e54' : '#d93636';
+  const how = r.method && r.method !== 'none' ? `（${r.method}${r.confidence != null ? ' ' + Math.round(r.confidence * 100) + '%' : ''}）`
+            : r.reason === 'prompt_at_runtime' ? '（実行時に入力）' : '';
+  badge.textContent = (found ? '✓ 特定' : '✕ 不可: ' + (r.reason || 'not_found')) + how;
+  const head = stepEl.querySelector('.fields > div'); // 種別バッジ行
+  if (head) head.appendChild(badge);
+  return found;
+}
+
+// W7b / W8 のフック
 els.nlEdit.addEventListener('click', () => { if (window.openNlEditor) window.openNlEditor(); else setStatus('文章編集は準備中です。', 'warn'); });
-els.dryRun.addEventListener('click', () => { if (window.runDryRun) window.runDryRun(); else setStatus('ドライランは準備中です。', 'warn'); });
+els.dryRun.addEventListener('click', runDryRun);
 
 window.automation.onEditorInit(({ flowId: id }) => { flowId = id; load(); });
 // 既に init 済みの場合に備えフォールバック（通常は onEditorInit が先）

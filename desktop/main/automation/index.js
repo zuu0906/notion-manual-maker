@@ -142,6 +142,21 @@ function registerIpc() {
 
   ipcMain.handle('automation:open-window', () => { createAutomationWindow(); return { ok: true }; });
 
+  // ── W8: ドライラン（特定のみ・クリック/入力しない）────────────────────────
+  ipcMain.handle('automation:dry-run-flow', async (_e, id) => {
+    const flow = flowStore.getFlow(id);
+    if (!flow) return { ok: false, error: 'flow_not_found' };
+    try {
+      await inputDriver.init();
+      const result = await replayEngine.run(flow, { mode: 'supervised', dryRun: true });
+      return { ok: true, result };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    } finally {
+      await inputDriver.dispose().catch(() => {});
+    }
+  });
+
   // ── W7: フロー編集 ─────────────────────────────────────────────────────────
   ipcMain.handle('automation:open-editor', (_e, id) => {
     if (!flowStore.getFlow(id)) return { ok: false, error: 'flow_not_found' };

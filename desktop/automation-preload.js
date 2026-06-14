@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('automation', {
   applyOps: (id, ops) => ipcRenderer.invoke('automation:apply-ops', { id, ops }),
   restoreFlow: (id) => ipcRenderer.invoke('automation:restore-flow', id),
   getStepImage: (id, file) => ipcRenderer.invoke('automation:get-step-image', { id, file }),
+  dryRunFlow: (id) => ipcRenderer.invoke('automation:dry-run-flow', id),
   onEditorInit: (cb) => {
     const handler = (_e, payload) => cb(payload);
     ipcRenderer.on('automation:editor-init', handler);
