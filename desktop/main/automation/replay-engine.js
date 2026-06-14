@@ -90,6 +90,7 @@ async function run(flow, opts = {}) {
       res = { stepNumber, action: step.action, status: 'failed', reason: e.message };
     }
     if (dangerous) res.dangerous = true;
+    res.stepIndex = i; // 呼び出し側が flow-store へ書き戻す際に使う（W12 自己修復）
     // ⑤ W11: AI結果検証（successCriteria があり成功した step のみ）
     if (!dryRun && res.status === 'ok' && step.successCriteria) {
       res = await verifyStep(step, res, { deps, report });
@@ -167,7 +168,24 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
       await inputDriver.click(located.x, located.y, step.button === 'right' ? 'right' : 'left');
     }
   }
-  return ok(step, { method: located.method, confidence: located.confidence, x: located.x, y: located.y, reason: located.reason });
+  const result = ok(step, { method: located.method, confidence: located.confidence, x: located.x, y: located.y, reason: located.reason });
+
+  // ⑥ W12: 自己修復 — UIA以外(OCR/AI)で特定できた＝記録時UIAがズレた。クリック位置の
+  // UIA要素を取得し直し、識別子があれば healUia として返す（永続化は呼び出し側=index.js）。
+  if (!dryRun && located.method !== 'uia' && typeof inputDriver.uiaInspect === 'function') {
+    try {
+      const fresh = await inputDriver.uiaInspect(located.x, located.y);
+      if (fresh && (fresh.automationId || fresh.name || fresh.controlType)) {
+        result.healUia = {
+          automationId: fresh.automationId || undefined,
+          name: fresh.name || undefined,
+          controlType: fresh.controlType || undefined,
+          className: fresh.className || undefined,
+        };
+      }
+    } catch { /* 取得失敗は修復スキップ */ }
+  }
+  return result;
 }
 
 // ── W11: AI結果検証 ─────────────────────────────────────────────────────────

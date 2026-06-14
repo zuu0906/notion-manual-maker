@@ -142,6 +142,16 @@ function registerIpc() {
         onConfirm,
         onRuntimeInput,
       });
+      // W12: 自己修復 — UIA以外で特定できた step に新しいUIA情報を書き戻す
+      if (result && Array.isArray(result.results)) {
+        let healed = 0;
+        for (const r of result.results) {
+          if (r.healUia && Number.isInteger(r.stepIndex)) {
+            try { flowStore.updateStep(id, r.stepIndex, { uia: r.healUia }); healed++; } catch {}
+          }
+        }
+        if (healed > 0) { result.healed = healed; notifyFlowsChanged(); }
+      }
       // 終端フェーズを HUD に反映してから少し見せて閉じる
       hud.update({ total, phase: (result && result.status) || 'done' });
       return { ok: true, result };

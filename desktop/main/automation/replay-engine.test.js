@@ -26,6 +26,7 @@ function makeDeps(over = {}) {
     key: (...a) => { calls.push({ name: 'key', args: a }); return Promise.resolve(); },
     scroll: (...a) => { calls.push({ name: 'scroll', args: a }); return Promise.resolve(); },
     uiaFind: over.uiaFind || (async () => null),
+    uiaInspect: over.uiaInspect || (async () => null),
     // 既定では「対象が前面になっている」とみなす（needle 'np'/'メモ帳' を含める）
     foreground: over.foreground || (async () => ({ title: 'メモ帳', processName: 'np' })),
   };
@@ -373,6 +374,51 @@ const flow = (steps) => ({ id: 'f1', name: 'test', steps });
     const { deps } = makeDeps({ aiConfigured: true, verifyResult: async () => { called = true; return { status: 'fail' }; } });
     const r = await engine.run(flow([{ stepNumber: 1, action: 'type', inputText: 'x', successCriteria: 'c' }]), { deps, dryRun: true });
     assert.ok(!called);
+  });
+
+  // ── W12: 自己修復 write-back ──
+  await t('OCR特定の click は uiaInspect で healUia を返す', async () => {
+    let inspectAt = null;
+    const { deps } = makeDeps({
+      matchByOcr: () => ({ x: 200, y: 120, confidence: 0.9, method: 'ocr', reason: 'ocr' }),
+      uiaInspect: async (x, y) => { inspectAt = [x, y]; return { automationId: 'saveBtn', name: '保存', controlType: 'Button' }; },
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'click', label: '保存' }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.deepStrictEqual(inspectAt, [200, 120]);
+    assert.deepStrictEqual(r.results[0].healUia, { automationId: 'saveBtn', name: '保存', controlType: 'Button', className: undefined });
+    assert.strictEqual(r.results[0].stepIndex, 0);
+  });
+
+  await t('UIA特定の click は自己修復しない（healUiaなし）', async () => {
+    let inspected = false;
+    const { deps } = makeDeps({
+      matchByUia: async () => ({ x: 1, y: 1, confidence: 1, method: 'uia', reason: '' }),
+      uiaInspect: async () => { inspected = true; return { automationId: 'x' }; },
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'click' }]), { deps });
+    assert.ok(!r.results[0].healUia);
+    assert.ok(!inspected, 'UIA特定時はuiaInspectを呼ばない');
+  });
+
+  await t('AI特定でも識別子が取れなければ healUia なし', async () => {
+    const { deps } = makeDeps({
+      aiConfigured: true,
+      decideNextAction: async () => ({ action: 'click', x: 500, y: 250, confidence: 0.8, reason: 'ai' }),
+      uiaInspect: async () => ({ name: '', automationId: '', controlType: '' }), // 識別子なし
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'click', label: 'x' }]), { deps });
+    assert.ok(!r.results[0].healUia);
+  });
+
+  await t('dryRun は自己修復しない', async () => {
+    let inspected = false;
+    const { deps } = makeDeps({
+      matchByOcr: () => ({ x: 1, y: 1, confidence: 0.9, method: 'ocr', reason: '' }),
+      uiaInspect: async () => { inspected = true; return { automationId: 'x' }; },
+    });
+    await engine.run(flow([{ stepNumber: 1, action: 'click', label: 'x' }]), { deps, dryRun: true });
+    assert.ok(!inspected);
   });
 
   console.log(`\n${pass} passed`);
