@@ -26,6 +26,8 @@ function makeDeps(over = {}) {
     key: (...a) => { calls.push({ name: 'key', args: a }); return Promise.resolve(); },
     scroll: (...a) => { calls.push({ name: 'scroll', args: a }); return Promise.resolve(); },
     uiaFind: over.uiaFind || (async () => null),
+    // 既定では「対象が前面になっている」とみなす（needle 'np'/'メモ帳' を含める）
+    foreground: over.foreground || (async () => ({ title: 'メモ帳', processName: 'np' })),
   };
   const screenReader = {
     capture: over.capture || (async () => ({ dataUrl: 'data:image/png;base64,AA', width: 1000, height: 800, scaleFactor: 1 })),
@@ -280,6 +282,37 @@ const flow = (steps) => ({ id: 'f1', name: 'test', steps });
       { deps, onConfirm: async () => { order.push('confirm'); return true; } });
     assert.strictEqual(r.status, 'success');
     assert.deepStrictEqual(order, ['confirm', 'activate', 'locate', 'click']);
+  });
+
+  // ── W9 修正: 前面化の確認とフェイルセーフ ──
+  await t('前面化を確認できない type は入力せず activate_failed', async () => {
+    const { deps, calls } = makeDeps({
+      foreground: async () => ({ title: 'まったく別のアプリ', processName: 'other' }), // 対象でない
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', windowTitle: 'メモ帳', isSecret: true, inputText: null }]),
+      { deps, onRuntimeInput: async () => 'secret' });
+    assert.strictEqual(r.status, 'failed');
+    assert.strictEqual(r.results[0].reason, 'activate_failed');
+    assert.ok(!calls.find((c) => c.name === 'type'), '秘匿を誤ウィンドウへ入力してはいけない');
+  });
+
+  await t('前面化を確認できれば type する', async () => {
+    const { deps, calls } = makeDeps({
+      foreground: async () => ({ title: '無題 - メモ帳', processName: 'Notepad' }),
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', windowTitle: 'メモ帳', inputText: 'hello' }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.deepStrictEqual(calls.find((c) => c.name === 'type').args, ['hello']);
+  });
+
+  await t('前面化は1発で通らなくてもリトライで成功', async () => {
+    let n = 0;
+    const { deps, calls } = makeDeps({
+      foreground: async () => (++n >= 2 ? { title: 'メモ帳', processName: 'Notepad' } : { title: '別', processName: 'x' }),
+    });
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'type', windowTitle: 'メモ帳', inputText: 'hi' }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.ok(calls.filter((c) => c.name === 'activate').length >= 2, 'activateがリトライされる');
   });
 
   console.log(`\n${pass} passed`);

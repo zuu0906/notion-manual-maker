@@ -108,12 +108,10 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
   const stepNumber = step.stepNumber || 0;
   const label = step.label || '';
 
-  // 操作直前に対象ウィンドウを前面化（確認/入力ダイアログでフォーカスが移った後でも
-  // 正しい前面で特定・入力できるようにする）。dryRun は settle を入れない。
-  const activate = async () => {
-    await activateWindow(step, inputDriver);
-    if (!dryRun) await sleep(ACT_SETTLE_MS);
-  };
+  // 操作直前に対象ウィンドウを前面化。確認/入力ダイアログがフォーカスを奪った直後は
+  // SetForegroundWindow が1発で通らないことがあるためリトライ＋前面確認する。
+  // dryRun は settle/確認を省く（実行しないため）。
+  const activate = () => ensureForeground(step, deps, dryRun);
 
   // 座標を要さないアクションは先に処理
   if (action === 'wait') {
@@ -125,7 +123,11 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
     report(stepNumber, 'acting', { label });
     const vk = String(step.vk || step.key || '').trim();
     if (!vk) return fail(step, 'missing_key');
-    if (!dryRun) { await activate(); await inputDriver.key(vk); }
+    if (!dryRun) {
+      const fg = await activate();
+      if (!fg && hasWindowTarget(step)) return fail(step, 'activate_failed');
+      await inputDriver.key(vk);
+    }
     return ok(step, { method: 'none' });
   }
   if (action === 'type') {
@@ -137,13 +139,16 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
     }
     const text = await resolveTypeText(step, opts); // 実行時入力プロンプト（フォーカスを奪う場合あり）
     if (text == null) return fail(step, 'secret_input_required');
-    await activate();                                 // プロンプトで奪ったフォーカスを対象へ戻す
+    const fg = await activate();                     // プロンプトで奪ったフォーカスを対象へ戻す（リトライ付き）
+    // ウィンドウ指定があり前面化を確認できない場合は入力しない（誤ウィンドウへの秘匿漏れ防止）
+    if (!fg && hasWindowTarget(step)) return fail(step, 'activate_failed');
     await inputDriver.type(text);
     return ok(step, { method: 'none' });
   }
 
   // click / scroll は対象座標が必要 → ロケーター階層で物理pxを得る
-  await activate(); // 確認ダイアログ後でも正しい前面で特定する
+  const fgForClick = await activate(); // 確認ダイアログ後でも正しい前面で特定する
+  if (!fgForClick && hasWindowTarget(step)) return fail(step, 'activate_failed');
   const located = await locate(step, { deps, report });
   if (!located) return fail(step, 'target_not_found');
 
@@ -215,12 +220,48 @@ async function aiLocate(step, cap, ai) {
 }
 
 // ── ヘルパー ────────────────────────────────────────────────────────────────
+function hasWindowTarget(step) {
+  return !!(step && (step.processName || step.windowTitle));
+}
+
+function activateQuery(step) {
+  if (step.processName) return { processName: step.processName };
+  if (step.windowTitle) return { titleSubstr: step.windowTitle };
+  return null;
+}
+
 async function activateWindow(step, inputDriver) {
-  let q = null;
-  if (step.processName) q = { processName: step.processName };
-  else if (step.windowTitle) q = { titleSubstr: step.windowTitle };
+  const q = activateQuery(step);
   if (!q) return false;
   try { return await inputDriver.activate(q); } catch { return false; }
+}
+
+/**
+ * 対象ウィンドウを前面化し、実際に前面になったか確認する（最大3回リトライ）。
+ * モーダル直後など SetForegroundWindow が1発で通らないケースに対応。
+ * @returns {Promise<boolean>} 前面化できた（or ウィンドウ指定なし＝現フォーカスに委ねる）
+ */
+async function ensureForeground(step, deps, dryRun) {
+  const { inputDriver, sleep } = deps;
+  const q = activateQuery(step);
+  if (!q) return true; // ウィンドウ指定なし＝現在のフォーカスに任せる
+  const needle = String(step.processName || step.windowTitle || '').toLowerCase();
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { await inputDriver.activate(q); } catch {}
+    if (!dryRun) await sleep(ACT_SETTLE_MS);
+    // 確認手段（foreground）が無ければ activate を信じて続行
+    if (typeof inputDriver.foreground !== 'function') return true;
+    let fg = null;
+    try { fg = await inputDriver.foreground(); } catch {}
+    if (!fg) return true;
+    const hay = `${fg.title || ''} ${fg.processName || ''}`.toLowerCase();
+    if (!needle || hay.includes(needle)) return true;
+    // まだ前面でない → 短く待って再試行
+    if (!dryRun) await sleep(150);
+  }
+  try { console.warn('[automation] ensureForeground failed for', needle); } catch {}
+  return false;
 }
 
 async function resolveTypeText(step, opts) {

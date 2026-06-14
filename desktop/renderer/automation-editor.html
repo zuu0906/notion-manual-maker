@@ -11,9 +11,11 @@
            background:var(--bg); color:var(--fg); font-size:14px; }
     header { padding:14px 18px 8px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:2; }
     .titlerow { display:flex; gap:8px; align-items:center; }
-    #flowName { font-size:16px; font-weight:600; flex:1; padding:6px 8px; border:1px solid transparent;
-                border-radius:8px; background:transparent; color:var(--fg); }
-    #flowName:hover, #flowName:focus { border-color:var(--line); background:#fff; outline:none; }
+    .namelabel { font-size:11px; color:var(--sub); display:block; margin:0 0 3px; }
+    #flowName { font-size:16px; font-weight:600; flex:1; padding:8px 10px; border:1px solid var(--line);
+                border-radius:8px; background:#fff; color:var(--fg); }
+    #flowName:focus { border-color:var(--accent); outline:none; box-shadow:0 0 0 3px rgba(43,124,255,.12); }
+    #flowName::placeholder { color:#b8b8bc; font-weight:400; }
     .hint { color:var(--sub); font-size:12px; margin:6px 0 0; }
     .bar { display:flex; gap:8px; align-items:center; margin-top:8px; }
     button { font-size:13px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--fg);
@@ -64,8 +66,9 @@
 </head>
 <body>
   <header>
+    <label class="namelabel" for="flowName">フロー名（クリックで編集）</label>
     <div class="titlerow">
-      <input id="flowName" type="text" placeholder="フロー名" />
+      <input id="flowName" type="text" placeholder="フロー名を入力" />
       <span id="dirty" class="badge" style="display:none">未保存</span>
     </div>
     <p class="hint">ステップ名・メモ・入力値を編集できます。並べ替えは ↑↓、不要な手順は削除。変更は自動保存され、<b>元に戻す</b>で1つ前に戻せます。</p>
