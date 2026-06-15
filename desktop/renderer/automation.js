@@ -140,9 +140,27 @@ function showPrompt(p) {
 
 function resolvePrompt(value) {
   if (!activePrompt) return;
-  window.automation.replyPrompt(activePrompt.reqId, value);
+  const ap = activePrompt;
   activePrompt = null;
   modal.bg.classList.remove('show');
+  if (ap.local) { ap.resolve(value); return; } // ローカル入力
+  window.automation.replyPrompt(ap.reqId, value); // main からの W9 プロンプト
+}
+
+// Electron は window.prompt() 非対応のため、モーダルでローカル入力を取る
+function localPrompt(message, def) {
+  return new Promise((resolve) => {
+    activePrompt = { kind: 'input', local: true, resolve };
+    modal.title.textContent = '入力してください';
+    modal.title.className = '';
+    modal.msg.textContent = message || '';
+    modal.input.style.display = '';
+    modal.input.type = 'text';
+    modal.input.value = def || '';
+    modal.ok.textContent = 'OK';
+    modal.bg.classList.add('show');
+    setTimeout(() => { modal.input.focus(); modal.input.select(); }, 30);
+  });
 }
 
 modal.ok.addEventListener('click', () => {
@@ -170,8 +188,9 @@ function setRecording(on) {
 }
 
 if (recordBtn) recordBtn.addEventListener('click', async () => {
-  const name = (prompt('記録するフローの名前を入力してください', '新しいフロー') || '').trim();
-  if (name === '') return; // キャンセル
+  const input = await localPrompt('記録するフローの名前を入力してください', '新しいフロー');
+  if (input === null) return; // キャンセル
+  const name = input.trim();
   const res = await window.automation.startRecording(name || undefined);
   if (!res.ok) { setStatus('記録を開始できませんでした: ' + res.error, true); return; }
   recText.textContent = '記録中… ふだん通り操作してください（0 操作）';
