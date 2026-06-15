@@ -334,9 +334,11 @@ while ($null -ne ($line = $stdin.ReadLine())) {
                 Reply $id ('"title":"' + (Esc $title) + '","processName":"' + (Esc $pname) + '","path":"' + (Esc $ppath) + '","hwnd":' + $h.ToInt64())
             }
             'procNames' {
-                # 記録(W15)用: 現在動作中のプロセス名一覧（起動検知の基準）
+                # 記録(W15)用: 「可視ウィンドウを持つ」プロセス名一覧（起動検知の基準）。
+                # 全プロセスだと Chrome 等の常駐背景プロセスを誤って起動済み扱いにするため、
+                # MainWindowHandle を持つ＝画面に出ているアプリだけを基準にする。
                 $names = @()
-                try { $names = Get-Process -ErrorAction SilentlyContinue | ForEach-Object { $_.ProcessName } | Sort-Object -Unique } catch {}
+                try { $names = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | ForEach-Object { $_.ProcessName } | Sort-Object -Unique } catch {}
                 $arr = (@($names) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ','
                 Reply $id ('"names":[' + $arr + ']')
             }

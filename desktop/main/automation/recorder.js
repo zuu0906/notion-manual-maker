@@ -127,7 +127,8 @@ async function start(opts = {}) {
     manualId: opts.manualId || null,
     // 自アプリ＋シェル系(Start/検索/IME等)のウィンドウ上のクリックは記録しない
     ignore: [...DEFAULT_IGNORE, ...(opts.ignoreProcessNames || []).map((s) => String(s).toLowerCase())],
-    startProcs: new Set(),  // 記録開始時に動作中のプロセス名（小文字）。これに無い=記録中に起動
+    startProcs: new Set(),  // 記録開始時に「画面に出ていた」プロセス名（小文字）。これに無い=記録中に起動
+                            // （全プロセスでなく可視ウィンドウ持ちのみ＝Chrome等の常駐背景を誤検知しない）
     launched: new Set(),    // 既に launch ステップを挿入したプロセス名
     steps: [],
     queue: Promise.resolve(),   // 非同期処理を直列化
