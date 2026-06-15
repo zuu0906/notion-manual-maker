@@ -24,6 +24,20 @@ const DEFAULT_IGNORE = [
   'shellexperiencehost', 'textinputhost', 'lockapp',
 ];
 
+// タスクバー/トレイ等のシェル面はウィンドウクラスで判定して除外する
+// （explorer.exe は File Explorer も兼ねるためプロセス名では切り分けられない）。
+const IGNORE_CLASSNAMES = [
+  'shell_traywnd', 'traynotifywnd', 'mstasklistwclass', 'mstaskswwclass',
+  'notifyiconoverflowwindow', 'reblistview', 'systemtray.normalbutton',
+];
+
+// クリック対象が記録対象外（自アプリ/シェル/タスクバー）か
+function shouldIgnoreClick(state, fg, uia) {
+  if (fg && state.ignore.includes(String(fg.processName || '').toLowerCase())) return true;
+  if (uia && IGNORE_CLASSNAMES.includes(String(uia.className || '').toLowerCase())) return true;
+  return false;
+}
+
 // ── 純関数 ──────────────────────────────────────────────────────────────────
 /** 秘匿4段ガード。@returns {{secret:boolean,tier:number}} */
 function detectSecret(uia) {
@@ -165,10 +179,11 @@ async function flushType() {
 async function recordClick(x, y, button) {
   if (!state) return;
   const fg = await safeForeground();
-  // 自アプリ上のクリックは記録対象外
-  if (fg && state.ignore.includes(String(fg.processName || '').toLowerCase())) return;
-  let uia = null, shot = null;
+  let uia = null;
   try { uia = await state.deps.inputDriver.uiaInspect(x, y); } catch {}
+  // 自アプリ/シェル/タスクバー上のクリックは記録対象外
+  if (shouldIgnoreClick(state, fg, uia)) return;
+  let shot = null;
   try { shot = await state.deps.screenReader.capture(); } catch {}
   state.steps.push(buildClickStep({ stepNumber: state.steps.length + 1, x, y, button, fg, uia, shot }));
   state.onProgress({ phase: 'recording', steps: state.steps.length });

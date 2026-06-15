@@ -147,6 +147,18 @@ async function ta(name, fn) {
     assert.strictEqual(res.error, 'no_steps');
   });
 
+  await ta('タスクバー(Shell_TrayWnd)のクリックは記録しない', async () => {
+    const hook = fakeHook(); const saved = {};
+    const deps = fakeDeps(hook, saved);
+    deps.inputDriver.foreground = async () => ({ title: 'メモ帳', processName: 'Notepad' }); // proc は正当
+    deps.inputDriver.uiaInspect = async () => ({ controlType: 'Pane', className: 'Shell_TrayWnd' }); // でもタスクバー
+    await recorder.start({ deps, name: 'tray' });
+    hook.emit('mousedown', { x: 1294, y: 1060, button: 1 });
+    const res = await recorder.stop();
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error, 'no_steps');
+  });
+
   await ta('二重 start は弾く', async () => {
     const hook = fakeHook(); const saved = {};
     await recorder.start({ deps: fakeDeps(hook, saved) });
