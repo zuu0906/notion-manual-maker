@@ -1,5 +1,5 @@
-// ここの値を実際の値に書き換えてください
-// SETUP.md を参照してください
+// 拡張全体で使う公開設定値（Supabase URL / anon key / Notion client_id）。
+// これらはクライアントに出る前提の公開値であり、秘密情報ではない。
 
 export const CONFIG = {
   SUPABASE_URL: 'https://ouscjeptmkoszcjkrmtm.supabase.co',
@@ -14,5 +14,3 @@ export const PLAN_LIMITS = {
   pro:      { screenshots_per_month: Infinity,  workspaces: 3, ai_calls_per_month: 500 },
   team:     { screenshots_per_month: Infinity,  workspaces: 3, ai_calls_per_month: 500 },
 };
-
-export const SITE_URL = 'https://s-tasklog.com';
