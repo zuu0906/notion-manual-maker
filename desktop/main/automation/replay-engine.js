@@ -129,6 +129,19 @@ async function executeStep(step, { deps, report, opts, dryRun }) {
     if (!dryRun) await sleep(Math.max(0, Number(step.waitMs) || 500));
     return ok(step, { method: 'none' });
   }
+  if (action === 'launch') {
+    // 対象アプリの起動（ユーザーが編集UIで追加する手動ステップ。AI/NLからは生成されない）
+    report(stepNumber, 'acting', { label });
+    const target = String(step.launchTarget || step.path || '').trim();
+    if (!target) return fail(step, 'missing_launch_target');
+    if (!dryRun) {
+      try {
+        await inputDriver.launch(target);
+        await sleep(Math.max(0, Number(step.waitMs) || 1500)); // アプリ表示まで待つ
+      } catch { return fail(step, 'launch_failed'); }
+    }
+    return ok(step, { method: 'none' });
+  }
   if (action === 'key') {
     report(stepNumber, 'acting', { label });
     const vk = String(step.vk || step.key || '').trim();

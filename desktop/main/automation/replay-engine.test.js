@@ -463,6 +463,28 @@ const flow = (steps) => ({ id: 'f1', name: 'test', steps });
     assert.ok(!recovered);
   });
 
+  // ── launch ステップ（アプリ起動） ──
+  await t('launch ステップは inputDriver.launch を呼ぶ', async () => {
+    const { deps, calls } = makeDeps({});
+    deps.inputDriver.launch = (...a) => { calls.push({ name: 'launch', args: a }); return Promise.resolve(); };
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'launch', launchTarget: 'notepad.exe', waitMs: 1 }]), { deps });
+    assert.strictEqual(r.status, 'success');
+    assert.deepStrictEqual(calls.find((c) => c.name === 'launch').args, ['notepad.exe']);
+  });
+  await t('launch ターゲット無しは失敗', async () => {
+    const { deps } = makeDeps({});
+    const r = await engine.run(flow([{ stepNumber: 1, action: 'launch' }]), { deps });
+    assert.strictEqual(r.status, 'failed');
+    assert.strictEqual(r.results[0].reason, 'missing_launch_target');
+  });
+  await t('dryRun は実際に launch しない', async () => {
+    let launched = false;
+    const { deps } = makeDeps({});
+    deps.inputDriver.launch = () => { launched = true; return Promise.resolve(); };
+    await engine.run(flow([{ stepNumber: 1, action: 'launch', launchTarget: 'notepad.exe' }]), { deps, dryRun: true });
+    assert.ok(!launched);
+  });
+
   // ── W14: 実行レポート計時 ──
   await t('結果に計時(startedAt/finishedAt/durationMs)が付く', async () => {
     const { deps } = makeDeps({});

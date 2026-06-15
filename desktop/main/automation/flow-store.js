@@ -149,6 +149,12 @@ function applyOps(id, ops) {
       }
     } else if (op.op === 'update') {
       if (flow.steps[op.index]) flow.steps[op.index] = { ...flow.steps[op.index], ...op.patch };
+    } else if (op.op === 'insert_step') {
+      // 編集UIからのステップ挿入（アプリ起動ステップ等）。NLエディタからは呼ばれない。
+      if (op.step && typeof op.step === 'object') {
+        const idx = Math.max(0, Math.min(flow.steps.length, parseInt(op.index, 10) || 0));
+        flow.steps.splice(idx, 0, { ...op.step });
+      }
     }
   }
   // stepNumber を振り直す

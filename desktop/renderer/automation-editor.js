@@ -9,12 +9,13 @@ const els = {
   undo: document.getElementById('undo'),
   nlEdit: document.getElementById('nlEdit'),
   dryRun: document.getElementById('dryRun'),
+  addLaunch: document.getElementById('addLaunch'),
 };
 
 let flowId = null;
 let flow = null;
 
-const ACTION_LABEL = { click: 'クリック', type: '入力', key: 'キー', scroll: 'スクロール', wait: '待機' };
+const ACTION_LABEL = { click: 'クリック', type: '入力', key: 'キー', scroll: 'スクロール', wait: '待機', launch: 'アプリ起動' };
 
 function setStatus(msg, tone) {
   els.status.textContent = msg || '';
@@ -46,11 +47,11 @@ function renderStep(step, i, total) {
   const wrap = document.createElement('div');
   wrap.className = 'step';
   const isType = action === 'type';
-  const dangerBadge = ''; // 危険判定は実行側。ここでは種別バッジのみ
+  const isLaunch = action === 'launch';
   wrap.innerHTML = `
     <div class="srow">
       <div class="num">${i + 1}</div>
-      <div class="thumb empty" data-thumb>${step.screenshotFile ? '読み込み中…' : '画像なし'}</div>
+      <div class="thumb empty" data-thumb>${isLaunch ? '🚀' : (step.screenshotFile ? '読み込み中…' : '画像なし')}</div>
       <div class="fields">
         <div><span class="badge">${escapeHtml(ACTION_LABEL[action] || action)}</span>
           ${step.isSecret ? '<span class="badge danger">秘匿</span>' : ''}</div>
@@ -58,6 +59,11 @@ function renderStep(step, i, total) {
           <label class="fl">ステップ名</label>
           <input type="text" data-f="label" value="${escapeHtml(step.label || '')}" placeholder="例: 保存ボタンをクリック" />
         </div>
+        ${isLaunch ? `
+        <div>
+          <label class="fl">起動するアプリ（exe名 または フルパス）</label>
+          <input type="text" data-f="launchTarget" value="${escapeHtml(step.launchTarget || '')}" placeholder="例: notepad.exe / C:\\Program Files\\...\\app.exe" />
+        </div>` : ''}
         ${isType ? `
         <div>
           <label class="fl">入力する文字</label>
@@ -257,6 +263,16 @@ nl.apply.addEventListener('click', async () => {
   render();
   closeNl();
   setStatus('文章編集を適用しました。問題があれば「元に戻す」で戻せます。', 'ok');
+});
+
+// 「アプリ起動を追加」: 先頭に launch ステップを挿入（フローを自己完結に）
+els.addLaunch.addEventListener('click', async () => {
+  const launchStep = { action: 'launch', label: 'アプリを起動', launchTarget: '', waitMs: 1500 };
+  const res = await window.automation.applyOps(flowId, [{ op: 'insert_step', index: 0, step: launchStep }]);
+  if (!res.ok) { setStatus('追加に失敗しました: ' + res.error, 'warn'); return; }
+  flow = res.flow;
+  render();
+  setStatus('先頭に「アプリ起動」を追加しました。起動するアプリ名を入力してください（例: notepad.exe）。', 'ok');
 });
 
 // W7b / W8 のフック

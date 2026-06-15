@@ -89,6 +89,17 @@ t('applyOps update で patch 適用', () => {
   assert.strictEqual(store.getFlow(id).steps[2].label, 'C2');
 });
 
+t('applyOps insert_step で先頭にlaunchステップ挿入', () => {
+  const id = freshFlow(); // [A,B,C]
+  store.applyOps(id, [{ op: 'insert_step', index: 0, step: { action: 'launch', label: '起動', launchTarget: 'notepad.exe' } }]);
+  const f = store.getFlow(id);
+  assert.strictEqual(f.steps.length, 4);
+  assert.strictEqual(f.steps[0].action, 'launch');
+  assert.strictEqual(f.steps[0].launchTarget, 'notepad.exe');
+  assert.deepStrictEqual(f.steps.map(s => s.stepNumber), [1, 2, 3, 4]); // 振り直し
+  assert.strictEqual(f.steps[1].label, 'A');
+});
+
 t('renameFlow で名前変更', () => {
   const id = freshFlow();
   store.renameFlow(id, '新しい名前');
