@@ -127,6 +127,8 @@ async function start(opts = {}) {
     manualId: opts.manualId || null,
     // 自アプリ＋シェル系(Start/検索/IME等)のウィンドウ上のクリックは記録しない
     ignore: [...DEFAULT_IGNORE, ...(opts.ignoreProcessNames || []).map((s) => String(s).toLowerCase())],
+    startProcs: new Set(),  // 記録開始時に動作中のプロセス名（小文字）。これに無い=記録中に起動
+    launched: new Set(),    // 既に launch ステップを挿入したプロセス名
     steps: [],
     queue: Promise.resolve(),   // 非同期処理を直列化
     typingTimer: null,
@@ -134,6 +136,14 @@ async function start(opts = {}) {
     onProgress: opts.onProgress || (() => {}),
     handlers: {},
   };
+
+  // 記録開始時点で動作中のプロセスを控える（これ以降に現れたアプリ＝起動とみなす）
+  try {
+    if (typeof deps.inputDriver.procNames === 'function') {
+      const names = await deps.inputDriver.procNames();
+      for (const n of names) state.startProcs.add(String(n).toLowerCase());
+    }
+  } catch { /* 取得失敗時は起動検知なしで続行 */ }
 
   const enqueue = (fn) => { state.queue = state.queue.then(fn).catch(() => {}); return state.queue; };
 
@@ -167,11 +177,36 @@ async function captureTypeSnapshot() {
   } catch { /* 取得失敗は無視 */ }
 }
 
+// 記録中に新しいアプリが前面に出たら、その起動を launch ステップとして自動挿入する。
+// （スタート/タスクバーのクリック自体は非再現で記録しないため、結果＝起動を捕まえる）
+function maybeInsertLaunch(fg) {
+  if (!fg) return;
+  const pn = String(fg.processName || '').toLowerCase();
+  if (!pn) return;
+  if (state.startProcs.has(pn)) return;  // 記録前から動いていた＝起動操作ではない
+  if (state.launched.has(pn)) return;    // 既に起動ステップ追加済み
+  if (state.ignore.includes(pn)) return; // 自アプリ/シェル
+  state.launched.add(pn);
+  // Storeアプリのパス(WindowsApps配下)はバージョン依存で壊れやすく保護フォルダで起動も不安定。
+  // その場合は processName.exe（Windowsが App Paths で名前解決）にフォールバック。
+  let target = (fg.path && String(fg.path).trim()) || '';
+  if (!target || /\\WindowsApps\\/i.test(target)) target = `${fg.processName}.exe`;
+  state.steps.push(prune({
+    stepNumber: state.steps.length + 1,
+    action: 'launch',
+    label: `${fg.processName} を起動`,
+    launchTarget: target,
+    waitMs: 1500,
+  }));
+  state.onProgress({ phase: 'recording', steps: state.steps.length });
+}
+
 async function flushType() {
   if (!state || !state.pendingType) return;
   const { focused } = state.pendingType;
   state.pendingType = null;
   const fg = await safeForeground();
+  maybeInsertLaunch(fg);
   state.steps.push(buildTypeStep({ stepNumber: state.steps.length + 1, focused, fg }));
   state.onProgress({ phase: 'recording', steps: state.steps.length });
 }
@@ -183,6 +218,7 @@ async function recordClick(x, y, button) {
   try { uia = await state.deps.inputDriver.uiaInspect(x, y); } catch {}
   // 自アプリ/シェル/タスクバー上のクリックは記録対象外
   if (shouldIgnoreClick(state, fg, uia)) return;
+  maybeInsertLaunch(fg); // 新規アプリなら先に起動ステップを入れる
   let shot = null;
   try { shot = await state.deps.screenReader.capture(); } catch {}
   state.steps.push(buildClickStep({ stepNumber: state.steps.length + 1, x, y, button, fg, uia, shot }));

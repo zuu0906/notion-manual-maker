@@ -98,6 +98,7 @@ function fakeDeps(hook, saved) {
     inputDriver: {
       init: async () => {},
       foreground: async () => ({ title: '電卓', processName: 'Calc' }),
+      procNames: async () => ['calc', 'explorer'], // 電卓は起動前から動作中扱い
       uiaInspect: async () => ({ name: '7', controlType: 'Button', automationId: 'num7Button' }),
       uiaFocused: async () => ({ name: '氏名', controlType: 'Edit', value: 'abc' }),
     },
@@ -145,6 +146,56 @@ async function ta(name, fn) {
     const res = await recorder.stop();
     assert.strictEqual(res.ok, false);      // 有効ステップ0
     assert.strictEqual(res.error, 'no_steps');
+  });
+
+  await ta('記録中に起動した新規アプリは launch ステップを自動挿入', async () => {
+    const hook = fakeHook(); const saved = {};
+    const deps = fakeDeps(hook, saved);
+    // 記録前は calc/explorer のみ。Notepad は記録中に起動された新規アプリ。
+    deps.inputDriver.foreground = async () => ({ title: 'メモ帳', processName: 'Notepad', path: 'C:\\Windows\\System32\\notepad.exe' });
+    await recorder.start({ deps, name: 'launch-auto' });
+    hook.emit('mousedown', { x: 100, y: 200, button: 1 });
+    const res = await recorder.stop();
+    assert.strictEqual(res.ok, true);
+    assert.strictEqual(res.stepCount, 2);
+    assert.strictEqual(saved.flow.steps[0].action, 'launch');
+    assert.strictEqual(saved.flow.steps[0].launchTarget, 'C:\\Windows\\System32\\notepad.exe');
+    assert.strictEqual(saved.flow.steps[1].action, 'click');
+  });
+
+  await ta('Storeアプリ(WindowsApps)パスは processName.exe にフォールバック', async () => {
+    const hook = fakeHook(); const saved = {};
+    const deps = fakeDeps(hook, saved);
+    deps.inputDriver.foreground = async () => ({ title: 'メモ帳', processName: 'Notepad',
+      path: 'C:\\Program Files\\WindowsApps\\Microsoft.WindowsNotepad_11.2604.5.0_x64__8wekyb3d8bbwe\\Notepad\\Notepad.exe' });
+    await recorder.start({ deps, name: 'store' });
+    hook.emit('mousedown', { x: 1, y: 1, button: 1 });
+    const res = await recorder.stop();
+    assert.strictEqual(saved.flow.steps[0].action, 'launch');
+    assert.strictEqual(saved.flow.steps[0].launchTarget, 'Notepad.exe');
+  });
+
+  await ta('起動前から動いていたアプリは launch を入れない', async () => {
+    const hook = fakeHook(); const saved = {};
+    const deps = fakeDeps(hook, saved); // foreground=Calc, procNames に calc あり
+    await recorder.start({ deps, name: 'already' });
+    hook.emit('mousedown', { x: 1, y: 1, button: 1 });
+    hook.emit('mousedown', { x: 2, y: 2, button: 1 });
+    const res = await recorder.stop();
+    assert.strictEqual(res.stepCount, 2); // click x2 のみ、launch なし
+    assert.ok(!saved.flow.steps.some((s) => s.action === 'launch'));
+  });
+
+  await ta('launch はアプリごとに1回だけ挿入', async () => {
+    const hook = fakeHook(); const saved = {};
+    const deps = fakeDeps(hook, saved);
+    deps.inputDriver.foreground = async () => ({ title: 'メモ帳', processName: 'Notepad', path: 'notepad.exe' });
+    await recorder.start({ deps, name: 'once' });
+    hook.emit('mousedown', { x: 1, y: 1, button: 1 });
+    hook.emit('mousedown', { x: 2, y: 2, button: 1 });
+    const res = await recorder.stop();
+    assert.strictEqual(saved.flow.steps.filter((s) => s.action === 'launch').length, 1);
+    assert.strictEqual(res.stepCount, 3); // launch + click x2
   });
 
   await ta('タスクバー(Shell_TrayWnd)のクリックは記録しない', async () => {

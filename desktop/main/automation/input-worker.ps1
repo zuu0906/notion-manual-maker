@@ -326,9 +326,19 @@ while ($null -ne ($line = $stdin.ReadLine())) {
                 $h = [Win32Input]::GetForegroundWindow()
                 $title = [Win32Input]::GetTitle($h)
                 $wpid = [Win32Input]::GetPid($h)
-                $pname = ''
-                try { $pname = (Get-Process -Id $wpid -ErrorAction SilentlyContinue).ProcessName } catch {}
-                Reply $id ('"title":"' + (Esc $title) + '","processName":"' + (Esc $pname) + '","hwnd":' + $h.ToInt64())
+                $pname = ''; $ppath = ''
+                try {
+                    $proc = Get-Process -Id $wpid -ErrorAction SilentlyContinue
+                    if ($proc) { $pname = $proc.ProcessName; try { $ppath = $proc.Path } catch {} }
+                } catch {}
+                Reply $id ('"title":"' + (Esc $title) + '","processName":"' + (Esc $pname) + '","path":"' + (Esc $ppath) + '","hwnd":' + $h.ToInt64())
+            }
+            'procNames' {
+                # 記録(W15)用: 現在動作中のプロセス名一覧（起動検知の基準）
+                $names = @()
+                try { $names = Get-Process -ErrorAction SilentlyContinue | ForEach-Object { $_.ProcessName } | Sort-Object -Unique } catch {}
+                $arr = (@($names) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ','
+                Reply $id ('"names":[' + $arr + ']')
             }
             'activate' {
                 $target = $null

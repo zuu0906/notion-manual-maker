@@ -125,7 +125,8 @@ module.exports = {
   // 戻り値はウィンドウが実際に前面化できたか（foreground）。
   // 旧ワーカー互換のため foreground 未提供時は found を見る。
   activate: (q) => send('activate', q).then(r => (r.foreground !== undefined ? !!r.foreground : !!r.found)),
-  foreground: () => send('foreground').then(r => ({ title: r.title, processName: r.processName, hwnd: r.hwnd })),
+  foreground: () => send('foreground').then(r => ({ title: r.title, processName: r.processName, path: r.path, hwnd: r.hwnd })),
+  procNames: () => send('procNames', {}, 8000).then(r => r.names || []),
   launch: (p) => send('launch', { path: p }),
   uiaInspect: (x, y) => send('uiaInspect', { x, y }, 8000).then(r => {
     if (r.element === null) return null;
