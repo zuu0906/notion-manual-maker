@@ -17,6 +17,13 @@
 const SECRET_RE = /pass|password|パスワード|ﾊﾟｽﾜｰﾄﾞ|暗証|secret|秘密|pin\b/i;
 const TYPE_SETTLE_MS = 350; // 連続入力が止まってから値を読むまでの待ち
 
+// スタートメニュー/検索/シェル/IME 等は自動化の対象に不向き（前面化不可・非再現）。
+// これらの上のクリックは記録しない。ApplicationFrameHost(UWPホスト)は正当なので除外しない。
+const DEFAULT_IGNORE = [
+  'startmenuexperiencehost', 'searchhost', 'searchapp', 'searchui',
+  'shellexperiencehost', 'textinputhost', 'lockapp',
+];
+
 // ── 純関数 ──────────────────────────────────────────────────────────────────
 /** 秘匿4段ガード。@returns {{secret:boolean,tier:number}} */
 function detectSecret(uia) {
@@ -104,8 +111,8 @@ async function start(opts = {}) {
     deps,
     name: opts.name || `記録 ${new Date().toLocaleString('ja-JP')}`,
     manualId: opts.manualId || null,
-    // 自アプリのウィンドウ上のクリックは記録しない（停止ボタン等が手順に混入しないように）
-    ignore: (opts.ignoreProcessNames || []).map((s) => String(s).toLowerCase()),
+    // 自アプリ＋シェル系(Start/検索/IME等)のウィンドウ上のクリックは記録しない
+    ignore: [...DEFAULT_IGNORE, ...(opts.ignoreProcessNames || []).map((s) => String(s).toLowerCase())],
     steps: [],
     queue: Promise.resolve(),   // 非同期処理を直列化
     typingTimer: null,

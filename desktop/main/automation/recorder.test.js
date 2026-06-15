@@ -136,6 +136,17 @@ async function ta(name, fn) {
     assert.ok(!saved.flow);
   });
 
+  await ta('シェル系(Start/検索)のクリックは記録しない', async () => {
+    const hook = fakeHook(); const saved = {};
+    const deps = fakeDeps(hook, saved);
+    deps.inputDriver.foreground = async () => ({ title: 'スタート', processName: 'StartMenuExperienceHost' });
+    await recorder.start({ deps, name: 'shell' });
+    hook.emit('mousedown', { x: 5, y: 5, button: 1 });   // スタートメニュー → 無視
+    const res = await recorder.stop();
+    assert.strictEqual(res.ok, false);      // 有効ステップ0
+    assert.strictEqual(res.error, 'no_steps');
+  });
+
   await ta('二重 start は弾く', async () => {
     const hook = fakeHook(); const saved = {};
     await recorder.start({ deps: fakeDeps(hook, saved) });
