@@ -35,7 +35,7 @@
     "stats": [
       { "n": "10×", "label": "faster manual creation" },
       { "n": "3",   "label": "steps to complete" },
-      { "n": "¥0",  "label": "to get started" }
+      { "n": "$0",  "label": "to get started" }
     ],
     "pain": {
       "eyebrow": "Problem",
@@ -118,7 +118,7 @@
         {
           "name": "Free",
           "emoji": "🌱",
-          "price": "¥0",
+          "price": "$0",
           "period": "forever free",
           "features": ["20 screenshots/month", "Notion integration", "With watermark"],
           "cta": "Add to Chrome for Free",
@@ -169,7 +169,7 @@
         },
         {
           "q": "Is there a team plan?",
-          "a": "We offer a Team plan (¥2,980/month, 5 seats). Please contact us for details."
+          "a": "We also offer a Team plan (5 seats). Please contact us for pricing and details."
         }
       ]
     },
@@ -207,7 +207,7 @@
       {
         "name": "Free",
         "emoji": "🌱",
-        "price": "¥0",
+        "price": "$0",
         "period": "forever free",
         "features": [
           "20 screenshots/month",

@@ -49,8 +49,12 @@ hero-stage.jsx
 styles.css
 dashboard.css
 tweaks-panel.jsx
-"Chrome Manual Maker.html"
-"My Page.html"
+Chrome Manual Maker.html
+My Page.html
+
+# Local junk / prototype assets (not for repo)
+*.exe
+矢印修正.jpg
 
 # TypeScript build cache
 web/tsconfig.tsbuildinfo

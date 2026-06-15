@@ -35,7 +35,7 @@
     "stats": [
       { "n": "10×", "label": "マニュアル作成スピード" },
       { "n": "3",   "label": "ステップで完成" },
-      { "n": "¥0",  "label": "から始められる" }
+      { "n": "$0",  "label": "から始められる" }
     ],
     "pain": {
       "eyebrow": "Problem",
@@ -118,7 +118,7 @@
         {
           "name": "Free",
           "emoji": "🌱",
-          "price": "¥0",
+          "price": "$0",
           "period": "永久無料",
           "features": ["スクショ 20枚/月", "Notion連携", "ウォーターマーク付き"],
           "cta": "Chromeに無料で追加",
@@ -203,7 +203,7 @@
       {
         "name": "Free",
         "emoji": "🌱",
-        "price": "¥0",
+        "price": "$0",
         "period": "永久無料",
         "features": [
           "スクショ 20枚/月",
