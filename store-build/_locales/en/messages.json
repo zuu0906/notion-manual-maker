@@ -1,7 +1,10 @@
 {
   "extName": { "message": "Notion Manual Maker" },
-  "extDescription": { "message": "Record clicks, auto-generate red-circle annotations, add AI captions, and save directly to Notion. Build operation manuals 10x faster." },
+  "extDescription": { "message": "Record your clicks to auto-build step-by-step guides & SOPs in Notion. Adds arrows + AI captions. A Scribe-style manual maker for Notion. Free to start." },
   "htmlLang": { "message": "en" },
+  "reviewBannerMsg": { "message": "🎉 Manual created! A quick review would really help us." },
+  "reviewYesBtn": { "message": "Leave a review" },
+  "reviewLaterBtn": { "message": "Later" },
 
   "myPage": { "message": "My Page" },
   "portalLinkTitle": { "message": "Manage your plan" },

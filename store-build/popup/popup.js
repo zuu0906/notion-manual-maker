@@ -101,6 +101,9 @@ const usageText = document.getElementById('usage-text');
 const upgradeSection = document.getElementById('upgrade-section');
 const upgradeMsg     = document.getElementById('upgrade-msg');
 const upgradeBtn     = document.getElementById('upgrade-btn');
+const reviewSection  = document.getElementById('review-section');
+const reviewYesBtn   = document.getElementById('review-yes');
+const reviewLaterBtn = document.getElementById('review-later');
 
 // DOM refs — 記録中バナー
 const recBanner    = document.getElementById('rec-banner');
@@ -161,7 +164,6 @@ async function fetchAuthUser(token) {
   });
   const data = await res.json();
   if (!data.error) { authUserCache.data = data; authUserCache.token = token; authUserCache.ts = now; }
-  console.log('[auth-user] plan:', data.plan, 'monthly_screenshots:', data.monthly_screenshots);
   return data;
 }
 
@@ -384,6 +386,26 @@ upgradeBtn.addEventListener('click', () => {
   authUserCache.ts = 0; // 戻ってきた時に必ず最新プランを取得
   chrome.tabs.create({ url: DASHBOARD_URL });
 });
+
+// ── レビュー依頼（初回保存成功後に1回だけ・任意・☆強制なし＝ストアポリシー順守）──
+const REVIEW_URL = 'https://chromewebstore.google.com/detail/notion-manual-maker/kapchgeffhkfffhflcpjjkiojneipicd/reviews';
+
+async function maybeShowReviewPrompt() {
+  try {
+    const { review_prompted } = await chrome.storage.local.get('review_prompted');
+    if (review_prompted) return;          // 一度出したら二度と出さない
+    if (reviewSection) reviewSection.style.display = 'flex';
+  } catch {}
+}
+function dismissReview() {
+  try { chrome.storage.local.set({ review_prompted: true }); } catch {}
+  if (reviewSection) reviewSection.style.display = 'none';
+}
+if (reviewYesBtn) reviewYesBtn.addEventListener('click', () => {
+  chrome.tabs.create({ url: REVIEW_URL });
+  dismissReview();
+});
+if (reviewLaterBtn) reviewLaterBtn.addEventListener('click', dismissReview);
 
 // ── AI UI更新 ──
 
@@ -1262,6 +1284,7 @@ async function saveToNotion() {
           stopAndStopContent();
           renderSteps();
           updateRecordUI();
+          maybeShowReviewPrompt(); // 保存成功後に1回だけレビュー依頼
         }
         // 保存後にローカルのカウントを再読み込みして使用量バーを更新
         const { monthly_screenshots: saved } = await chrome.storage.sync.get('monthly_screenshots');
