@@ -1,6 +1,6 @@
 {
   "extName": { "message": "Notion Manual Maker" },
-  "extDescription": { "message": "Record your clicks to auto-build step-by-step guides & SOPs in Notion. Adds arrows + AI captions. A Scribe-style manual maker for Notion. Free to start." },
+  "extDescription": { "message": "Record clicks to auto-build step-by-step guides & SOPs in Notion. Adds arrows + AI captions. A Scribe-style tool for Notion." },
   "htmlLang": { "message": "en" },
   "reviewBannerMsg": { "message": "🎉 Manual created! A quick review would really help us." },
   "reviewYesBtn": { "message": "Leave a review" },
