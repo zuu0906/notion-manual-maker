@@ -204,12 +204,15 @@ async function runWriter(outline, narrativeSpine = null) {
 
   // 各セクションの末尾300字を蓄積（文体・リズムの引き継ぎ用）
   const previousSections = [];
-  for (const heading of sections) {
+  for (let i = 0; i < sections.length; i++) {
+    const heading = sections[i];
     log(`  セクション生成中: "${heading.text}"`);
     const sectionResult = await writeSection(heading, outline, previousSections, narrativeSpine);
     const written = stripMeta(sectionResult.text);
     content += `\n<h2>${heading.text}</h2>\n${written}\n`;
-    if (heading.ctaHere) {
+    // 最終セクション直後は末尾の CLOSING_CTA が入るため、インラインCTAは挿入しない（CTA2連続を防止）
+    const isLastSection = i === sections.length - 1;
+    if (heading.ctaHere && !isLastSection) {
       content += `\n${CTA_HTML}\n`;
     }
     // 末尾300字をHTMLタグ除去して蓄積
@@ -225,7 +228,8 @@ async function runWriter(outline, narrativeSpine = null) {
   content += `\n${CLOSING_CTA}\n`;
 
   const totalChars = content.replace(/<[^>]+>/g, '').replace(/\s+/g, '').length;
-  const ctaCount = (content.match(/chrome-manual-maker\.s-tasklog\.com/g) || []).length;
+  // CTAブロック数（中盤の CTA_HTML + 末尾の CLOSING_CTA。両方とも「無料でインストール」を含む）
+  const ctaCount = (content.match(/無料でインストール/g) || []).length;
 
   return {
     title: outline.suggestedTitle,

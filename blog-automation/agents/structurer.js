@@ -105,16 +105,14 @@ ${personaBlock}
   outline.readerProblem = research.readerProblem || '';
   outline.problemSolution = research.problemSolution || '';
 
-  // 末尾のH2に必ずCTAを保証する
+  // 中盤に必ずインラインCTAを1つ保証する（末尾CTAは writer の CLOSING_CTA が担うため、
+  // 最終H2の ctaHere は writer 側で無視される。中盤＝最終以外のH2にCTAが無ければ補う）
   const h2s = outline.headings.filter(h => h.level === 'h2');
-  if (h2s.length > 0) {
-    const lastH2 = h2s[h2s.length - 1];
-    if (!h2s.some(h => h.ctaHere)) {
-      const midIdx = Math.floor(h2s.length / 2) - 1;
-      if (midIdx >= 0) h2s[Math.max(0, midIdx)].ctaHere = true;
-      lastH2.ctaHere = true;
-    } else if (!lastH2.ctaHere) {
-      lastH2.ctaHere = true;
+  if (h2s.length > 1) {
+    const nonLast = h2s.slice(0, -1);
+    if (!nonLast.some(h => h.ctaHere)) {
+      const midIdx = Math.max(0, Math.floor(h2s.length / 2) - 1);
+      h2s[midIdx].ctaHere = true;
     }
   }
 
