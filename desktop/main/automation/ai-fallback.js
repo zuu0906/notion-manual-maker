@@ -163,7 +163,82 @@ function buildVerifyPrompt(step = {}, successCriteria = '') {
   ].join('\n');
 }
 
+// ── マニュアル→フロー変換: ステップ種別の推定 ───────────────────────────────
+// マニュアルのステップは「クリック点＋スクショ＋周辺OCR」だけで、click/type の別や
+// 入力内容を持たない。スクショとテキストヒントから種別だけを推定する（座標は記録点を使う）。
+function buildInferPrompt(step = {}) {
+  const desc = step.label || step.memo || '(no description)';
+  return [
+    'You convert ONE step of a Windows operation manual into an automation step.',
+    'The user clicked a single point on the screenshot (the red marker / recorded point).',
+    'Decide whether that point is a BUTTON/LINK/MENU to click, or a TEXT FIELD to type into.',
+    '',
+    'Rules:',
+    '- "action": "click" for buttons, links, menus, checkboxes, tabs, icons.',
+    '- "action": "type" ONLY when the point is clearly a text input / search box / editable field.',
+    '- "isSecret": true if the field is a password / PIN / secret (do NOT read or guess its value).',
+    '- "inputText": include a literal value ONLY if the description clearly states what to type',
+    '  (e.g. memo says 「営業部」と入力). Otherwise null — it will be asked at run time.',
+    '- "successCriteria": a SHORT, visually checkable result of this step, or null.',
+    '',
+    'Step:',
+    `- description: ${desc}`,
+    step.ocrContext ? `- nearby text on screen: ${step.ocrContext}` : '- nearby text on screen: (none)',
+    '',
+    'Return STRICT JSON only, no prose:',
+    '{"action":"click"|"type","isSecret":false,"inputText":null,"successCriteria":null}',
+  ].join('\n');
+}
+
+// AI の生オブジェクト → 検証済みのステップ計画。安全側に倒す。
+function normalizeInfer(obj) {
+  const o = obj && typeof obj === 'object' ? obj : {};
+  let action = String(o.action || '').toLowerCase();
+  if (action !== 'type') action = 'click'; // 既定は click（最も安全）
+  const out = { action };
+
+  if (action === 'type') {
+    const isSecret = o.isSecret === true;
+    out.isSecret = isSecret;
+    const literal = typeof o.inputText === 'string' ? o.inputText.trim() : '';
+    if (isSecret) {
+      // 秘匿は値を持たせず必ず実行時入力
+      out.inputText = null;
+      out.promptAtRuntime = true;
+    } else if (literal) {
+      out.inputText = literal.slice(0, 500);
+      out.promptAtRuntime = false;
+    } else {
+      // 入力内容が不明 → 実行時にユーザーへ尋ねる
+      out.inputText = null;
+      out.promptAtRuntime = true;
+    }
+  }
+
+  const sc = typeof o.successCriteria === 'string' ? o.successCriteria.trim() : '';
+  if (sc) out.successCriteria = sc.slice(0, 200);
+  return out;
+}
+
 // ── 公開 API（interfaces.AiFallback）────────────────────────────────────────
+/**
+ * マニュアルの 1 ステップ（スクショ＋テキスト）から click/type 等を推定する。
+ * 失敗・未設定時は呼び出し側で 'click' 既定に倒すこと。
+ * @param {{screenshotDataUrl?:string, step:object}} ctx
+ * @returns {Promise<{action:string, isSecret?:boolean, inputText?:string|null, promptAtRuntime?:boolean, successCriteria?:string}>}
+ */
+async function inferStepAction(ctx = {}) {
+  if (process.env.AUTOMATION_AI_BACKEND === 'proxy') {
+    throw new Error('proxy_backend_not_implemented'); // Phase 7
+  }
+  const parts = [{ text: buildInferPrompt(ctx.step) }];
+  const shot = imagePart(ctx.screenshotDataUrl);
+  if (shot) parts.push({ text: 'Screenshot of this step:' }, shot);
+
+  const raw = await callGemini(parts);
+  return normalizeInfer(parseAiJson(raw));
+}
+
 /**
  * @param {{screenshotDataUrl:string,recordedCropDataUrl?:string,step:object,uiaTreeText?:string}} ctx
  * @returns {Promise<import('./interfaces')&{action:string}>}
@@ -255,10 +330,12 @@ module.exports = {
   decideNextAction,
   verifyResult,
   recoverFromObstacle,
+  inferStepAction,
   completeJson,
   // テスト用内部関数（ネットワーク非依存・純関数）
   _internals: {
     splitDataUrl, parseAiJson, normalizeAction, normalizeVerify,
     buildDecidePrompt, buildVerifyPrompt, buildRecoverPrompt, clampInt, clamp01,
+    buildInferPrompt, normalizeInfer,
   },
 };
