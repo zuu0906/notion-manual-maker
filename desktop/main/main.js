@@ -41,6 +41,12 @@ app.whenReady().then(() => {
   registerHotkeys();
   cleanupTempFiles();
   if (automation) automation.init({ getMainWindow: () => mainWindow, store });
+  // マニュアル → 自動実行フロー変換（automation β が有効なときのみ実体が動く）
+  ipcMain.handle('automation:is-enabled', () => ({ enabled: !!automation }));
+  ipcMain.handle('automation:create-flow-from-manual', async (_e, args = {}) => {
+    if (!automation) return { ok: false, error: 'automation_disabled' };
+    return automation.createFlowFromManual({ name: (args && args.name) || '', steps });
+  });
   // アップデートチェック（起動から5秒後）
   setTimeout(() => {
     autoUpdater.checkForUpdatesAndNotify().catch(err => {

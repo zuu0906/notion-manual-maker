@@ -18,6 +18,8 @@ const safety = require('./safety');
 const hud = require('./hud');
 const nlEditor = require('./nl-editor');
 const recorder = require('./recorder');
+const aiFallback = require('./ai-fallback');
+const { convertManualToFlow } = require('./manual-to-flow');
 
 let automationWindow = null;
 let editorWindows = new Map(); // flowId -> BrowserWindow
@@ -317,9 +319,42 @@ function init(ctx) {
   console.log('[automation] enabled (AUTOMATION_ENABLED=1)');
 }
 
+/**
+ * マニュアル（main.js のメモリ上 steps）→ 自動実行 Flow を生成して保存する。
+ * main.js の 'automation:create-flow-from-manual' ハンドラから呼ばれる。
+ * @param {{name?:string, steps:object[]}} manual
+ */
+async function createFlowFromManual(manual = {}) {
+  try {
+    const steps = Array.isArray(manual.steps) ? manual.steps : [];
+    if (steps.length === 0) return { ok: false, error: 'no_steps' };
+
+    let progressed = 0;
+    const flow = await convertManualToFlow(
+      { name: manual.name, steps },
+      {
+        ai: aiFallback,
+        onProgress: (p) => {
+          progressed = p.index;
+          // 変換を起動したのはメインウィンドウ（popup）なのでそちらへ進捗を返す
+          const mw = _ctx && typeof _ctx.getMainWindow === 'function' ? _ctx.getMainWindow() : null;
+          if (mw && !mw.isDestroyed()) mw.webContents.send('automation:convert-progress', p);
+        },
+      }
+    );
+    const id = flowStore.saveFlow(flow);
+    // 生成したフローを一覧で見せる
+    createAutomationWindow();
+    notifyFlowsChanged();
+    return { ok: true, id, name: flow.name, stepCount: flow.steps.length, progressed };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
 /** トレイメニューへ差し込む項目（main.js の createTray から利用） */
 function trayMenuItem() {
   return { label: '自動実行（β）', click: () => createAutomationWindow() };
 }
 
-module.exports = { init, createAutomationWindow, trayMenuItem };
+module.exports = { init, createAutomationWindow, trayMenuItem, createFlowFromManual };

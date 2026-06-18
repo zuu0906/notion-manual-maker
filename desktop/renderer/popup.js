@@ -84,6 +84,7 @@ const destFilter       = document.getElementById('dest-filter');
 const destRefreshBtn   = document.getElementById('dest-refresh-btn');
 const bulkGenBtn       = document.getElementById('bulk-gen-btn');
 const pdfBtn           = document.getElementById('pdf-btn');
+const automationBtn    = document.getElementById('automation-btn');
 const aiCallsLabel     = document.getElementById('ai-calls-label');
 const googleSignInSection = document.getElementById('google-sign-in-section');
 const googleSignInBtn  = document.getElementById('google-sign-in-btn');
@@ -853,6 +854,9 @@ function updateStepsUI() {
   if (pdfBtn.style.display !== 'none') {
     pdfBtn.disabled = count === 0;
   }
+  if (automationBtn.style.display !== 'none') {
+    automationBtn.disabled = count === 0;
+  }
   if (bulkGenBtn.style.display !== 'none') {
     bulkGenBtn.disabled = count === 0 || !((state.user?.ai_calls_limit ?? 0) > (state.user?.ai_calls_used ?? 0));
   }
@@ -1073,6 +1077,48 @@ saveBtn.addEventListener('click', async () => {
 pdfBtn.addEventListener('click', () => {
   const title = pageTitle.value.trim() || t('pdfDefaultTitle');
   api.exportPdf({ title, steps: state.steps });
+});
+
+// ── 自動実行（β）: マニュアル → 自動実行フロー変換 ────────────────────────────
+// automation β（AUTOMATION_ENABLED=1）が有効なときだけボタンを出す。
+let automationConverting = false;
+const automationBtnLabel = automationBtn.textContent;
+
+(async () => {
+  try {
+    const r = await api.automationEnabled?.();
+    if (r && r.enabled) {
+      automationBtn.style.display = '';
+      automationBtn.disabled = state.steps.length === 0;
+      // 進捗購読は一度だけ（クリック毎の購読でリスナーが溜まるのを防ぐ）
+      api.onAppEvent?.('automation:convert-progress', (p) => {
+        if (automationConverting) automationBtn.textContent = `変換中… ${p.index}/${p.total}`;
+      });
+    }
+  } catch { /* 無効ビルドでは何もしない */ }
+})();
+
+automationBtn.addEventListener('click', async () => {
+  if (state.steps.length === 0 || automationConverting) return;
+  automationConverting = true;
+  automationBtn.disabled = true;
+  automationBtn.textContent = `変換中… 0/${state.steps.length}`;
+  try {
+    const res = await api.createFlowFromManual({ name: pageTitle.value.trim() });
+    automationBtn.textContent = res && res.ok
+      ? `✓ ${res.stepCount}ステップを変換`
+      : '変換に失敗';
+    if (!(res && res.ok)) console.error('[automation] convert failed:', res && res.error);
+  } catch (e) {
+    automationBtn.textContent = '変換に失敗';
+    console.error('[automation]', e);
+  } finally {
+    automationConverting = false;
+    setTimeout(() => {
+      automationBtn.textContent = automationBtnLabel;
+      automationBtn.disabled = state.steps.length === 0;
+    }, 2200);
+  }
 });
 
 // ── Clear ───────────────────────────────────────────────────────────────────

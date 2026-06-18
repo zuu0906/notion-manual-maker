@@ -66,6 +66,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // PDF export
   exportPdf: (args) => ipcRenderer.invoke('pdf:export', args),
 
+  // 自動実行（β）— マニュアル → 自動実行フロー変換
+  automationEnabled: () => ipcRenderer.invoke('automation:is-enabled'),
+  createFlowFromManual: (args) => ipcRenderer.invoke('automation:create-flow-from-manual', args),
+
   // UI helpers
   openExternal: (url) => ipcRenderer.send('app:open-external', url),
   openPreview: (src) => ipcRenderer.send('preview:open', src),
@@ -76,7 +80,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   // 汎用イベント購読（ホワイトリスト方式）— autoUpdater / OCRステータス通知用
   onAppEvent: (channel, cb) => {
-    const allowed = ['app:update-available', 'app:update-downloaded', 'app:ocr-status', 'app:ocr-failed'];
+    const allowed = ['app:update-available', 'app:update-downloaded', 'app:ocr-status', 'app:ocr-failed', 'automation:convert-progress'];
     if (allowed.includes(channel)) {
       ipcRenderer.on(channel, (_, data) => cb(data));
     }
