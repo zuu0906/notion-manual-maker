@@ -352,9 +352,24 @@ async function createFlowFromManual(manual = {}) {
   }
 }
 
+/**
+ * 物理px の画面座標にある UIA 要素情報を返す（第1階層用・撮影時採取）。
+ * main.js の overlay:captured から、オーバーレイを閉じた直後のライブ画面に対して呼ぶ。
+ * worker は send() が自動 spawn する（次回実行時に dispose されても再起動される）。
+ * @returns {Promise<object|null>} UiaInfo か null
+ */
+async function inspectUiaAtPoint(x, y) {
+  try {
+    const info = await inputDriver.uiaInspect(x, y);
+    return info || null;
+  } catch {
+    return null; // 採取失敗は無視（OCR/AI 階層で再生時に特定する）
+  }
+}
+
 /** トレイメニューへ差し込む項目（main.js の createTray から利用） */
 function trayMenuItem() {
   return { label: '自動実行（β）', click: () => createAutomationWindow() };
 }
 
-module.exports = { init, createAutomationWindow, trayMenuItem, createFlowFromManual };
+module.exports = { init, createAutomationWindow, trayMenuItem, createFlowFromManual, inspectUiaAtPoint };

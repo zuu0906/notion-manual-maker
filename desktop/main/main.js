@@ -307,7 +307,7 @@ function showOverlay(dataUrl, screenWidth, screenHeight, nextStepNumber, piiRegi
 }
 
 // ── IPC: overlay events ────────────────────────────────────────────────────
-ipcMain.on('overlay:captured', (_, { annotatedDataUrl, rawDataUrl, x, y, screenWidth, screenHeight, stepNumber, piiRegions }) => {
+ipcMain.on('overlay:captured', async (_, { annotatedDataUrl, rawDataUrl, x, y, screenWidth, screenHeight, stepNumber, piiRegions }) => {
   if (overlayWindow && !overlayWindow.isDestroyed()) {
     overlayWindow.close();
     overlayWindow = null;
@@ -319,6 +319,23 @@ ipcMain.on('overlay:captured', (_, { annotatedDataUrl, rawDataUrl, x, y, screenW
     .map(w => w.t).join(' ').trim();
   pendingOcrWords = [];
   if (!recordingStartAt) recordingStartAt = Date.now();
+
+  // 自動化β: 撮影点のUIA要素を「ライブ画面」から採取し第1階層に使う。
+  // オーバーレイを閉じた直後・メインウィンドウを出す前に取得する（点が対象アプリを指す）。
+  let uia = null;
+  if (automation && typeof automation.inspectUiaAtPoint === 'function') {
+    try {
+      const { bounds, scaleFactor } = screen.getPrimaryDisplay();
+      const physX = Math.round((bounds.x + x) * scaleFactor);
+      const physY = Math.round((bounds.y + y) * scaleFactor);
+      await new Promise(r => setTimeout(r, 140)); // オーバーレイ消滅を待つ
+      // UIA採取が遅くても撮影フローを止めない（2.5sで諦めて no-uia）
+      uia = await Promise.race([
+        automation.inspectUiaAtPoint(physX, physY),
+        new Promise(r => setTimeout(() => r(null), 2500)),
+      ]);
+    } catch { uia = null; }
+  }
 
   steps.push({
     stepNumber,
@@ -332,6 +349,7 @@ ipcMain.on('overlay:captured', (_, { annotatedDataUrl, rawDataUrl, x, y, screenW
     piiRegions: piiRegions ?? [],
     hasPiiBlur: (piiRegions ?? []).length > 0,
     ocrContext: nearby || '',
+    uia: uia || undefined,
   });
 
   notifyRenderer({ steps });

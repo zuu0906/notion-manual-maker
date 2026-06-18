@@ -39,7 +39,9 @@ function buildFlowStep(manualStep = {}, plan = {}, index = 0) {
   if (manualStep.processName) step.processName = String(manualStep.processName);
 
   if (action === 'type') {
-    if (plan.isSecret) {
+    // UIA が IsPassword を返していれば AI 推定に依らず秘匿として扱う（決定論・最優先）
+    const uiaPassword = !!(manualStep.uia && manualStep.uia.isPassword);
+    if (plan.isSecret || uiaPassword) {
       step.isSecret = true;
       step.inputText = null;
       step.promptAtRuntime = true;

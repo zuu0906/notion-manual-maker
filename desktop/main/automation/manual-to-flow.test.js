@@ -66,6 +66,14 @@ t('buildFlowStep: uia があれば引き継ぐ（第1階層用）', () => {
   assert.deepStrictEqual(s.uia, { automationId: 'loginBtn', controlType: 'Button' });
 });
 
+t('buildFlowStep: uia.isPassword なら AI 推定に依らず秘匿', () => {
+  const ms = { ...manualStep, uia: { controlType: 'Edit', isPassword: true } };
+  const s = buildFlowStep(ms, { action: 'type', inputText: 'leak' }, 0);
+  assert.strictEqual(s.isSecret, true);
+  assert.strictEqual(s.inputText, null);
+  assert.strictEqual(s.promptAtRuntime, true);
+});
+
 t('buildFlowStep: successCriteria を引き継ぐ', () => {
   const s = buildFlowStep(manualStep, { successCriteria: 'ダッシュボードが表示される' }, 0);
   assert.strictEqual(s.successCriteria, 'ダッシュボードが表示される');
