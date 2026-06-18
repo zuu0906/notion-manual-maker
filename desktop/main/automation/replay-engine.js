@@ -272,39 +272,49 @@ async function verifyStep(step, result, { deps, report }) {
   return result; // success / uncertain は続行
 }
 
-// ── ロケーター3階層（UIA → OCR → AI）。返り値は物理px or null ──────────────
+// ── ロケーター（ハイブリッド: UIA × OCR を相互検証、AIは衝突/全滅時のみ）──────
+// UIA と OCR は安価・ローカル・決定論的なので毎ステップ両方走らせ、突き合わせる。
+// AI は高コスト・非決定論なので「衝突（UIA/OCR不一致）」か「両者該当なし」のときだけ。
+// 返り値は物理px の LocateResult か null。
 async function locate(step, { deps, report }) {
   const { inputDriver, screenReader, matcher, ai } = deps;
   const stepNumber = step.stepNumber || 0;
 
-  // ① UIA
-  const uiaLoc = await matcher.matchByUia(step, inputDriver.uiaFind);
-  if (uiaLoc) return uiaLoc;
-
-  // 現在画面を1回キャプチャ（OCR / AI で共用）
+  // 画面を1回キャプチャ（UIAの座標解消・OCR・AIで共用）。UIA は cap 無しでも可。
   let cap;
   try { cap = await screenReader.capture(); } catch { cap = null; }
-  if (!cap) return null;
+  const scaleFactor = cap ? cap.scaleFactor : undefined;
 
-  // ② OCR
+  // ① UIA（記録座標を物理pxに変換して同名重複の曖昧解消に使う）
+  let uiaLoc = null;
+  try { uiaLoc = await matcher.matchByUia(step, inputDriver.uiaFind, scaleFactor); } catch { uiaLoc = null; }
+
+  // ② OCR（cap がある場合）
   let ocrLoc = null;
-  try {
-    const { words } = await screenReader.ocr(cap.dataUrl);
-    ocrLoc = matcher.matchByOcr(step, words, { w: cap.width, h: cap.height });
-  } catch { /* OCR失敗は無視してAIへ */ }
-  if (ocrLoc && ocrLoc.confidence >= OCR_ACCEPT) return ocrLoc;
-
-  // ③ AI フォールバック
-  if (ai.isConfigured && ai.isConfigured()) {
-    report(stepNumber, 'ai-fallback', { label: step.label || '' });
+  if (cap) {
     try {
-      const aiLoc = await aiLocate(step, cap, ai);
-      if (aiLoc) return aiLoc;
-    } catch { /* AI失敗は下の弱OCRへ */ }
+      const { words } = await screenReader.ocr(cap.dataUrl);
+      ocrLoc = matcher.matchByOcr(step, words, { w: cap.width, h: cap.height });
+    } catch { /* OCR失敗は無視 */ }
   }
 
-  // 最後の頼み: 信頼度の低い OCR 一致があればそれを使う（無ければ失敗）
-  return ocrLoc || null;
+  // 突き合わせ
+  const rec = matcher.reconcile(uiaLoc, ocrLoc);
+  if (rec.decision === 'use') return rec.loc;
+
+  // 衝突 / 弱OCR / 全滅 → ③ AI で裁定
+  let aiLoc = null;
+  if (cap && ai.isConfigured && ai.isConfigured()) {
+    const phase = rec.decision === 'conflict' ? 'ai-tiebreak' : 'ai-fallback';
+    report(stepNumber, phase, { label: step.label || '' });
+    try { aiLoc = await aiLocate(step, cap, ai); } catch { aiLoc = null; }
+  }
+  if (aiLoc) return aiLoc;
+
+  // AI が決められない場合
+  if (rec.decision === 'conflict') return null; // 衝突未解決 → ブラインドクリック禁止
+  if (rec.decision === 'weak') return rec.loc;   // 最後の頼み: 信頼度の低い OCR
+  return null;
 }
 
 // AI の 0..1000 正規化座標を物理pxへ変換して LocateResult に整える。

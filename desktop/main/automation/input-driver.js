@@ -135,7 +135,14 @@ module.exports = {
       className: r.className, isPassword: r.isPassword, path: r.path, rect: r.rect,
     };
   }),
-  uiaFind: (uia) => send('uiaFind', { uia }, 8000).then(r => (r.found ? { rect: r.rect, score: r.score } : null)),
+  // point（物理px・任意）を渡すと、同点候補を記録座標に最も近い要素で曖昧解消する。
+  uiaFind: (uia, point) => {
+    const msg = { uia };
+    if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) { msg.x = point.x; msg.y = point.y; }
+    return send('uiaFind', msg, 8000).then(r => (
+      r.found ? { rect: r.rect, score: r.score, candidates: r.candidates || 1 } : null
+    ));
+  },
   uiaFocused: () => send('uiaFocused', {}, 8000).then(r => {
     if (r.element === null) return null;
     return {

@@ -38,6 +38,8 @@ function makeDeps(over = {}) {
     matchByUia: over.matchByUia || (async () => null),
     matchByOcr: over.matchByOcr || (() => null),
     toPhysical: (s) => ({ x: s.x, y: s.y }),
+    // 突き合わせは純関数の本物を使う（ハイブリッド判断）
+    reconcile: over.reconcile || require('./matcher').reconcile,
   };
   const ai = {
     isConfigured: () => over.aiConfigured || false,

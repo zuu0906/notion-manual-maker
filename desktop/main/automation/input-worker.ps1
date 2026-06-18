@@ -237,7 +237,7 @@ function Uia-FromPoint([int]$x, [int]$y) {
 }
 
 # 前面ウィンドウ配下を探索し、記録時の uia 情報に最も一致する要素のrectを返す
-function Uia-Find($q) {
+function Uia-Find($q, $hasPoint, $px, $py) {
     $h = [Win32Input]::GetForegroundWindow()
     if ($h -eq [IntPtr]::Zero) { return $null }
     $root = $null
@@ -249,8 +249,9 @@ function Uia-Find($q) {
     try { $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $cond) } catch {}
     if ($null -eq $all) { return $null }
 
-    $best = $null
-    $bestScore = 0.0
+    # 最大スコアの要素を「すべて」集める（同点＝記録時の要素が複数該当する曖昧ケース）
+    $maxScore = 0.0
+    $cands = New-Object System.Collections.ArrayList
     foreach ($el in $all) {
         $score = 0.0
         try {
@@ -259,9 +260,26 @@ function Uia-Find($q) {
             if ($q.controlType -and (Uia-ControlTypeName $el) -eq $q.controlType) { $score += 2 }
             if ($q.className -and $el.Current.ClassName -eq $q.className) { $score += 1 }
         } catch {}
-        if ($score -gt $bestScore) { $bestScore = $score; $best = $el }
+        if ($score -le 0) { continue }
+        if ($score -gt $maxScore) { $maxScore = $score; $cands.Clear(); [void]$cands.Add($el) }
+        elseif ($score -eq $maxScore) { [void]$cands.Add($el) }
     }
-    if ($null -eq $best) { return $null }
+    if ($cands.Count -eq 0) { return $null }
+
+    # 同点が複数あり記録座標が渡されていれば、記録点に最も近い要素を選ぶ（曖昧解消）
+    $chosen = $cands[0]
+    if ($hasPoint -and $cands.Count -gt 1) {
+        $bestD = [double]::MaxValue
+        foreach ($el in $cands) {
+            try {
+                $rr = $el.Current.BoundingRectangle
+                $cx = $rr.X + $rr.Width / 2.0
+                $cy = $rr.Y + $rr.Height / 2.0
+                $d = ($cx - $px) * ($cx - $px) + ($cy - $py) * ($cy - $py)
+                if ($d -lt $bestD) { $bestD = $d; $chosen = $el }
+            } catch {}
+        }
+    }
 
     $maxPossible = 0.0
     if ($q.automationId) { $maxPossible += 3 }
@@ -269,10 +287,10 @@ function Uia-Find($q) {
     if ($q.controlType) { $maxPossible += 2 }
     if ($q.className) { $maxPossible += 1 }
     if ($maxPossible -le 0) { return $null }
-    $norm = [math]::Round($bestScore / $maxPossible, 3)
+    $norm = [math]::Round($maxScore / $maxPossible, 3)
 
-    $r = $best.Current.BoundingRectangle
-    return '"rect":{"x":' + [int]$r.X + ',"y":' + [int]$r.Y + ',"w":' + [int]$r.Width + ',"h":' + [int]$r.Height + '},"score":' + $norm
+    $r = $chosen.Current.BoundingRectangle
+    return '"rect":{"x":' + [int]$r.X + ',"y":' + [int]$r.Y + ',"w":' + [int]$r.Width + ',"h":' + [int]$r.Height + '},"score":' + $norm + ',"candidates":' + $cands.Count
 }
 
 # VKコード対応表（よく使うキー）
@@ -368,7 +386,9 @@ while ($null -ne ($line = $stdin.ReadLine())) {
                 else { Reply $id $info }
             }
             'uiaFind' {
-                $res = Uia-Find $req.uia
+                $hasPt = ($null -ne $req.x) -and ($null -ne $req.y)
+                $res = if ($hasPt) { Uia-Find $req.uia $true ([double]$req.x) ([double]$req.y) }
+                       else { Uia-Find $req.uia $false 0.0 0.0 }
                 if ($null -eq $res) { Reply $id '"found":false' }
                 else { Reply $id ('"found":true,' + $res) }
             }

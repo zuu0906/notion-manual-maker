@@ -21,30 +21,41 @@ function toPhysical(step, scaleFactor) {
 // ── 第1階層: UIA ────────────────────────────────────────────────────────────
 /**
  * 記録時の uia 情報で前面ウィンドウ内の要素を特定し、その中心を返す。
+ * 記録座標（step.x/y）を物理pxへ変換して uiaFind に渡し、同名重複の曖昧解消に使う。
  * @param {object} step  step.uia（UiaInfo）が必要
- * @param {(uia:object)=>Promise<{rect:{x,y,w,h},score:number}|null>} uiaFind  input-driver.uiaFind
- * @returns {Promise<object|null>} LocateResult|null
+ * @param {(uia:object, point?:{x:number,y:number})=>Promise<{rect:{x,y,w,h},score:number,candidates?:number}|null>} uiaFind
+ * @param {number} [scaleFactor] 現在画面の scaleFactor（記録点の物理px変換に使用）
+ * @returns {Promise<object|null>} LocateResult|null（rect と candidates を含む）
  */
-async function matchByUia(step, uiaFind) {
+async function matchByUia(step, uiaFind, scaleFactor) {
   if (!step || !step.uia || typeof uiaFind !== 'function') return null;
   // 特定に使える識別子が皆無なら諦める（誤特定防止）
   const u = step.uia;
   if (!u.automationId && !u.name && !u.controlType && !u.className) return null;
 
+  // 記録座標があれば物理pxへ変換して曖昧解消ヒントに使う
+  const point = (typeof step.x === 'number' && typeof step.y === 'number')
+    ? toPhysical(step, scaleFactor)
+    : undefined;
+
   let res;
-  try { res = await uiaFind(u); } catch { return null; }
+  try { res = await uiaFind(u, point); } catch { return null; }
   if (!res || !res.rect) return null;
   const score = typeof res.score === 'number' ? res.score : 0;
   if (score < UIA_MIN_SCORE) return null;
 
   const r = res.rect;
   if (r.w <= 0 || r.h <= 0) return null;
+  const candidates = typeof res.candidates === 'number' ? res.candidates : 1;
   return {
     x: r.x + Math.round(r.w / 2),
     y: r.y + Math.round(r.h / 2),
+    rect: { x: r.x, y: r.y, w: r.w, h: r.h },
+    candidates,
+    ambiguous: candidates > 1,
     confidence: score,
     method: 'uia',
-    reason: `uia score=${score}`,
+    reason: `uia score=${score}${candidates > 1 ? ` (${candidates}候補)` : ''}`,
   };
 }
 
@@ -201,4 +212,56 @@ function matchByOcr(step, currentWords, curSize) {
   return null;
 }
 
-module.exports = { toPhysical, matchByUia, matchByOcr };
+// ── ハイブリッド突き合わせ（UIA × OCR の相互検証）─────────────────────────────
+// UIA と OCR は故障モードが独立（UIA=独自描画/動的ID/同名重複、OCR=文言変化/
+// アイコン/同一文字列）。両方を安価に算出して突き合わせ、AIは衝突/全滅時のみ。
+const OCR_ACCEPT = 0.6; // replay-engine の OCR_ACCEPT と一致させる
+
+function pointInRect(p, rect, pad = 0) {
+  if (!p || !rect) return false;
+  return p.x >= rect.x - pad && p.x <= rect.x + rect.w + pad &&
+         p.y >= rect.y - pad && p.y <= rect.y + rect.h + pad;
+}
+
+/**
+ * UIA結果とOCR結果を突き合わせて最終判断を返す（純関数）。
+ * decision: 'use'（loc採用）/ 'conflict'（AI裁定へ・ブラインドクリック禁止）/
+ *           'weak'（弱OCR・AI失敗時の最後の頼み）/ 'none'（該当なし）
+ * @returns {{decision:'use'|'conflict'|'weak'|'none', loc:object|null, reason:string}}
+ */
+function reconcile(uiaLoc, ocrLoc) {
+  const hasUia = !!uiaLoc;
+  const hasOcr = !!ocrLoc;
+  const ocrStrong = hasOcr && ocrLoc.confidence >= OCR_ACCEPT;
+
+  if (hasUia && hasOcr) {
+    const agree = uiaLoc.rect
+      ? pointInRect(ocrLoc, uiaLoc.rect, 8)
+      : Math.hypot(uiaLoc.x - ocrLoc.x, uiaLoc.y - ocrLoc.y) <= 40;
+    if (agree) {
+      // 一致 → UIA採用（要素同定が強い）。信頼度は両者の高い方へ引き上げ。
+      return {
+        decision: 'use',
+        loc: { ...uiaLoc, confidence: Math.max(uiaLoc.confidence, ocrLoc.confidence), reason: `${uiaLoc.reason} + ocr一致` },
+        reason: 'uia+ocr agree',
+      };
+    }
+    // 不一致 → 確信を持って誤クリックする危険。AIで裁定させる。
+    return { decision: 'conflict', loc: null, reason: 'uia/ocr disagree' };
+  }
+
+  if (hasUia) {
+    // UIAのみ。同点複数（曖昧）でも記録座標で最近傍を選んでいるので採用、信頼度は下げる。
+    const loc = uiaLoc.ambiguous ? { ...uiaLoc, confidence: Math.min(uiaLoc.confidence, 0.6) } : uiaLoc;
+    return { decision: 'use', loc, reason: uiaLoc.ambiguous ? 'uia only (ambiguous)' : 'uia only' };
+  }
+
+  if (hasOcr) {
+    if (ocrStrong) return { decision: 'use', loc: ocrLoc, reason: 'ocr only' };
+    return { decision: 'weak', loc: ocrLoc, reason: 'ocr weak' };
+  }
+
+  return { decision: 'none', loc: null, reason: 'no match' };
+}
+
+module.exports = { toPhysical, matchByUia, matchByOcr, reconcile, _internals: { pointInRect, OCR_ACCEPT } };
